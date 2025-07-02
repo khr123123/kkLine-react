@@ -1,4 +1,5 @@
 import ToolBar from './components/GlobalToolBar';
+import DemoPage from './pages/DemoPage';
 
 
 function App(): React.JSX.Element {
@@ -7,6 +8,7 @@ function App(): React.JSX.Element {
   return (
     <>
       <ToolBar />
+      <DemoPage />
     </>
   )
 }
