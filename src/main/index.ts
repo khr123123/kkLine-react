@@ -1,13 +1,13 @@
-import { app, shell, BrowserWindow, ipcMain } from 'electron'
-import { join } from 'path'
-import { electronApp, optimizer, is } from '@electron-toolkit/utils'
-import icon from '../../resources/icon.png?asset'
+import { electronApp, is, optimizer } from '@electron-toolkit/utils';
+import { app, BrowserWindow, ipcMain, shell } from 'electron';
+import { join } from 'path';
+import icon from '../../resources/icon.png?asset';
 let mainWindow: BrowserWindow;
 function createWindow(): void {
   // Create the browser window.
   mainWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: 880,
+    height: 620,
     frame: false, // ❗️设置为 false，移除窗口边框
     resizable: false,
     show: false,

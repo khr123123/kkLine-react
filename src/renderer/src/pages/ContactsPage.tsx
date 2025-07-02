@@ -1,6 +1,5 @@
 import { Avatar, Badge, Input, List, Typography } from 'antd'
 import React, { useState } from 'react'
-import BaseLayout from '../components/BaseLayout'
 
 const { Text } = Typography
 
@@ -53,10 +52,10 @@ const contacts: Contact[] = [
   // ...
 ]
 
-const DemoPage: React.FC = () => {
+const ContactsPage: React.FC = () => {
   const [selectedContact, setSelectedContact] = useState<Contact | null>(contacts[0])
 
-  const contactsList = (
+  return (
     <>
       <div className="drag" style={{ height: 25, width: '100%' }}></div>
       <Input.Search
@@ -102,38 +101,5 @@ const DemoPage: React.FC = () => {
       />
     </>
   )
-
-  const chatArea = selectedContact ? (
-    <>
-      <div className="drag" style={{ height: 25, width: '100%' }}></div>
-      <Typography.Title level={4}>{selectedContact.name}</Typography.Title>
-      <div
-        style={{
-          flexGrow: 1,
-          border: '1px solid #ddd',
-          borderRadius: 4,
-          backgroundColor: '#fff',
-          padding: 16,
-          overflowY: 'auto',
-          minHeight: 200
-        }}
-      >
-        <p>这里显示和 {selectedContact.name} 的聊天消息...</p>
-      </div>
-      <Input.TextArea
-        rows={3}
-        placeholder={`给 ${selectedContact.name} 发送消息...`}
-        style={{ marginTop: 12 }}
-      />
-    </>
-  ) : (
-    <>
-      <div className="drag" style={{ height: 25, width: '100%' }}></div>
-      <Text>请选择联系人开始聊天</Text>
-    </>
-  )
-
-  return <BaseLayout contactsList={contactsList} chatArea={chatArea} />
 }
-
-export default DemoPage
+export default ContactsPage
