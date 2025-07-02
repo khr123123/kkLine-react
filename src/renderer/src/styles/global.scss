@@ -1,0 +1,65 @@
+// =======================
+// 🎨 全局样式（Electron 应用）
+// =======================
+
+// ✅ 设置默认字体
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+        "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji",
+        "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    margin: 0;
+    padding: 0;
+    background-color: #f9f9f9;
+    color: #333;
+    -webkit-app-region: no-drag; // 默认整个页面不拖动
+}
+
+// ✅ 拖动区域样式（用在标题栏等）
+.drag {
+    -webkit-app-region: drag;
+    user-select: none;
+}
+
+// ✅ 非拖动区域（按钮、输入框等）
+.no-drag {
+    -webkit-app-region: no-drag;
+}
+
+// ✅ 滚动条美化（Chrome / Electron 内核有效）
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-track {
+    background-color: transparent;
+}
+
+// ✅ 链接样式
+a {
+    color: #1677ff;
+    text-decoration: none;
+
+    &:hover {
+        text-decoration: underline;
+    }
+}
+
+// ✅ 输入框默认样式
+input,
+textarea {
+    outline: none;
+    font-size: 14px;
+    font-family: inherit;
+}
+
+// ✅ 禁止拖选图像
+img {
+    -webkit-user-drag: none;
+    user-select: none;
+}
