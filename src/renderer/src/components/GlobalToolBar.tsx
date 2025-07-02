@@ -35,7 +35,7 @@ const GlobalToolBar: React.FC = () => {
               icon={
                 <PushpinOutlined
                   rotate={isPinned ? 0 : 45}
-                  style={{ color: isPinned ? '#52c41a' : undefined }}
+                  style={{ color: isPinned ? '#1890ff' : undefined }}
                 />
               }
               size="large"

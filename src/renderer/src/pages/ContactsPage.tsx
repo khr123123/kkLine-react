@@ -1,6 +1,7 @@
-import { Avatar, Badge, Input, List, Typography } from 'antd'
+import { DeleteOutlined, PushpinOutlined, VerticalAlignBottomOutlined, VerticalAlignTopOutlined } from '@ant-design/icons'
+import type { MenuProps } from 'antd'
+import { Avatar, Badge, Dropdown, Input, List, Menu, Typography } from 'antd'
 import React, { useState } from 'react'
-
 const { Text } = Typography
 
 interface Contact {
@@ -10,9 +11,10 @@ interface Contact {
   lastMessage: string
   lastTime: string
   notRead: number
+  isTop?: boolean
 }
 
-const contacts: Contact[] = [
+const initialContacts: Contact[] = [
   {
     id: 1,
     name: '张三',
@@ -29,7 +31,8 @@ const contacts: Contact[] = [
       'https://www.bing.com/th/id/OIP.g5M-iZUiocFCi9YAzojtRAAAAA?w=193&h=211&c=8&rs=1&qlt=90&o=6&cb=ircwebp2&dpr=1.3&pid=3.1&rm=2',
     lastMessage: '今天吃饭了吗？',
     lastTime: '12:00',
-    notRead: 2
+    notRead: 2,
+    isTop: false
   },
   {
     id: 3,
@@ -38,7 +41,8 @@ const contacts: Contact[] = [
       'https://www.bing.com/th/id/OIP.g5M-iZUiocFCi9YAzojtRAAAAA?w=193&h=211&c=8&rs=1&qlt=90&o=6&cb=ircwebp2&dpr=1.3&pid=3.1&rm=2',
     lastMessage: '今天吃饭了吗？',
     lastTime: '12-10',
-    notRead: 2
+    notRead: 2,
+    isTop: false
   },
   {
     id: 123456,
@@ -47,13 +51,76 @@ const contacts: Contact[] = [
       'https://th.bing.com/th/id/ODLS.eb37fcc5-7670-48e7-8c00-cda0f210ba5b?w=32&h=32&qlt=90&pcl=fffffc&o=6&cb=ircwebp2&pid=1.2',
     lastMessage: '今天吃饭了吗？',
     lastTime: '12-10',
-    notRead: 2
+    notRead: 2,
+    isTop: false
   }
-  // ...
 ]
 
+const getMenuItems = (contact: Contact | null): MenuProps['items'] => {
+  if (!contact) return []
+  return [
+    {
+      label: contact.isTop ? '取消置顶' : '置顶',
+      key: 'top',
+      icon: contact.isTop ? <VerticalAlignBottomOutlined /> : <VerticalAlignTopOutlined />
+    },
+    {
+      label: '删除',
+      key: 'delete',
+      icon: <DeleteOutlined />
+    }
+  ]
+}
+
 const ContactsPage: React.FC = () => {
+  const [contacts, setContacts] = useState<Contact[]>(initialContacts)
   const [selectedContact, setSelectedContact] = useState<Contact | null>(contacts[0])
+  const [contextContact, setContextContact] = useState<Contact | null>(null)
+
+  // 置顶联系人：把联系人移到数组头部，并设置 isTop
+  const handleTop = (contact: Contact) => {
+    setContacts((prev) => {
+      const isCurrentlyTop = contact.isTop ?? false
+      if (isCurrentlyTop) {
+        // 取消置顶，保持原顺序
+        return prev.map((c) => (c.id === contact.id ? { ...c, isTop: false } : c))
+      } else {
+        // 置顶，放到头部
+        const filtered = prev.filter((c) => c.id !== contact.id)
+        return [{ ...contact, isTop: true }, ...filtered]
+      }
+    })
+  }
+
+  // 删除联系人：从数组中移除
+  const handleDelete = (contact: Contact) => {
+    setContacts((prev) => prev.filter((c) => c.id !== contact.id))
+    // 如果当前选中被删了，清空或选中第一条
+    if (selectedContact?.id === contact.id) {
+      setSelectedContact(null)
+    }
+  }
+
+  // 菜单点击事件
+  const onMenuClick: MenuProps['onClick'] = ({ key }) => {
+    if (!contextContact) return
+    if (key === 'top') {
+      handleTop(contextContact)
+    }
+    if (key === 'delete') {
+      handleDelete(contextContact)
+    }
+    setContextContact(null)
+  }
+
+  // 给联系人排序，isTop=true的放最前面，其他按id排序（可根据需求改）
+  const sortedContacts = [...contacts].sort((a, b) => {
+    if (a.isTop && !b.isTop) return -1
+    if (!a.isTop && b.isTop) return 1
+    return a.id - b.id
+  })
+
+  const menu = <Menu onClick={onMenuClick} items={getMenuItems(contextContact)} />
 
   return (
     <>
@@ -65,41 +132,80 @@ const ContactsPage: React.FC = () => {
       />
       <List
         itemLayout="horizontal"
-        dataSource={contacts}
+        dataSource={sortedContacts}
         style={{ flexGrow: 1, overflowY: 'auto' }}
         renderItem={(item) => (
-          <List.Item
-            style={{
-              backgroundColor: selectedContact?.id === item.id ? '#e6f7ff' : undefined,
-              cursor: 'pointer',
-              padding: '12px 16px'
+          <Dropdown
+            overlay={menu}
+            trigger={['contextMenu']}
+            onOpenChange={(open) => {
+              if (!open) setContextContact(null)
             }}
-            onClick={() => setSelectedContact(item)}
+            onVisibleChange={(visible) => {
+              if (visible) setContextContact(item)
+            }}
+            key={item.id}
           >
-            <List.Item.Meta
-              avatar={
-                item.id === 123456 ? (
-                  <Badge dot>
-                    <Avatar shape="square" size={50} src={item.avatar} />{' '}
-                  </Badge>
-                ) : (
-                  <Badge count={2}>
-                    <Avatar shape="square" size={50} src={item.avatar} />
-                  </Badge>
-                )
-              }
-              title={<Text strong>{item.name}</Text>}
-              description={
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span>{item.lastMessage}</span>
-                  <span>{item.lastTime}</span>
-                </div>
-              }
-            />
-          </List.Item>
+            <List.Item
+              style={{
+                backgroundColor:
+                  selectedContact?.id === item.id
+                    ? '#e6f7ff' // 选中蓝色背景
+                    : item.isTop
+                      ? '#fff5f8' // 置顶粉色背景
+                      : undefined,
+                cursor: 'pointer',
+                padding: '12px 16px'
+              }}
+              onClick={() => setSelectedContact(item)}
+            >
+              <List.Item.Meta
+                avatar={
+                  item.id === 123456 ? (
+                    <Badge dot>
+                      <Avatar shape="square" size={50} src={item.avatar} />
+                    </Badge>
+                  ) : (
+                    <Badge count={item.notRead}>
+                      <Avatar shape="square" size={50} src={item.avatar} />
+                    </Badge>
+                  )
+                }
+                title={
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center'
+                    }}
+                  >
+                    <Text
+                      strong
+                      style={{
+                        flex: 1,
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis'
+                      }}
+                    >
+                      {item.name}
+                    </Text>
+                    {item.isTop && <PushpinOutlined style={{ marginLeft: 8, color: '#1890ff' }} />}
+                  </div>
+                }
+                description={
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span>{item.lastMessage}</span>
+                    <span>{item.lastTime}</span>
+                  </div>
+                }
+              />
+            </List.Item>
+          </Dropdown>
         )}
       />
     </>
   )
 }
+
 export default ContactsPage
