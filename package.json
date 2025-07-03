@@ -28,6 +28,7 @@
     "@electron-toolkit/utils": "^4.0.0",
     "antd": "^5.26.3",
     "electron-updater": "^6.3.9",
+    "emoji-picker-react": "^4.12.3",
     "react-infinite-scroll-component": "^6.1.0",
     "react-router-dom": "^7.6.3"
   },
