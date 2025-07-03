@@ -3,7 +3,7 @@ import type { MenuProps } from 'antd'
 import { Avatar, Badge, Dropdown, Input, List, Menu, Typography } from 'antd'
 import React, { useState } from 'react'
 const { Text } = Typography
-
+import { useNavigate } from 'react-router-dom'
 interface Contact {
   id: number
   name: string
@@ -74,8 +74,9 @@ const getMenuItems = (contact: Contact | null): MenuProps['items'] => {
 
 const ContactsPage: React.FC = () => {
   const [contacts, setContacts] = useState<Contact[]>(initialContacts)
-  const [selectedContact, setSelectedContact] = useState<Contact | null>(contacts[0])
+  const [selectedContact, setSelectedContact] = useState<Contact | null>(null)
   const [contextContact, setContextContact] = useState<Contact | null>(null)
+  const navigate = useNavigate()
 
   // 置顶联系人：把联系人移到数组头部，并设置 isTop
   const handleTop = (contact: Contact) => {
@@ -157,7 +158,10 @@ const ContactsPage: React.FC = () => {
                 cursor: 'pointer',
                 padding: '12px 16px'
               }}
-              onClick={() => setSelectedContact(item)}
+              onClick={() => {
+                setSelectedContact(item)
+                navigate(`/sessions/${item.id}`)
+              }}
             >
               <List.Item.Meta
                 avatar={
