@@ -42,7 +42,7 @@ const BaseLayout: React.FC = () => {
   const RightAreaComponent = (matched?.handle as HandleWithRightArea | undefined)?.RightArea || (() => null)
   const hideMiddleSiderKeys = ['search', 'openai', 'youtube', 'setting']
   return (
-    <Layout style={{ height: '100vh' }}>
+    <Layout style={{ height: "100vh" }}>
       <Sider
         theme="light"
         width={60}

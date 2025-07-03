@@ -175,7 +175,7 @@ const SessionsPage: React.FC = () => {
         className='scrollableDiv'
         itemLayout="horizontal"
         dataSource={sortedContacts}
-        style={{ flexGrow: 1, overflowY: 'auto', height: 550, }}
+        style={{ flexGrow: 1, overflowY: 'auto', }}
         renderItem={(item) => (
           <Dropdown
             overlay={menu}
