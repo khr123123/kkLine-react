@@ -92,6 +92,10 @@ textarea::-webkit-scrollbar-track {
     background-color: transparent;
 }
 
+.list-item {
+    border-radius: 8px;
+}
+
 .list-item:hover {
     background-color: rgb(240, 240, 240);
 }
