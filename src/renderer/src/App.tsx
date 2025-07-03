@@ -7,7 +7,7 @@ import FriendsPage from './pages/friend/FriendsPage'
 import FriendInfo from './pages/friend/FriendInfo'
 import GroupsPage from './pages/group/GroupsPage'
 import GroupInfo from './pages/group/GroupInfo'
-
+import logo from './assets/chat.png'
 const router = createBrowserRouter([
   {
     path: '/',
@@ -19,7 +19,15 @@ const router = createBrowserRouter([
       },
       {
         path: 'sessions',
-        element: <SessionsPage />
+        element: <SessionsPage />,
+        handle: {
+          RightArea: () => <div style={{
+            position: 'absolute',
+            top: '50%',
+            left: '70%',
+            transform: 'translate(-50%, -50%)',
+          }}> <img src={logo} width={150} /></div>
+        }
       },
       {
         path: 'sessions/:sessionId',
@@ -30,7 +38,15 @@ const router = createBrowserRouter([
       },
       {
         path: 'friends',
-        element: <FriendsPage />
+        element: <FriendsPage />,
+        handle: {
+          RightArea: () => <div style={{
+            position: 'absolute',
+            top: '50%',
+            left: '70%',
+            transform: 'translate(-50%, -50%)',
+          }}> <img src={logo} width={150} /></div>
+        }
       },
       {
         path: 'friends/:friendId',
@@ -42,6 +58,14 @@ const router = createBrowserRouter([
       {
         path: 'groups',
         element: <GroupsPage />,
+        handle: {
+          RightArea: () => <div style={{
+            position: 'absolute',
+            top: '50%',
+            left: '70%',
+            transform: 'translate(-50%, -50%)',
+          }}> <img src={logo} width={150} /></div>
+        }
       },
       {
         path: 'groups/:groupId',
