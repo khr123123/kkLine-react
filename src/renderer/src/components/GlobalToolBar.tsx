@@ -16,7 +16,8 @@ const GlobalToolBar: React.FC = () => {
         className="drag"
         style={{
           display: 'flex',
-          justifyContent: 'right'
+          justifyContent: 'right',
+          height: '28px',
         }}
       >
         <div className="no-drag" style={{ padding: '0 4px' }}>

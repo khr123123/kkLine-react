@@ -45,6 +45,46 @@ const initialContacts: Contact[] = [
     isTop: false
   },
   {
+    id: 4,
+    name: '李1',
+    avatar:
+      'https://www.bing.com/th/id/OIP.g5M-iZUiocFCi9YAzojtRAAAAA?w=193&h=211&c=8&rs=1&qlt=90&o=6&cb=ircwebp2&dpr=1.3&pid=3.1&rm=2',
+    lastMessage: '今天吃饭了吗？',
+    lastTime: '12-10',
+    notRead: 2,
+    isTop: false
+  },
+  {
+    id: 5,
+    name: '李2',
+    avatar:
+      'https://www.bing.com/th/id/OIP.g5M-iZUiocFCi9YAzojtRAAAAA?w=193&h=211&c=8&rs=1&qlt=90&o=6&cb=ircwebp2&dpr=1.3&pid=3.1&rm=2',
+    lastMessage: '今天吃饭了吗？',
+    lastTime: '12-10',
+    notRead: 0,
+    isTop: false
+  },
+  {
+    id: 6,
+    name: '李6',
+    avatar:
+      'https://www.bing.com/th/id/OIP.g5M-iZUiocFCi9YAzojtRAAAAA?w=193&h=211&c=8&rs=1&qlt=90&o=6&cb=ircwebp2&dpr=1.3&pid=3.1&rm=2',
+    lastMessage: '今天吃饭了吗？',
+    lastTime: '12-10',
+    notRead: 0,
+    isTop: false
+  },
+  {
+    id: 7,
+    name: '李7',
+    avatar:
+      'https://www.bing.com/th/id/OIP.g5M-iZUiocFCi9YAzojtRAAAAA?w=193&h=211&c=8&rs=1&qlt=90&o=6&cb=ircwebp2&dpr=1.3&pid=3.1&rm=2',
+    lastMessage: '今天吃饭了吗？',
+    lastTime: '12-10',
+    notRead: 0,
+    isTop: false
+  },
+  {
     id: 123456,
     name: '腾讯新闻',
     avatar:
@@ -72,7 +112,7 @@ const getMenuItems = (contact: Contact | null): MenuProps['items'] => {
   ]
 }
 
-const ContactsPage: React.FC = () => {
+const SessionsPage: React.FC = () => {
   const [contacts, setContacts] = useState<Contact[]>(initialContacts)
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null)
   const [contextContact, setContextContact] = useState<Contact | null>(null)
@@ -132,9 +172,10 @@ const ContactsPage: React.FC = () => {
         allowClear
       />
       <List
+        className='scrollableDiv'
         itemLayout="horizontal"
         dataSource={sortedContacts}
-        style={{ flexGrow: 1, overflowY: 'auto' }}
+        style={{ flexGrow: 1, overflowY: 'auto', height: 550, }}
         renderItem={(item) => (
           <Dropdown
             overlay={menu}
@@ -148,10 +189,11 @@ const ContactsPage: React.FC = () => {
             key={item.id}
           >
             <List.Item
+              className='list-item'
               style={{
                 backgroundColor:
                   selectedContact?.id === item.id
-                    ? '#e6f7ff' // 选中蓝色背景
+                    ? '#bae7ff' // 选中蓝色背景
                     : item.isTop
                       ? '#fff5f8' // 置顶粉色背景
                       : undefined,
@@ -212,4 +254,4 @@ const ContactsPage: React.FC = () => {
   )
 }
 
-export default ContactsPage
+export default SessionsPage

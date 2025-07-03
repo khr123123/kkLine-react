@@ -40,7 +40,7 @@ const BaseLayout: React.FC = () => {
   })
 
   const RightAreaComponent = (matched?.handle as HandleWithRightArea | undefined)?.RightArea || (() => null)
-  const hideMiddleSiderKeys = ['search', 'openai', 'youtube', 'myGithub', 'setting']
+  const hideMiddleSiderKeys = ['search', 'openai', 'youtube', 'setting']
   return (
     <Layout style={{ height: '100vh' }}>
       <Sider
@@ -52,7 +52,8 @@ const BaseLayout: React.FC = () => {
           flexDirection: 'column',
           alignItems: 'center',
           paddingTop: 20,
-          borderRight: '1px solid #ddd'
+          borderRight: '1px solid #eee',
+          overflow: 'hidden',
         }}
       >
         <Avatar style={{ marginLeft: 15 }} shape="square" size={46} icon={<UserOutlined />} />
@@ -82,7 +83,7 @@ const BaseLayout: React.FC = () => {
       {hideMiddleSiderKeys.includes(selectedMenuKey) ?
         (<Content
           style={{
-            backgroundColor: '#fafafa',
+            backgroundColor: '#fcfcfc',
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'flex-start',
@@ -108,7 +109,7 @@ const BaseLayout: React.FC = () => {
             </Sider>
             <Content
               style={{
-                backgroundColor: '#fafafa',
+                backgroundColor: '#fcfcfc',
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'flex-start',

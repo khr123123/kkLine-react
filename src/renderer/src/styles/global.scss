@@ -25,47 +25,64 @@ body {
     -webkit-app-region: no-drag;
 }
 
-// ✅ 滚动条美化（Chrome / Electron 内核有效）
-::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+.scrollableDiv {
+    height: 550px;
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+    /* 保证预留滚动条空间，防止抖动 */
 }
 
-::-webkit-scrollbar-thumb {
+/* 滚动条整体默认隐藏（透明） */
+.scrollableDiv::-webkit-scrollbar {
+    width: 6px;
+    background-color: transparent;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+/* 滚动条滑块默认隐藏 */
+.scrollableDiv::-webkit-scrollbar-thumb {
     background-color: rgba(0, 0, 0, 0.2);
     border-radius: 3px;
+    opacity: 0;
+    transition: opacity 0.3s;
 }
 
-::-webkit-scrollbar-track {
-    background-color: transparent;
+/* 鼠标悬停时显示滚动条和滑块 */
+.scrollableDiv:hover::-webkit-scrollbar,
+.scrollableDiv:hover::-webkit-scrollbar-thumb {
+    opacity: 1;
 }
 
-// ✅ 链接样式
-a {
-    color: #1677ff;
-    text-decoration: none;
-
-    &:hover {
-        text-decoration: underline;
-    }
+/* 滚动条滑块悬停变深 */
+.scrollableDiv::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(0, 0, 0, 0.4);
 }
 
-// ✅ 输入框默认样式
-input,
-textarea {
-    outline: none;
-    font-size: 14px;
-    font-family: inherit;
+/* Firefox 支持 */
+.scrollableDiv {
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+    transition: scrollbar-color 0.3s;
 }
 
-// ✅ 禁止拖选图像
-img {
-    -webkit-user-drag: none;
-    user-select: none;
+.scrollableDiv:hover {
+    scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
 }
+
+
 
 
 /* 去掉 MENU 的背景高亮 */
 .icon-only-menu .ant-menu-item-selected {
     background-color: transparent;
+}
+
+.list-item:hover {
+    background-color: rgb(240, 240, 240);
+}
+
+:where(.css-dev-only-do-not-override-1hbti3n).ant-conversations .ant-conversations-item-active {
+    background-color: #bae7ff !important;
+
 }

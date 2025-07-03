@@ -1,8 +1,12 @@
 // App.tsx
 import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom'
 import BaseLayout from './components/BaseLayout'
-import ContactsPage from './pages/ContactsPage'
-import ChatPage from './pages/ChatPage'
+import SessionsPage from './pages/session/SessionsPage'
+import ChatPage from './pages/session/ChatPage'
+import FriendsPage from './pages/friend/FriendsPage'
+import FriendInfo from './pages/friend/FriendInfo'
+import GroupsPage from './pages/group/GroupsPage'
+import GroupInfo from './pages/group/GroupInfo'
 
 const router = createBrowserRouter([
   {
@@ -15,40 +19,40 @@ const router = createBrowserRouter([
       },
       {
         path: 'sessions',
-        element: <ContactsPage />
+        element: <SessionsPage />
       },
       {
         path: 'sessions/:sessionId',
-        element: <ContactsPage />,
+        element: <SessionsPage />,
         handle: {
           RightArea: () => <ChatPage />
         }
       },
       {
         path: 'friends',
-        element: <>friends</>
+        element: <FriendsPage />
       },
       {
         path: 'friends/:friendId',
-        element: <>friends</>,
+        element: <FriendsPage />,
         handle: {
-          RightArea: () => <>friendId</>
+          RightArea: () => <FriendInfo />
         }
       },
       {
         path: 'groups',
-        element: <>groups</>,
+        element: <GroupsPage />,
       },
       {
         path: 'groups/:groupId',
-        element: <>groups</>,
+        element: <GroupsPage />,
         handle: {
-          RightArea: () => <>groupId</>
+          RightArea: () => <GroupInfo />
         }
       },
       {
         path: 'search',
-        element: <div style={{ backgroundColor: "red", height: 500 }}>search</div>
+        element: <>search</>
       },
       {
         path: 'openai',
