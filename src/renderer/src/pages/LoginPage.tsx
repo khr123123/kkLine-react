@@ -19,6 +19,7 @@ import { Button, Divider, Space, Tabs, message, theme } from 'antd';
 import type { CSSProperties } from 'react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import logo from "../../../../resources/wechat.png"
 
 type LoginType = 'phone' | 'account';
 
@@ -46,8 +47,8 @@ const Page = () => {
                     }}
                     backgroundImageUrl="https://mdn.alipayobjects.com/huamei_gcee1x/afts/img/A*y0ZTS6WLwvgAAAAAAAAAAAAADml6AQ/fmt.webp"
                     backgroundVideoUrl="https://gw.alipayobjects.com/v/huamei_gcee1x/afts/video/jXRBRK_VAwoAAAAAAAAAAAAAK4eUAQBr"
-                    logo="https://github.githubassets.com/favicons/favicon.png"
-                    title="KK Chat"
+                    logo={logo}
+                    title="KK LINE"
                     subTitle="一个基于 Electron + React 的聊天系统"
                     containerStyle={{
                         backgroundColor: 'rgba(0, 0, 0, 0.65)',

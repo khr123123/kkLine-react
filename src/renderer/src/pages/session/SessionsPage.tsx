@@ -1,7 +1,8 @@
 import { DeleteOutlined, PushpinOutlined, VerticalAlignBottomOutlined, VerticalAlignTopOutlined } from '@ant-design/icons'
+import GlobalLoading from '@renderer/components/GlobalLoding'
 import type { MenuProps } from 'antd'
 import { Avatar, Badge, Dropdown, Input, List, Menu, Typography } from 'antd'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 const { Text } = Typography
 import { useNavigate } from 'react-router-dom'
 interface Contact {
@@ -163,102 +164,124 @@ const SessionsPage: React.FC = () => {
 
   const menu = <Menu onClick={onMenuClick} items={getMenuItems(contextContact)} />
 
+  const [globalLoading, setGlobalLoading] = useState(true);
+  const [data, setData] = useState<any>(null);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await new Promise((resolve) =>
+          setTimeout(() => resolve({ user: "KK", role: "admin" }), 200)
+        );
+        setData(res);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setGlobalLoading(false); // 请求完毕关闭加载蒙层
+      }
+    };
+    fetchData();
+  }, []);
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
-      <div className="drag" style={{ height: 25, width: '100%' }}></div>
-      <div
-        style={{
-          height: 46,
-          position: 'sticky',
-          top: 25,
-        }}
-      >
-        <Input.Search
-          placeholder="搜索联系人"
-          style={{ margin: '12px', marginTop: 0, marginLeft: 10, width: 'calc(100% - 20px)' }}
-          allowClear
-        />
-      </div>
-      <List
-        className='scrollableDiv'
-        itemLayout="horizontal"
-        dataSource={sortedContacts}
-        style={{ flexGrow: 1, overflowY: 'auto' }}
-        renderItem={(item) => (
-          <Dropdown
-            overlay={menu}
-            trigger={['contextMenu']}
-            onOpenChange={(open) => {
-              if (!open) setContextContact(null)
-            }}
-            onVisibleChange={(visible) => {
-              if (visible) setContextContact(item)
-            }}
-            key={item.id}
-          >
-            <List.Item
-              className='list-item'
-              style={{
-                backgroundColor:
-                  selectedContact?.id === item.id
-                    ? '#bae7ff' // 选中蓝色背景
-                    : item.isTop
-                      ? '#fff5f8' // 置顶粉色背景
-                      : undefined,
-                cursor: 'pointer',
-                padding: '12px 16px'
+    <>
+      {/* 全局加载蒙层 */}
+      <GlobalLoading loading={globalLoading} />
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+        <div className="drag" style={{ height: 25, width: '100%' }}></div>
+        <div
+          style={{
+            height: 46,
+            position: 'sticky',
+            top: 25,
+          }}
+        >
+          <Input.Search
+            placeholder="搜索联系人"
+            style={{ margin: '12px', marginTop: 0, marginLeft: 10, width: 'calc(100% - 20px)' }}
+            allowClear
+          />
+        </div>
+        <List
+          className='scrollableDiv'
+          itemLayout="horizontal"
+          dataSource={sortedContacts}
+          style={{ flexGrow: 1, overflowY: 'auto' }}
+          renderItem={(item) => (
+            <Dropdown
+              overlay={menu}
+              trigger={['contextMenu']}
+              onOpenChange={(open) => {
+                if (!open) setContextContact(null)
               }}
-              onClick={() => {
-                setSelectedContact(item)
-                navigate(`/sessions/${item.id}`)
+              onVisibleChange={(visible) => {
+                if (visible) setContextContact(item)
               }}
+              key={item.id}
             >
-              <List.Item.Meta
-                avatar={
-                  item.id === 123456 ? (
-                    <Badge dot>
-                      <Avatar shape="square" size={50} src={item.avatar} />
-                    </Badge>
-                  ) : (
-                    <Badge count={item.notRead}>
-                      <Avatar shape="square" size={50} src={item.avatar} />
-                    </Badge>
-                  )
-                }
-                title={
-                  <div
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center'
-                    }}
-                  >
-                    <Text
-                      strong
+              <List.Item
+                className='list-item'
+                style={{
+                  backgroundColor:
+                    selectedContact?.id === item.id
+                      ? '#bae7ff' // 选中蓝色背景
+                      : item.isTop
+                        ? '#fff5f8' // 置顶粉色背景
+                        : undefined,
+                  cursor: 'pointer',
+                  padding: '12px 16px'
+                }}
+                onClick={() => {
+                  setSelectedContact(item)
+                  navigate(`/sessions/${item.id}`)
+                }}
+              >
+                <List.Item.Meta
+                  avatar={
+                    item.id === 123456 ? (
+                      <Badge dot>
+                        <Avatar shape="square" size={50} src={item.avatar} />
+                      </Badge>
+                    ) : (
+                      <Badge count={item.notRead}>
+                        <Avatar shape="square" size={50} src={item.avatar} />
+                      </Badge>
+                    )
+                  }
+                  title={
+                    <div
                       style={{
-                        flex: 1,
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis'
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
                       }}
                     >
-                      {item.name}
-                    </Text>
-                    {item.isTop && <PushpinOutlined style={{ marginLeft: 8, color: '#1890ff' }} />}
-                  </div>
-                }
-                description={
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span>{item.lastMessage}</span>
-                    <span>{item.lastTime}</span>
-                  </div>
-                }
-              />
-            </List.Item>
-          </Dropdown>
-        )}
-      />
-    </div>
+                      <Text
+                        strong
+                        style={{
+                          flex: 1,
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis'
+                        }}
+                      >
+                        {item.name}
+                      </Text>
+                      {item.isTop && <PushpinOutlined style={{ marginLeft: 8, color: '#1890ff' }} />}
+                    </div>
+                  }
+                  description={
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span>{item.lastMessage}</span>
+                      <span>{item.lastTime}</span>
+                    </div>
+                  }
+                />
+              </List.Item>
+            </Dropdown>
+          )}
+        />
+      </div>
+
+    </>
   )
 }
 
