@@ -21,8 +21,7 @@ import {
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { createStyles } from "antd-style";
-
-const { Title, Paragraph } = Typography;
+const { Title, Text, Paragraph } = Typography;
 
 interface UserProfile {
     userName: string;
@@ -82,7 +81,7 @@ const FriendInfo: React.FC = () => {
                             userAccount: "khr123",
                             areaName: "神奈川県横浜市",
                             areaCode: "123-4567",
-                            userProfile: "热爱全栈开发，熟悉 Java、React、Netty 等。",
+                            userProfile: "热爱全栈开发，熟悉 Java、React、Netty 等。热爱全栈开发，熟悉 Java、React、Netty 等。热爱全栈开发，熟悉 Java、React、Netty 等。热爱全栈开发，熟悉 Java、React、Netty 等。",
                             lastLogOutTime: "2025-07-04T10:24:00",
                         });
                     }, 200)
@@ -152,8 +151,9 @@ const FriendInfo: React.FC = () => {
 
             {user.userProfile && (
                 <>
-                    <Divider />
-                    <Paragraph ellipsis={{ rows: 2, expandable: true, symbol: "更多" }}>
+                    <Divider size={"middle"} />
+                    <Text strong>个人简介</Text>
+                    <Paragraph style={{ marginTop: 8 }} ellipsis={{ rows: 2, expandable: true, symbol: "更多" }}>
                         {user.userProfile}
                     </Paragraph>
                 </>

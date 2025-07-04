@@ -7,8 +7,9 @@ import FriendsPage from './pages/friend/FriendsPage'
 import FriendInfo from './pages/friend/FriendInfo'
 import GroupsPage from './pages/group/GroupsPage'
 import GroupInfo from './pages/group/GroupInfo'
-import logo from './assets/chat.png'
 import LoginPage from './pages/LoginPage'
+import WatermarkPage from './components/WatermarkPage'
+import SearchPage from './pages/SearchPage'
 const router = createBrowserRouter([
   {
     path: '/login',
@@ -26,12 +27,7 @@ const router = createBrowserRouter([
         path: 'sessions',
         element: <SessionsPage />,
         handle: {
-          RightArea: () => <div style={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-          }}> <img src={logo} width={150} /></div>
+          RightArea: () => <WatermarkPage />
         }
       },
       {
@@ -45,12 +41,7 @@ const router = createBrowserRouter([
         path: 'friends',
         element: <FriendsPage />,
         handle: {
-          RightArea: () => <div style={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-          }}> <img src={logo} width={150} /></div>
+          RightArea: () => <WatermarkPage />
         }
       },
       {
@@ -64,12 +55,7 @@ const router = createBrowserRouter([
         path: 'groups',
         element: <GroupsPage />,
         handle: {
-          RightArea: () => <div style={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-          }}> <img src={logo} width={150} /></div>
+          RightArea: () => <WatermarkPage />
         }
       },
       {
@@ -81,7 +67,7 @@ const router = createBrowserRouter([
       },
       {
         path: 'search',
-        element: <>search</>
+        element: <SearchPage />
       },
       {
         path: 'openai',

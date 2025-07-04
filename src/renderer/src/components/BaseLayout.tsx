@@ -1,6 +1,6 @@
 // BaseLayout.tsx
 import React, { useState, useEffect } from 'react'
-import { Outlet, useMatches, useNavigate } from 'react-router-dom'
+import { Outlet, useLocation, useMatches, useNavigate } from 'react-router-dom'
 import { Layout, Menu, Avatar } from 'antd'
 import {
   CommentOutlined,
@@ -32,14 +32,18 @@ const BaseLayout: React.FC = () => {
     }
     navigate(selectedMenuKey)
   }, [selectedMenuKey, navigate])
+  const location = useLocation();
 
   const matches = useMatches()
-  const matched = matches.find(m => {
-    const handle = m.handle as HandleWithRightArea | undefined
-    return handle?.RightArea !== undefined
-  })
+  const matched = matches.find(
+    (m) =>
+      m.pathname === location.pathname &&
+      typeof (m.handle as HandleWithRightArea)?.RightArea === 'function'
+  );
 
-  const RightAreaComponent = (matched?.handle as HandleWithRightArea | undefined)?.RightArea || (() => null)
+  const RightAreaComponent =
+    (matched?.handle as HandleWithRightArea)?.RightArea ?? (() => null);
+
   const hideMiddleSiderKeys = ['search', 'openai', 'youtube', 'setting']
   return (
     <Layout style={{ height: "100vh" }}>
