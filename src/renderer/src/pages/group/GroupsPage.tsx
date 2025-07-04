@@ -102,7 +102,7 @@ const GroupsPage: React.FC = () => {
             >
                 <Input.Search
                     placeholder="搜索群组"
-                    style={{ margin: '12px', marginTop: 0, width: '260px' }}
+                    style={{ margin: '12px', marginTop: 0, marginLeft: 10, width: 'calc(100% - 20px)' }}
                     allowClear
                 />
             </div>
