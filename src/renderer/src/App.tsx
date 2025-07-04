@@ -8,7 +8,12 @@ import FriendInfo from './pages/friend/FriendInfo'
 import GroupsPage from './pages/group/GroupsPage'
 import GroupInfo from './pages/group/GroupInfo'
 import logo from './assets/chat.png'
+import LoginPage from './pages/LoginPage'
 const router = createBrowserRouter([
+  {
+    path: '/login',
+    element: <LoginPage />,
+  },
   {
     path: '/',
     element: <BaseLayout />,
