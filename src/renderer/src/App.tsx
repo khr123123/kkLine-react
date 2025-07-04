@@ -13,6 +13,8 @@ import SearchPage from './pages/SearchPage'
 import OpenAiPage from './pages/openAi/OpenAiSessionPage'
 import OpenAiSessionPage from './pages/openAi/OpenAiSessionPage'
 import OpenAiChatPage from './pages/openAi/OpenAiChatPage'
+import YoutubePage from './pages/YoutubePage'
+import SettingPage from './pages/SettingPage'
 const router = createBrowserRouter([
   {
     path: '/login',
@@ -81,12 +83,12 @@ const router = createBrowserRouter([
       },
       {
         path: 'youtube',
-        element: <>youtube</>
+        element: <YoutubePage />
       },
 
       {
         path: 'setting',
-        element: <>setting</>
+        element: <SettingPage />
       },
     ]
   }
