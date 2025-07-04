@@ -1,7 +1,7 @@
 import { electronApp, is, optimizer } from '@electron-toolkit/utils';
 import { app, BrowserWindow, ipcMain, shell } from 'electron';
 import { join } from 'path';
-import icon from '../../resources/icon.png?asset';
+import icon from '../../resources/logo.ico?asset';
 let mainWindow: BrowserWindow;
 function createWindow(): void {
   // Create the browser window.
@@ -12,7 +12,7 @@ function createWindow(): void {
     resizable: false,
     show: false,
     autoHideMenuBar: true,
-    ...(process.platform === 'linux' ? { icon } : {}),
+    icon,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false
@@ -61,6 +61,8 @@ app.whenReady().then(() => {
     // dock icon is clicked and there are no other windows open.
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
+
+  createTray(mainWindow)
 })
 
 // Quit when all windows are closed, except on macOS. There, it's common
@@ -77,5 +79,48 @@ ipcMain.on('window-close', () => mainWindow.close());
 ipcMain.on('window-toggle-always-on-top', () =>
   mainWindow.setAlwaysOnTop(!mainWindow.isAlwaysOnTop())
 );
+ipcMain.on('window-toggle-maximize', () => {
+  const win = BrowserWindow.getFocusedWindow()
+  if (!win) return
+  if (win.isMaximized()) {
+    win.unmaximize()
+  } else {
+    win.maximize()
+  }
+})
+
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
+
+
+
+import { Tray, Menu, nativeImage } from 'electron'
+let tray: Tray | null = null
+
+function createTray(win: BrowserWindow) {
+  const trayIcon = nativeImage.createFromPath(icon)
+  tray = new Tray(trayIcon)
+
+  const contextMenu = Menu.buildFromTemplate([
+    {
+      label: '显示主界面',
+      click: () => {
+        win.show()
+        win.setSkipTaskbar(false)
+      },
+    },
+    {
+      label: '退出',
+      click: () => {
+        app.quit()
+      },
+    },
+  ])
+
+  tray.setToolTip('KK-LINE v2.0')
+  tray.setContextMenu(contextMenu)
+
+  tray.on('click', () => {
+    win.isVisible() ? win.hide() : win.show()
+  })
+}
