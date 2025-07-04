@@ -91,18 +91,26 @@ const GroupsPage: React.FC = () => {
     const navigate = useNavigate()
 
     return (
-        <>
+        <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
             <div className="drag" style={{ height: 25, width: '100%' }}></div>
-            <Input.Search
-                placeholder="搜索群组"
-                style={{ margin: '12px', marginTop: 0, width: '260px' }}
-                allowClear
-            />
+            <div
+                style={{
+                    height: 46,
+                    position: 'sticky',
+                    top: 25,
+                }}
+            >
+                <Input.Search
+                    placeholder="搜索群组"
+                    style={{ margin: '12px', marginTop: 0, width: '260px' }}
+                    allowClear
+                />
+            </div>
             <List
                 className='scrollableDiv'
                 itemLayout="horizontal"
                 dataSource={groups}
-                style={{ flexGrow: 1, overflowY: 'auto', height: 550 }}
+                style={{ flexGrow: 1, overflowY: 'auto' }}
                 renderItem={(item) => (
                     <List.Item
                         className={"list-item"}
@@ -145,7 +153,7 @@ const GroupsPage: React.FC = () => {
                     </List.Item>
                 )}
             />
-        </>
+        </div>
     )
 }
 

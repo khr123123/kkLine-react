@@ -193,12 +193,14 @@ const ChatPage: React.FC = () => {
     me: {
       placement: 'end' as const,
       avatar: { icon: <UserOutlined />, style: { background: 'red' } },
-      style: { maxWidth: 500 }
+      style: { maxWidth: '100%' }
+
     },
     friend: {
       placement: 'start' as const,
       avatar: { icon: <UserOutlined />, style: { background: '#d9d9d9' } },
-      style: { maxWidth: 500 }
+      style: { maxWidth: '100%' }
+
     }
   }
   const onClick: ActionsProps['onClick'] = ({ keyPath }) => {
@@ -207,12 +209,12 @@ const ChatPage: React.FC = () => {
   const [value, setValue] = useState<string>('');
   const [open, setOpen] = React.useState(false);
   return (
-    <>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '95vh', width: '100%', }}>
       <Space style={{ padding: '0 16px', marginBottom: 8 }}>
         <Typography.Text strong style={{ fontSize: 18 }}>{sessionId}</Typography.Text>
         <Actions items={actionItems} onClick={onClick} />
       </Space>
-      <Flex vertical gap="small" style={{ height: '100hv', maxHeight: 446 }}>
+      <Flex vertical gap="small" style={{ flex: 1, overflowY: 'auto' }}>
         <Bubble.List
           autoScroll
           className="scrollableDiv"
@@ -222,13 +224,14 @@ const ChatPage: React.FC = () => {
             padding: 16,
             paddingTop: 10,
             paddingInline: 18,
-            flex: 1,
-            overflow: 'auto',
-            borderRadius: 8
+            borderRadius: 8,
           }}
         />
       </Flex>
-      <div style={{ padding: 6, paddingTop: 12, }}>
+      <div style={{
+        paddingTop: 12, position: 'sticky', paddingRight: 8, paddingLeft: 8,
+        bottom: 6,
+      }}>
         <Sender
           prefix={
             <div style={{
@@ -276,7 +279,7 @@ const ChatPage: React.FC = () => {
           autoSize={{ minRows: 3, maxRows: 3 }}
         />
       </div>
-    </>
+    </div>
   )
 }
 

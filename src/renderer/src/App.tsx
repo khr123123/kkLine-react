@@ -24,7 +24,7 @@ const router = createBrowserRouter([
           RightArea: () => <div style={{
             position: 'absolute',
             top: '50%',
-            left: '70%',
+            left: '50%',
             transform: 'translate(-50%, -50%)',
           }}> <img src={logo} width={150} /></div>
         }
@@ -43,7 +43,7 @@ const router = createBrowserRouter([
           RightArea: () => <div style={{
             position: 'absolute',
             top: '50%',
-            left: '70%',
+            left: '50%',
             transform: 'translate(-50%, -50%)',
           }}> <img src={logo} width={150} /></div>
         }
@@ -62,7 +62,7 @@ const router = createBrowserRouter([
           RightArea: () => <div style={{
             position: 'absolute',
             top: '50%',
-            left: '70%',
+            left: '50%',
             transform: 'translate(-50%, -50%)',
           }}> <img src={logo} width={150} /></div>
         }

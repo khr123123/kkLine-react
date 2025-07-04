@@ -114,7 +114,8 @@ const BaseLayout: React.FC = () => {
                 flexDirection: 'column',
                 justifyContent: 'flex-start',
                 height: '100vh',
-                overflowY: 'auto'
+                overflowY: 'auto',
+                position: 'relative'
               }}
             >
               <GlobalToolBar />

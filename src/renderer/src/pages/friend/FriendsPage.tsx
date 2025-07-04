@@ -9,15 +9,6 @@ const FriendsPage: React.FC = () => {
     const [data, setData] = useState<GetProp<ConversationsProps, 'items'>>([]);
     const navigate = useNavigate();
     const { token } = theme.useToken();
-
-    // Customize the style of the container
-    const style = {
-        height: 550,
-        background: token.colorBgContainer,
-        borderRadius: token.borderRadius,
-        overflow: 'auto',
-    };
-
     const loadMoreData = () => {
         if (loading) {
             return;
@@ -46,14 +37,26 @@ const FriendsPage: React.FC = () => {
     }, []);
 
     return (
-        <>
+        <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
             <div className="drag" style={{ height: 25, width: '100%' }}></div>
-            <Input.Search
-                placeholder="搜索联系人"
-                style={{ margin: '12px', marginTop: 0, width: '260px' }}
-                allowClear
-            />
-            <div id="scrollableDiv" style={style} className='scrollableDiv'>
+            <div
+                style={{
+                    height: 46,
+                    position: 'sticky',
+                    top: 25,
+                }}
+            >
+                <Input.Search
+                    placeholder="搜索联系人"
+                    style={{ margin: '12px', marginTop: 0, width: '260px' }}
+                    allowClear
+                />
+            </div>
+            <div style={{
+                background: token.colorBgContainer,
+                borderRadius: token.borderRadius,
+                overflow: 'auto',
+            }} className='scrollableDiv'>
                 <InfiniteScroll
                     dataLength={data.length}
                     next={loadMoreData}
@@ -69,7 +72,7 @@ const FriendsPage: React.FC = () => {
                     <Conversations items={data} defaultActiveKey="demo1" groupable onActiveChange={(key) => navigate(`/friends/${key}`)} />
                 </InfiniteScroll>
             </div>
-        </>
+        </div>
     );
 };
 

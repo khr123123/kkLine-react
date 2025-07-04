@@ -164,18 +164,26 @@ const SessionsPage: React.FC = () => {
   const menu = <Menu onClick={onMenuClick} items={getMenuItems(contextContact)} />
 
   return (
-    <>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
       <div className="drag" style={{ height: 25, width: '100%' }}></div>
-      <Input.Search
-        placeholder="搜索联系人"
-        style={{ margin: '12px', marginTop: 0, width: '260px' }}
-        allowClear
-      />
+      <div
+        style={{
+          height: 46,
+          position: 'sticky',
+          top: 25,
+        }}
+      >
+        <Input.Search
+          placeholder="搜索联系人"
+          style={{ margin: '12px', marginTop: 0, width: '260px' }}
+          allowClear
+        />
+      </div>
       <List
         className='scrollableDiv'
         itemLayout="horizontal"
         dataSource={sortedContacts}
-        style={{ flexGrow: 1, overflowY: 'auto', }}
+        style={{ flexGrow: 1, overflowY: 'auto' }}
         renderItem={(item) => (
           <Dropdown
             overlay={menu}
@@ -250,7 +258,7 @@ const SessionsPage: React.FC = () => {
           </Dropdown>
         )}
       />
-    </>
+    </div>
   )
 }
 
