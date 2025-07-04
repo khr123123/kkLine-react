@@ -44,7 +44,6 @@ const BaseLayout: React.FC = () => {
   const RightAreaComponent =
     (matched?.handle as HandleWithRightArea)?.RightArea ?? (() => null);
 
-  const hideMiddleSiderKeys = ['search', 'openai', 'youtube', 'setting']
   return (
     <Layout style={{ height: "100vh" }}>
       <Sider
@@ -84,7 +83,7 @@ const BaseLayout: React.FC = () => {
         />
       </Sider>
 
-      {hideMiddleSiderKeys.includes(selectedMenuKey) ?
+      {!matched?.handle ?
         (<Content
           style={{
             backgroundColor: '#fcfcfc',

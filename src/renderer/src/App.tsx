@@ -10,6 +10,9 @@ import GroupInfo from './pages/group/GroupInfo'
 import LoginPage from './pages/LoginPage'
 import WatermarkPage from './components/WatermarkPage'
 import SearchPage from './pages/SearchPage'
+import OpenAiPage from './pages/openAi/OpenAiSessionPage'
+import OpenAiSessionPage from './pages/openAi/OpenAiSessionPage'
+import OpenAiChatPage from './pages/openAi/OpenAiChatPage'
 const router = createBrowserRouter([
   {
     path: '/login',
@@ -67,11 +70,14 @@ const router = createBrowserRouter([
       },
       {
         path: 'search',
-        element: <SearchPage />
+        element: <SearchPage />,
       },
       {
         path: 'openai',
-        element: <>openai</>
+        element: <OpenAiSessionPage />,
+        handle: {
+          RightArea: () => <OpenAiChatPage />
+        }
       },
       {
         path: 'youtube',
