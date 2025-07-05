@@ -1,28 +1,32 @@
 // App.tsx
-import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom'
+import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom'
+import { RouteGuard } from './auth/RouteGuard'
 import BaseLayout from './components/BaseLayout'
-import SessionsPage from './pages/session/SessionsPage'
-import ChatPage from './pages/session/ChatPage'
-import FriendsPage from './pages/friend/FriendsPage'
-import FriendInfo from './pages/friend/FriendInfo'
-import GroupsPage from './pages/group/GroupsPage'
-import GroupInfo from './pages/group/GroupInfo'
-import LoginPage from './pages/LoginPage'
 import WatermarkPage from './components/WatermarkPage'
-import SearchPage from './pages/SearchPage'
-import OpenAiPage from './pages/openAi/OpenAiSessionPage'
-import OpenAiSessionPage from './pages/openAi/OpenAiSessionPage'
+import FriendInfo from './pages/friend/FriendInfo'
+import FriendsPage from './pages/friend/FriendsPage'
+import GroupInfo from './pages/group/GroupInfo'
+import GroupsPage from './pages/group/GroupsPage'
+import LoginPage from './pages/LoginPage'
 import OpenAiChatPage from './pages/openAi/OpenAiChatPage'
-import YoutubePage from './pages/YoutubePage'
+import OpenAiSessionPage from './pages/openAi/OpenAiSessionPage'
+import SearchPage from './pages/SearchPage'
+import ChatPage from './pages/session/ChatPage'
+import SessionsPage from './pages/session/SessionsPage'
 import SettingPage from './pages/SettingPage'
+import YoutubePage from './pages/YoutubePage'
 const router = createBrowserRouter([
   {
     path: '/login',
-    element: <LoginPage />,
+    element: <LoginPage />
   },
   {
     path: '/',
-    element: <BaseLayout />,
+    element: (
+      <RouteGuard>
+        <BaseLayout />
+      </RouteGuard>
+    ),
     children: [
       {
         index: true,
@@ -72,7 +76,7 @@ const router = createBrowserRouter([
       },
       {
         path: 'search',
-        element: <SearchPage />,
+        element: <SearchPage />
       },
       {
         path: 'openai',
@@ -89,11 +93,29 @@ const router = createBrowserRouter([
       {
         path: 'setting',
         element: <SettingPage />
-      },
+      }
+    ]
+  },
+  {
+    path: '/admin',
+    element: (
+      <RouteGuard>
+        <>admin</>
+      </RouteGuard>
+    ),
+    children: [
+      // {
+      //   index: true,
+      //   element: <Navigate to="/userList" replace />
+      // },
+      // {
+      //   path: 'userList',
+      //   element: <SessionsPage />
+      // }
     ]
   }
 ])
 
 export default function App() {
-  return <RouterProvider router={router} />
+  return <RouterProvider router={router}></RouterProvider>
 }

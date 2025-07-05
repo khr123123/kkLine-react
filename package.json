@@ -6,6 +6,7 @@
   "author": "example.com",
   "homepage": "https://electron-vite.org",
   "scripts": {
+    "openapi": "node openapi2ts.config.ts",
     "format": "prettier --write .",
     "lint": "eslint --cache .",
     "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
@@ -29,10 +30,12 @@
     "@electron-toolkit/utils": "^4.0.0",
     "antd": "^5.26.3",
     "antd-style": "^3.7.1",
+    "axios": "^1.10.0",
     "electron-updater": "^6.3.9",
     "emoji-picker-react": "^4.12.3",
     "react-infinite-scroll-component": "^6.1.0",
-    "react-router-dom": "^7.6.3"
+    "react-router-dom": "^7.6.3",
+    "zustand": "^5.0.6"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config-prettier": "^3.0.0",
@@ -41,6 +44,7 @@
     "@types/node": "^22.14.1",
     "@types/react": "^19.1.1",
     "@types/react-dom": "^19.1.2",
+    "@umijs/openapi": "^1.13.15",
     "@vitejs/plugin-react": "^4.3.4",
     "electron": "^35.1.5",
     "electron-builder": "^25.1.8",
