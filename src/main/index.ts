@@ -8,8 +8,10 @@ function createWindow(): void {
   mainWindow = new BrowserWindow({
     width: 880,
     height: 620,
+    minWidth: 880,    // 最小宽度
+    minHeight: 620,   // 最小高度
     frame: false, // ❗️设置为 false，移除窗口边框
-    resizable: false,
+    resizable: true,
     show: false,
     autoHideMenuBar: true,
     icon,
@@ -89,13 +91,18 @@ ipcMain.on('window-toggle-maximize', () => {
     win.maximize()
   }
 })
-
+ipcMain.on('resize-window', (_, { width, height }) => {
+  const win = BrowserWindow.getFocusedWindow()
+  if (win) {
+    win.setSize(width, height)
+  }
+})
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
 
 
 
-import { Tray, Menu, nativeImage } from 'electron'
+import { Menu, nativeImage, Tray } from 'electron';
 let tray: Tray | null = null
 
 function createTray(win: BrowserWindow) {

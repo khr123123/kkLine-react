@@ -1,10 +1,8 @@
 // BaseLayout.tsx
-import React, { useState, useEffect } from 'react'
-import { Outlet, useLocation, useMatches, useNavigate } from 'react-router-dom'
-import { Layout, Menu, Avatar } from 'antd'
 import {
   CommentOutlined,
   ContactsOutlined,
+  DashboardOutlined,
   GithubOutlined,
   OpenAIOutlined,
   SearchOutlined,
@@ -13,8 +11,11 @@ import {
   UserOutlined,
   YoutubeOutlined
 } from '@ant-design/icons'
+import { Avatar, FloatButton, Layout, Menu } from 'antd'
+import React, { useEffect, useState } from 'react'
+import { Outlet, useLocation, useMatches, useNavigate } from 'react-router-dom'
+import { useIsAdmin } from '../auth/RouteGuard'
 import GlobalToolBar from './GlobalToolBar'
-
 const { Sider, Content } = Layout
 
 interface HandleWithRightArea {
@@ -24,6 +25,8 @@ interface HandleWithRightArea {
 const BaseLayout: React.FC = () => {
   const [selectedMenuKey, setSelectedMenuKey] = useState('sessions')
   const navigate = useNavigate()
+  const isAdmin = useIsAdmin()
+  const location = useLocation()
 
   useEffect(() => {
     if (selectedMenuKey === 'myGithub') {
@@ -32,20 +35,24 @@ const BaseLayout: React.FC = () => {
     }
     navigate(selectedMenuKey)
   }, [selectedMenuKey, navigate])
-  const location = useLocation();
+
+  useEffect(() => {
+    if (location.pathname.startsWith('/')) {
+      window.electron.ipcRenderer.send('resize-window', { width: 880, height: 620 })
+    }
+  }, [])
 
   const matches = useMatches()
   const matched = matches.find(
     (m) =>
       m.pathname === location.pathname &&
       typeof (m.handle as HandleWithRightArea)?.RightArea === 'function'
-  );
+  )
 
-  const RightAreaComponent =
-    (matched?.handle as HandleWithRightArea)?.RightArea ?? (() => null);
+  const RightAreaComponent = (matched?.handle as HandleWithRightArea)?.RightArea ?? (() => null)
 
   return (
-    <Layout style={{ height: "100vh" }}>
+    <Layout style={{ height: '100vh' }}>
       <Sider
         theme="light"
         width={60}
@@ -56,7 +63,7 @@ const BaseLayout: React.FC = () => {
           alignItems: 'center',
           paddingTop: 20,
           borderRight: '1px solid #eee',
-          overflow: 'hidden',
+          overflow: 'hidden'
         }}
       >
         <Avatar style={{ marginLeft: 15 }} shape="square" size={46} icon={<UserOutlined />} />
@@ -83,8 +90,8 @@ const BaseLayout: React.FC = () => {
         />
       </Sider>
 
-      {!matched?.handle ?
-        (<Content
+      {!matched?.handle ? (
+        <Content
           style={{
             backgroundColor: '#fcfcfc',
             display: 'flex',
@@ -96,34 +103,45 @@ const BaseLayout: React.FC = () => {
         >
           <GlobalToolBar />
           <Outlet />
-        </Content>) :
-        (
-          <>
-            <Sider
-              width={280}
-              style={{
-                backgroundColor: '#fff',
-                borderRight: '1px solid #ddd',
-                display: 'flex',
-                flexDirection: 'column'
-              }}
-            >
-              <Outlet />
-            </Sider>
-            <Content
-              style={{
-                backgroundColor: '#fcfcfc',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'flex-start',
-                height: '100vh',
-                overflowY: 'auto',
-                position: 'relative'
-              }}
-            >
-              <GlobalToolBar />
-              <RightAreaComponent />
-            </Content></>)}
+        </Content>
+      ) : (
+        <>
+          <Sider
+            width={280}
+            style={{
+              backgroundColor: '#fff',
+              borderRight: '1px solid #ddd',
+              display: 'flex',
+              flexDirection: 'column'
+            }}
+          >
+            <Outlet />
+          </Sider>
+          <Content
+            style={{
+              backgroundColor: '#fcfcfc',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'flex-start',
+              height: '100vh',
+              overflowY: 'auto',
+              position: 'relative'
+            }}
+          >
+            <GlobalToolBar />
+            <RightAreaComponent />
+          </Content>
+        </>
+      )}
+      {isAdmin && (
+        <FloatButton
+          tooltip={'去管理'}
+          type="primary"
+          icon={<DashboardOutlined />}
+          onClick={() => navigate('/admin')}
+          style={{ right: 20, bottom: 120 }}
+        />
+      )}
     </Layout>
   )
 }

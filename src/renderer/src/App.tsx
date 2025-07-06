@@ -1,5 +1,6 @@
 // App.tsx
 import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom'
+import AdminLayout from './adminPages/AdminLayout'
 import { RouteGuard } from './auth/RouteGuard'
 import BaseLayout from './components/BaseLayout'
 import WatermarkPage from './components/WatermarkPage'
@@ -100,9 +101,27 @@ const router = createBrowserRouter([
     path: '/admin',
     element: (
       <RouteGuard>
-        <>admin</>
+        <AdminLayout />
       </RouteGuard>
-    )
+    ),
+    children: [
+      {
+        index: true,
+        element: <Navigate to="/admin/userList" replace />
+      },
+      {
+        path: 'userList',
+        element: <>userList</>
+      },
+      {
+        path: 'gourpList',
+        element: <>gourpList</>
+      },
+      {
+        path: 'messagePanel',
+        element: <>messagePanel</>
+      }
+    ]
   }
 ])
 
