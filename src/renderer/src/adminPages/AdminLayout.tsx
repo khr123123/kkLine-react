@@ -1,5 +1,5 @@
 // BaseLayout.tsx
-import { CommentOutlined, UserOutlined, WechatWorkOutlined } from '@ant-design/icons'
+import { createFromIconfontCN, UserOutlined, WechatWorkOutlined } from '@ant-design/icons'
 import { Avatar, FloatButton, Layout, Menu } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
@@ -11,7 +11,11 @@ const AdminLayout: React.FC = () => {
   const [selectedMenuKey, setSelectedMenuKey] = useState('/admin/userList')
   const location = useLocation()
   const navigate = useNavigate()
-
+  const IconFont = createFromIconfontCN({
+    scriptUrl: [
+      '//at.alicdn.com/t/c/font_4966877_38zkbedurio.js' // icon-javascript, icon-java, icon-shoppingcart (overridden)
+    ]
+  })
   useEffect(() => {
     navigate(selectedMenuKey)
   }, [selectedMenuKey, navigate])
@@ -45,9 +49,18 @@ const AdminLayout: React.FC = () => {
           onClick={({ key }) => setSelectedMenuKey(key)}
           className="icon-only-menu no-drag"
           items={[
-            { key: '/admin/userList', icon: <CommentOutlined style={{ fontSize: 24 }} /> },
-            { key: '/admin/gourpList', icon: <CommentOutlined style={{ fontSize: 24 }} /> },
-            { key: '/admin/messagePanel', icon: <CommentOutlined style={{ fontSize: 24 }} /> }
+            {
+              key: '/admin/userList',
+              icon: <IconFont type="icon-yonghuguanli" style={{ fontSize: 24 }} />
+            },
+            {
+              key: '/admin/gourpList',
+              icon: <IconFont type="icon-icon-font_qunliaoguanli-" style={{ fontSize: 24 }} />
+            },
+            {
+              key: '/admin/messagePanel',
+              icon: <IconFont type="icon-xitongxiaoxiguanli-copy" style={{ fontSize: 24 }} />
+            }
           ].map(({ key, icon }) => ({
             key,
             icon,
