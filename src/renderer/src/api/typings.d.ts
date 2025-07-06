@@ -183,6 +183,7 @@ declare namespace API {
 
   type getRegisterEmailCodeParams = {
     email: string
+    isRegister: boolean
   }
 
   type getUserByIdParams = {
@@ -444,7 +445,6 @@ declare namespace API {
     userPassword: string
     checkPassword: string
     userEmail: string
-    userName: string
     checkCodeKey: string
     checkCode: string
   }

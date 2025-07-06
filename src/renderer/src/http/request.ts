@@ -29,15 +29,10 @@ request.interceptors.request.use(
 request.interceptors.response.use(
     (response) => {
         // 一般后端接口规范返回数据格式统一，直接返回 data
-        console.log("res", response);
         const res = response.data
         // 可以根据后端实际情况判断返回 code，错误时 reject
-        if (res.code && res.code !== 200) {
-            // 比如 401 未登录，或者 403 无权限等
-            if (res.code == 401) {
-                // 处理未登录，跳登录页等
-                message.error(res.message)
-            }
+        if (res.code && res.code == 401) {
+            message.error(res.message)
             return Promise.reject(new Error(res.message || 'Error'))
         } else {
             return res
