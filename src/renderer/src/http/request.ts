@@ -1,4 +1,5 @@
 // src/utils/request.ts
+import { useUserStore } from '@renderer/store/useUserStore'
 import { message } from 'antd'
 import axios, { AxiosInstance } from 'axios'
 
@@ -12,10 +13,9 @@ const request: AxiosInstance = axios.create({
 // 请求拦截器
 request.interceptors.request.use(
     (config) => {
-        // 这里可以添加请求头，比如携带 token
-        const token = localStorage.getItem('token') // 或者从 zustand、redux 取
-        if (token && config.headers) {
-            config.headers.Authorization = `Bearer ${token}`
+        const user = useUserStore.getState().user // 注意这里改成非 Hook 方式
+        if (user && user.token && config.headers) {
+            config.headers.Authorization = `${user.token}`
         }
         return config
     },

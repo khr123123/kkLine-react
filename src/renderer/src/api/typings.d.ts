@@ -294,7 +294,7 @@ declare namespace API {
     lastLogoutTime?: string
     areaName?: string
     areaCode?: string
-    session?: string
+    token?: string
   }
 
   type MessageSendDTO = {
