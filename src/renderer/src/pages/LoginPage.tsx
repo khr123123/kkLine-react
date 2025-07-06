@@ -1,27 +1,28 @@
-// src/pages/Login.tsx
 import {
-    AlipayOutlined,
-    LockOutlined,
-    MobileOutlined,
-    TaobaoOutlined,
-    UserOutlined,
-    WeiboOutlined
+  AlipayOutlined,
+  LockOutlined,
+  MailOutlined,
+  TaobaoOutlined,
+  UserOutlined,
+  WeiboOutlined
 } from '@ant-design/icons'
 import {
-    LoginFormPage,
-    ProConfigProvider,
-    ProFormCaptcha,
-    ProFormCheckbox,
-    ProFormText
+  LoginFormPage,
+  ProConfigProvider,
+  ProForm,
+  ProFormCaptcha,
+  ProFormText
 } from '@ant-design/pro-components'
+import { getRegisterEmailCode, loginByEmail, loginByPwd } from '@renderer/api/userApis'
 import GlobalToolBar from '@renderer/components/GlobalToolBar'
+import { useUserStore } from '@renderer/store/useUserStore'
 import { Button, Divider, Space, Tabs, message, theme } from 'antd'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import logo from '../../../../resources/wechat.png'
 
-type LoginType = 'phone' | 'account'
+type LoginType = 'email' | 'account'
 
 const iconStyles: CSSProperties = {
   color: 'rgba(0, 0, 0, 0.2)',
@@ -34,17 +35,57 @@ const Page = () => {
   const [loginType, setLoginType] = useState<LoginType>('account')
   const { token } = theme.useToken()
   const navigate = useNavigate()
+  const { setUser } = useUserStore()
+  const [form] = ProForm.useForm()
+  const [checkCodeKey, setCheckCodeKey] = useState<string>('')
+  const sendEmailHandelr = async (values: API.getRegisterEmailCodeParams) => {
+    try {
+      const res = (await getRegisterEmailCode(values)) as API.BaseResponseMapStringString
+      if (res && res.code === 0) {
+        message.success('邮件发送成功，请查收!')
+        const checkCodeKeyMap = res.data as Record<string, string>
+        setCheckCodeKey(checkCodeKeyMap['checkCodeKey'] ?? '')
+      } else {
+        message.error(res.message || '邮件发送失败')
+      }
+    } catch (error: any) {
+      console.error('发送邮件异常', error)
+      const msg = error?.response?.data?.message || error?.message || '请求异常'
+      message.error(msg)
+    }
+  }
+
+  const onFinishHandler = async (
+    values: API.UserLoginByPwdRequest | API.UserLoginByEmailRequest
+  ) => {
+    try {
+      let res: API.BaseResponseMapStringString
+      if (loginType === 'account') {
+        res = await loginByPwd(values as API.UserLoginByPwdRequest)
+      } else {
+        values = { ...values, checkCodeKey }
+        res = await loginByEmail(values as API.UserLoginByEmailRequest)
+      }
+      if (res && res.code === 0) {
+        if (res.data) {
+          setUser(res.data)
+        }
+        message.success('登录成功!')
+        navigate('/')
+      }
+    } catch (error: any) {
+      console.error('登录异常', error)
+      message.error(error?.response?.data?.msg || '登录请求异常')
+    }
+  }
 
   return (
     <>
       <GlobalToolBar isLoginPage={true} />
       <div style={{ backgroundColor: 'white', height: '100vh' }}>
         <LoginFormPage
-          onFinish={async (values) => {
-            message.success('登录成功！', values.username)
-            localStorage.setItem('token', 'mock-token')
-            navigate('/') // 跳转首页
-          }}
+          form={form}
+          onFinish={onFinishHandler}
           backgroundImageUrl="https://mdn.alipayobjects.com/huamei_gcee1x/afts/img/A*y0ZTS6WLwvgAAAAAAAAAAAAADml6AQ/fmt.webp"
           backgroundVideoUrl="https://gw.alipayobjects.com/v/huamei_gcee1x/afts/video/jXRBRK_VAwoAAAAAAAAAAAAAK4eUAQBr"
           logo={logo}
@@ -95,50 +136,62 @@ const Page = () => {
         >
           <Tabs centered activeKey={loginType} onChange={(key) => setLoginType(key as LoginType)}>
             <Tabs.TabPane key="account" tab="账号密码登录" />
-            <Tabs.TabPane key="phone" tab="手机号登录" />
+            <Tabs.TabPane key="email" tab="邮箱登录" />
           </Tabs>
 
           {loginType === 'account' && (
             <>
               <ProFormText
-                name="username"
+                name="userAccount"
                 fieldProps={{
                   size: 'large',
                   prefix: <UserOutlined className="prefixIcon" style={{ color: token.colorText }} />
                 }}
-                placeholder="用户名：admin"
-                rules={[{ required: true, message: '请输入用户名' }]}
+                placeholder="用户名"
+                validateTrigger="onBlur"
+                rules={[
+                  { required: true, message: '请输入用户名' },
+                  { min: 6, message: '用户名长度不能小于6' },
+                  { max: 12, message: '用户名长度不能大于12' }
+                ]}
               />
               <ProFormText.Password
-                name="password"
+                name="userPassword"
                 fieldProps={{
                   size: 'large',
                   prefix: <LockOutlined className="prefixIcon" style={{ color: token.colorText }} />
                 }}
-                placeholder="密码：123456"
-                rules={[{ required: true, message: '请输入密码' }]}
+                placeholder="密码"
+                validateTrigger="onBlur"
+                rules={[
+                  { required: true, message: '请输入密码' },
+                  { min: 6, message: '密码长度不能小于6' },
+                  { max: 12, message: '密码长度不能大于12' }
+                ]}
               />
             </>
           )}
 
-          {loginType === 'phone' && (
+          {loginType === 'email' && (
             <>
               <ProFormText
-                name="mobile"
+                name="userEmail"
+                validateTrigger="onBlur"
                 fieldProps={{
                   size: 'large',
-                  prefix: (
-                    <MobileOutlined className="prefixIcon" style={{ color: token.colorText }} />
-                  )
+                  prefix: <MailOutlined className="prefixIcon" style={{ color: token.colorText }} />
                 }}
-                placeholder="手机号"
+                placeholder="邮箱地址"
                 rules={[
-                  { required: true, message: '请输入手机号！' },
-                  { pattern: /^1\d{10}$/, message: '手机号格式错误' }
+                  { required: true, message: '请输入邮箱地址！' },
+                  {
+                    pattern: /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/,
+                    message: '邮箱格式错误'
+                  }
                 ]}
               />
               <ProFormCaptcha
-                name="captcha"
+                name="checkCode"
                 fieldProps={{
                   size: 'large',
                   prefix: <LockOutlined className="prefixIcon" style={{ color: token.colorText }} />
@@ -146,18 +199,26 @@ const Page = () => {
                 placeholder="请输入验证码"
                 captchaTextRender={(timing, count) => (timing ? `${count} 秒后重试` : '获取验证码')}
                 onGetCaptcha={async () => {
-                  message.success('验证码为：1234（测试）')
+                  const email = form.getFieldValue('userEmail')
+                  if (!email) {
+                    message.error('请先输入邮箱地址')
+                    return
+                  }
+                  const emailReg = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/
+                  if (!emailReg.test(email)) {
+                    message.error('邮箱格式错误')
+                    return
+                  }
+                  await sendEmailHandelr({ email })
                 }}
                 rules={[{ required: true, message: '请输入验证码' }]}
               />
             </>
           )}
 
-          <div style={{ marginBottom: 24 }}>
-            <ProFormCheckbox noStyle name="autoLogin">
-              自动登录
-            </ProFormCheckbox>
-            <a style={{ float: 'right' }}>忘记密码？</a>
+          <div style={{ marginBottom: 24, paddingBottom: 24 }}>
+            <a style={{ float: 'right' }}>没有账号？去注册</a>
+            <a style={{ float: 'left' }}>忘记密码？</a>
           </div>
         </LoginFormPage>
       </div>
