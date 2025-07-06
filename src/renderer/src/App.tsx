@@ -102,17 +102,7 @@ const router = createBrowserRouter([
       <RouteGuard>
         <>admin</>
       </RouteGuard>
-    ),
-    children: [
-      // {
-      //   index: true,
-      //   element: <Navigate to="/userList" replace />
-      // },
-      // {
-      //   path: 'userList',
-      //   element: <SessionsPage />
-      // }
-    ]
+    )
   }
 ])
 

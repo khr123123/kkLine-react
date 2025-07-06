@@ -9,6 +9,10 @@ export const RouteGuard: React.FC<Props> = ({ children }) => {
   const location = useLocation()
   const path = location.pathname
 
+  console.log('path', path);
+  console.log('user', user)
+  
+
   // 1. 访问 /login 放行，不鉴权
   if (path === '/login') {
     return children
