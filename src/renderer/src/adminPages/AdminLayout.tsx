@@ -1,8 +1,10 @@
-import { createFromIconfontCN, UserOutlined, WechatWorkOutlined } from '@ant-design/icons'
-import { Avatar, FloatButton, Layout, Menu, Typography } from 'antd'
+import { createFromIconfontCN, WechatWorkOutlined } from '@ant-design/icons'
+import { FloatButton, Layout, Menu, Typography } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import GlobalToolBar from '../components/GlobalToolBar'
+import UserIconCard from '@renderer/components/UserIconCard'
+import { useUserStore } from '@renderer/store/useUserStore'
 
 const { Sider, Content } = Layout
 const { Title } = Typography
@@ -11,6 +13,8 @@ const AdminLayout: React.FC = () => {
   const [selectedMenuKey, setSelectedMenuKey] = useState('/admin/userList')
   const location = useLocation()
   const navigate = useNavigate()
+  const user = useUserStore(state => state.user)
+
   const IconFont = createFromIconfontCN({
     scriptUrl: [
       '//at.alicdn.com/t/c/font_4966877_38zkbedurio.js'
@@ -52,7 +56,9 @@ const AdminLayout: React.FC = () => {
           overflow: 'hidden'
         }}
       >
-        <Avatar style={{ marginLeft: 15 }} shape="square" size={46} icon={<UserOutlined />} />
+        <span className='no-drag'>
+          <UserIconCard user={user as API.UserVO} />
+        </span>
         <Menu
           theme="light"
           mode="inline"

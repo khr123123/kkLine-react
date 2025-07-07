@@ -13,7 +13,9 @@ import {
     Upload,
     Image,
 } from 'antd';
-import { LoadingOutlined, PlusOutlined } from '@ant-design/icons';
+import { LoadingOutlined, LogoutOutlined, PlusOutlined } from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom';
+import { useUserStore } from '@renderer/store/useUserStore';
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -31,6 +33,9 @@ const SettingPage: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [avatarUrl, setAvatarUrl] = useState<string>('');
     const [uploadLoading, setUploadLoading] = useState(false);
+    const navigate = useNavigate()
+    const clearUser = useUserStore(state => state.clearUser)
+    const [messageApi, contextHolder] = message.useMessage();
 
     // 只做本地预览，不实际上传
     const beforeUpload = (file: File) => {
@@ -135,6 +140,29 @@ const SettingPage: React.FC = () => {
                                 uploadButton
                             )}
                         </Upload>
+                        {contextHolder}
+                        <Button
+                            style={{ fontSize: 16, marginTop: 10 }}
+                            type="primary"
+                            danger
+                            icon={<LogoutOutlined />}
+                            onClick={() => {
+                                messageApi.open({
+                                    type: 'loading',
+                                    content: '正在退出...',
+                                });
+                                setTimeout(() => {
+                                    message.success('退出成功！', 0.5).then(() => {
+                                        clearUser();
+                                        navigate('/login');
+                                    });
+                                    // logout api TODO
+                                }, 1000);
+                            }
+                            }
+                        >
+                            Logout
+                        </Button>
                     </Col>
 
                     {/* 右侧表单列，占剩余宽度 */}

@@ -1,4 +1,6 @@
-import { Avatar, Input, List, Typography } from 'antd'
+import { UsergroupAddOutlined } from '@ant-design/icons'
+import GroupForm from '@renderer/components/GroupForm'
+import { Avatar, Button, Input, List, message, Modal, Typography } from 'antd'
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
@@ -89,6 +91,8 @@ const GroupsPage: React.FC = () => {
     const [groups] = useState<Group[]>(initialGroups)
     const [selectedGroup, setSelectedGroup] = useState<Group | null>(null)
     const navigate = useNavigate()
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const handleCancel = () => setIsModalOpen(false);
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
@@ -98,14 +102,47 @@ const GroupsPage: React.FC = () => {
                     height: 46,
                     position: 'sticky',
                     top: 25,
+                    display: 'flex',
+                    alignItems: 'center',
+                    padding: '0 10px',
+                    paddingBottom: 10,
+                    background: '#fff',
+                    zIndex: 10,
                 }}
             >
                 <Input.Search
                     placeholder="搜索群组"
-                    style={{ margin: '12px', marginTop: 0, marginLeft: 10, width: 'calc(100% - 20px)' }}
                     allowClear
+                    style={{ flex: 1, marginRight: 10 }}
                 />
+                <Button
+                    type="primary"
+                    icon={<UsergroupAddOutlined />}
+                    style={{ fontSize: 18 }}
+                    onClick={() => setIsModalOpen(true)}
+                />
+                <Modal
+                    title="创建群组"
+                    closable={{ 'aria-label': 'Custom Close Button' }}
+                    open={isModalOpen}
+                    onCancel={handleCancel}
+                    footer={null} // 表单组件自己控制提交
+                >
+                    <GroupForm
+                        onSubmit={async (data) => {
+                            console.log('创建群聊数据', data);
+                            try {
+                                // const res = await createGroup(data); // 调用API
+                                message.success('创建成功');
+                                setIsModalOpen(false);
+                            } catch (e) {
+                                message.error('创建失败');
+                            }
+                        }}
+                    />
+                </Modal>
             </div>
+
             <List
                 className='scrollableDiv'
                 itemLayout="horizontal"
