@@ -2,6 +2,8 @@ import { electronApp, is, optimizer } from '@electron-toolkit/utils';
 import { app, BrowserWindow, ipcMain, shell } from 'electron';
 import { join } from 'path';
 import icon from '../../resources/wechat.png?asset';
+import { Menu, nativeImage, Tray } from 'electron';
+import { closeWs, initWs } from './ws'
 let mainWindow: BrowserWindow;
 function createWindow(): void {
   // Create the browser window.
@@ -30,8 +32,6 @@ function createWindow(): void {
     return { action: 'deny' }
   })
 
-  // HMR for renderer base on electron-vite cli.
-  // Load the remote URL for development or the local html file for production.
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
     mainWindow.loadURL('http://localhost:5173/login')
     // mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
@@ -40,75 +40,74 @@ function createWindow(): void {
   }
 }
 
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
-  // Set app user model id for windows
   electronApp.setAppUserModelId('com.electron')
 
-  // Default open or close DevTools by F12 in development
-  // and ignore CommandOrControl + R in production.
-  // see https://github.com/alex8088/electron-toolkit/tree/master/packages/utils
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)
   })
 
-  // IPC test
-  ipcMain.on('ping', () => console.log('pong'))
-
-  createWindow()
-
   app.on('activate', function () {
-    // On macOS it's common to re-create a window in the app when the
-    // dock icon is clicked and there are no other windows open.
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
-
+  //创建窗口
+  createWindow()
+  //注册 IPC 事件
+  registerIpcHandlers(mainWindow)
+  //创建托盘
   createTray(mainWindow)
 })
 
-// Quit when all windows are closed, except on macOS. There, it's common
-// for applications and their menu bar to stay active until the user quits
-// explicitly with Cmd + Q.
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit()
   }
 })
-// 接收最小化、关闭、置顶
-ipcMain.on('window-minimize', () => mainWindow.minimize());
-ipcMain.on('window-close', () => mainWindow.close());
-ipcMain.on('window-toggle-always-on-top', () =>
-  mainWindow.setAlwaysOnTop(!mainWindow.isAlwaysOnTop())
-);
-ipcMain.on('window-toggle-maximize', () => {
-  const win = BrowserWindow.getFocusedWindow()
-  if (!win) return
-  if (win.isMaximized()) {
-    win.unmaximize()
-  } else {
-    win.maximize()
-  }
-})
-ipcMain.on('resize-window', (_, { width, height }) => {
-  const win = BrowserWindow.getFocusedWindow()
-  if (win) {
-    win.setSize(width, height)
-  }
-})
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and require them here.
 
 
-
-import { Menu, nativeImage, Tray } from 'electron';
-let tray: Tray | null = null
+function registerIpcHandlers(mainWindow: BrowserWindow) {
+  // 简单封装 ipcMain.on
+  ipcMain.on('ping', () => console.log('pong'))
+  ipcMain.on('window-minimize', () => mainWindow.minimize())
+  ipcMain.on('window-close', () => mainWindow.close())
+  ipcMain.on('window-toggle-always-on-top', () =>
+    mainWindow.setAlwaysOnTop(!mainWindow.isAlwaysOnTop())
+  )
+  ipcMain.on('window-toggle-maximize', () => {
+    const win = BrowserWindow.getFocusedWindow()
+    if (!win) return
+    if (win.isMaximized()) win.unmaximize()
+    else win.maximize()
+  })
+  ipcMain.on('resize-window', (_, { width, height }) => {
+    const win = BrowserWindow.getFocusedWindow()
+    if (win) win.setSize(width, height)
+  })
+  // 1. 登陆成功 初始化WS
+  ipcMain.handle('ws-init', (_, loginUser) => {
+    try {
+      initWs(loginUser, mainWindow)
+      return true
+    } catch (e) {
+      console.error('WS 初始化失败:', e)
+      return false
+    }
+  })
+  // 2. 退出登陆 关闭WS
+  ipcMain.handle('ws-close', () => {
+    try {
+      closeWs()
+      return true
+    } catch (e) {
+      console.error('WS 关闭失败:', e)
+      return false
+    }
+  })
+}
 
 function createTray(win: BrowserWindow) {
   const trayIcon = nativeImage.createFromPath(icon)
-  tray = new Tray(trayIcon)
-
+  let tray = new Tray(trayIcon)
   const contextMenu = Menu.buildFromTemplate([
     {
       label: '显示主界面',

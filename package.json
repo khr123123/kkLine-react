@@ -31,10 +31,12 @@
     "antd": "^5.26.3",
     "antd-style": "^3.7.1",
     "axios": "^1.10.0",
+    "better-sqlite3": "^12.2.0",
     "electron-updater": "^6.3.9",
     "emoji-picker-react": "^4.12.3",
     "react-infinite-scroll-component": "^6.1.0",
     "react-router-dom": "^7.6.3",
+    "ws": "^8.18.3",
     "zustand": "^5.0.6"
   },
   "devDependencies": {
