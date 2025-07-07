@@ -385,12 +385,10 @@ const Page = () => {
                 />
               </>
             )}
-
             <div style={{ marginBottom: 24, paddingBottom: 24 }}>
               <a style={{ float: 'right' }} onClick={() => setIsRegisterPage(true)}>
                 没有账号？去注册
               </a>
-              <a style={{ float: 'left' }}>忘记密码？</a>
             </div>
           </LoginFormPage>
         )}

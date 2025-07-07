@@ -16,6 +16,7 @@ import ChatPage from './pages/session/ChatPage'
 import SessionsPage from './pages/session/SessionsPage'
 import SettingPage from './pages/SettingPage'
 import YoutubePage from './pages/YoutubePage'
+import UserListPage from './adminPages/UserListPage'
 const router = createBrowserRouter([
   {
     path: '/login',
@@ -111,7 +112,7 @@ const router = createBrowserRouter([
       },
       {
         path: 'userList',
-        element: <>userList</>
+        element: <UserListPage/>
       },
       {
         path: 'gourpList',

@@ -1,11 +1,11 @@
-// BaseLayout.tsx
 import { createFromIconfontCN, UserOutlined, WechatWorkOutlined } from '@ant-design/icons'
-import { Avatar, FloatButton, Layout, Menu } from 'antd'
+import { Avatar, FloatButton, Layout, Menu, Typography } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import GlobalToolBar from '../components/GlobalToolBar'
 
 const { Sider, Content } = Layout
+const { Title } = Typography
 
 const AdminLayout: React.FC = () => {
   const [selectedMenuKey, setSelectedMenuKey] = useState('/admin/userList')
@@ -13,9 +13,17 @@ const AdminLayout: React.FC = () => {
   const navigate = useNavigate()
   const IconFont = createFromIconfontCN({
     scriptUrl: [
-      '//at.alicdn.com/t/c/font_4966877_38zkbedurio.js' // icon-javascript, icon-java, icon-shoppingcart (overridden)
+      '//at.alicdn.com/t/c/font_4966877_38zkbedurio.js'
     ]
   })
+
+  // 路由对应标题映射
+  const routeTitleMap: Record<string, string> = {
+    '/admin/userList': '用户管理',
+    '/admin/gourpList': '群组管理',
+    '/admin/messagePanel': '消息管理',
+  }
+
   useEffect(() => {
     navigate(selectedMenuKey)
   }, [selectedMenuKey, navigate])
@@ -24,7 +32,10 @@ const AdminLayout: React.FC = () => {
     if (location.pathname.startsWith('/admin')) {
       window.electron.ipcRenderer.send('resize-window', { width: 1200, height: 700 })
     }
-  }, [])
+  }, [location.pathname])
+
+  // 从映射中获取当前路径对应的标题，找不到默认空字符串
+  const title = routeTitleMap[location.pathname] || ''
 
   return (
     <Layout style={{ height: '100vh' }}>
@@ -75,11 +86,16 @@ const AdminLayout: React.FC = () => {
           flexDirection: 'column',
           justifyContent: 'flex-start',
           height: '100vh',
-          overflowY: 'auto'
+          overflowY: 'auto',
         }}
       >
         <GlobalToolBar />
-        <Outlet />
+        <Title level={3} style={{ margin: '16px 24px', marginBottom: 0, marginTop: 0 }}>
+          {title}
+        </Title>
+        <div style={{ padding: '16px' }}>
+          <Outlet />
+        </div>
       </Content>
       <FloatButton
         tooltip={'去聊天'}
