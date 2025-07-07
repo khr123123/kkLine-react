@@ -8,14 +8,15 @@ import {
   SearchOutlined,
   SettingOutlined,
   TeamOutlined,
-  UserOutlined,
   YoutubeOutlined
 } from '@ant-design/icons'
-import { Avatar, FloatButton, Layout, Menu } from 'antd'
+import { FloatButton, Layout, Menu } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { Outlet, useLocation, useMatches, useNavigate } from 'react-router-dom'
 import { useIsAdmin } from '../auth/RouteGuard'
 import GlobalToolBar from './GlobalToolBar'
+import { useUserStore } from '@renderer/store/useUserStore'
+import UserIconCard from './UserIconCard'
 const { Sider, Content } = Layout
 
 interface HandleWithRightArea {
@@ -27,6 +28,7 @@ const BaseLayout: React.FC = () => {
   const navigate = useNavigate()
   const isAdmin = useIsAdmin()
   const location = useLocation()
+  const user = useUserStore(state => state.user)
 
   useEffect(() => {
     if (selectedMenuKey === 'myGithub') {
@@ -66,7 +68,9 @@ const BaseLayout: React.FC = () => {
           overflow: 'hidden'
         }}
       >
-        <Avatar style={{ marginLeft: 15 }} shape="square" size={46} icon={<UserOutlined />} />
+        <span className='no-drag'>
+          <UserIconCard user={user as API.UserVO} />
+        </span>
         <Menu
           theme="light"
           mode="inline"
