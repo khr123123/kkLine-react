@@ -51,7 +51,7 @@ const GroupsPage: React.FC = () => {
                 <Button
                     type="primary"
                     icon={<UsergroupAddOutlined />}
-                    style={{ fontSize: 18 }}
+                    style={{ fontSize: 20 }}
                     onClick={() => setIsModalOpen(true)}
                 />
                 <Modal

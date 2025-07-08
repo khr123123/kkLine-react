@@ -1,5 +1,5 @@
 import { useUserStore } from '@renderer/store/useUserStore'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 
 type Props = { children: React.ReactElement }
@@ -27,12 +27,24 @@ export const RouteGuard: React.FC<Props> = ({ children }) => {
     }
     return children
   }
-
-  // 3. 其他路径，必须登录，角色不限
+  // 3. 访问 /notifications 需要异步校验
+  if (path.startsWith('/notifications')) {
+    const [allowed, setAllowed] = useState<boolean | null>(null);
+    useEffect(() => {
+      window.electron.ipcRenderer
+        .invoke('check-is-notification-window')
+        .then((result: boolean) => {
+          setAllowed(result);
+        });
+    }, []);
+    if (allowed === null) return null;
+    // 等待异步结果时可以渲染loading或null
+    return allowed ? children : null;
+  }
+  // 4. 其他路径，必须登录，角色不限
   if (!user) {
     return <Navigate to="/login" replace state={{ from: location }} />
   }
-
-  // 4. 通过鉴权，放行
+  // 5. 通过鉴权，放行
   return children
 }

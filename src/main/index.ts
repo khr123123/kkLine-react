@@ -1,9 +1,10 @@
 import { electronApp, is, optimizer } from '@electron-toolkit/utils';
-import { app, BrowserWindow, ipcMain, shell } from 'electron';
+import { app, BrowserWindow, ipcMain, shell, } from 'electron';
 import { join } from 'path';
 import icon from '../../resources/wechat.png?asset';
 import { Menu, nativeImage, Tray } from 'electron';
 import { closeWs, initWs } from './ws'
+
 let mainWindow: BrowserWindow;
 function createWindow(): void {
   // Create the browser window.
@@ -19,7 +20,7 @@ function createWindow(): void {
     icon,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
-      sandbox: false
+      sandbox: false,
     }
   })
 
@@ -64,12 +65,17 @@ app.on('window-all-closed', () => {
   }
 })
 
-
+let currentLoginUser: any
 function registerIpcHandlers(mainWindow: BrowserWindow) {
   // 简单封装 ipcMain.on
   ipcMain.on('ping', () => console.log('pong'))
   ipcMain.on('window-minimize', () => mainWindow.minimize())
-  ipcMain.on('window-close', () => mainWindow.close())
+  ipcMain.on('window-close', () => {
+    mainWindow.close()
+    if (notificationWindow) {
+      notificationWindow.close()
+    }
+  })
   ipcMain.on('window-toggle-always-on-top', () =>
     mainWindow.setAlwaysOnTop(!mainWindow.isAlwaysOnTop())
   )
@@ -86,6 +92,7 @@ function registerIpcHandlers(mainWindow: BrowserWindow) {
   // 1. 登陆成功 初始化WS
   ipcMain.handle('ws-init', (_, loginUser) => {
     try {
+      currentLoginUser = loginUser
       initWs(loginUser, mainWindow)
       return true
     } catch (e) {
@@ -103,7 +110,17 @@ function registerIpcHandlers(mainWindow: BrowserWindow) {
       return false
     }
   })
+  //获取登录用户信息
+  ipcMain.handle('get-login-user', () => currentLoginUser);
 
+  // 3. 打开[新的通知]窗口
+  ipcMain.handle('open-notification-window', () => {
+    createNotificationWindow();
+  });
+  // 4. 关闭[新的通知]窗口
+  ipcMain.on('window-close-notifications', () => notificationWindow?.close())
+  // 5. 校验是否是[新的通知]窗口 防止恶意路由跳转
+  ipcMain.handle("check-is-notification-window", () => mainWindow !== null)
 }
 
 function createTray(win: BrowserWindow) {
@@ -131,4 +148,49 @@ function createTray(win: BrowserWindow) {
   tray.on('click', () => {
     win.isVisible() ? win.hide() : win.show()
   })
+}
+
+
+let notificationWindow: BrowserWindow | null = null;
+
+function createNotificationWindow(): void {
+  if (notificationWindow) {
+    notificationWindow.focus();
+    return;
+  }
+
+  notificationWindow = new BrowserWindow({
+    width: 600,
+    height: 800,
+    minWidth: 400,
+    minHeight: 600,
+    frame: false,
+    resizable: true,
+    show: false,
+    autoHideMenuBar: true,
+    icon,
+    webPreferences: {
+      preload: join(__dirname, '../preload/index.js'),
+      sandbox: false,
+    }
+  });
+
+  notificationWindow.on('ready-to-show', () => {
+    notificationWindow?.show();
+  });
+
+  notificationWindow.on('closed', () => {
+    notificationWindow = null;
+  });
+
+  notificationWindow.webContents.setWindowOpenHandler((details) => {
+    shell.openExternal(details.url);
+    return { action: 'deny' };
+  });
+  if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
+    notificationWindow.loadURL('http://localhost:5173/notifications');
+    // mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
+  } else {
+    // mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
+  }
 }

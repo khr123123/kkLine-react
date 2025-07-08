@@ -1,7 +1,7 @@
-import { DeleteOutlined, PushpinOutlined, VerticalAlignBottomOutlined, VerticalAlignTopOutlined } from '@ant-design/icons'
+import { DeleteOutlined, MessageOutlined, NotificationOutlined, PushpinOutlined, UsergroupAddOutlined, VerticalAlignBottomOutlined, VerticalAlignTopOutlined } from '@ant-design/icons'
 import GlobalLoading from '@renderer/components/GlobalLoding'
 import type { MenuProps } from 'antd'
-import { Avatar, Badge, Dropdown, Input, List, Menu, Typography } from 'antd'
+import { Avatar, Badge, Button, Dropdown, Input, List, Menu, Modal, Typography } from 'antd'
 import React, { useEffect, useState } from 'react'
 const { Text } = Typography
 import { useNavigate } from 'react-router-dom'
@@ -181,6 +181,8 @@ const SessionsPage: React.FC = () => {
     };
     fetchData();
   }, []);
+
+  const [noReadApplyCount, setNoReadApplyCount] = useState<number>(0);
   return (
     <>
       {/* 全局加载蒙层 */}
@@ -192,13 +194,22 @@ const SessionsPage: React.FC = () => {
             height: 46,
             position: 'sticky',
             top: 25,
+            display: 'flex',
+            alignItems: 'center',
+            padding: '0 10px',
+            paddingBottom: 10,
+            background: '#fff',
+            zIndex: 10,
           }}
         >
           <Input.Search
             placeholder="搜索联系人"
-            style={{ margin: '12px', marginTop: 0, marginLeft: 10, width: 'calc(100% - 20px)' }}
+            style={{ flex: 1, marginRight: 10 }}
             allowClear
           />
+          <Badge count={noReadApplyCount} size="small" style={{ width: 16, fontSize: 11 }} offset={[1, -5]}>
+            <MessageOutlined style={{ fontSize: 20 }} onClick={() => window.electron.ipcRenderer.invoke('open-notification-window')} />
+          </Badge>
         </div>
         <List
           className='scrollableDiv'
@@ -286,3 +297,144 @@ const SessionsPage: React.FC = () => {
 }
 
 export default SessionsPage
+
+
+
+// import {
+//   Tag,
+//   Pagination,
+//   Space,
+//   Card,
+//   Divider
+// } from "antd";
+// import { UserOutlined, TeamOutlined } from "@ant-design/icons";
+// const mockContactApplyList: API.ContactApplyVO[] = [
+//   {
+//     id: 1,
+//     fromUserId: 1001,
+//     toUserId: 2001,
+//     groupId: null,
+//     contactType: 0, // 好友
+//     applyInfo: "你好，可以加个好友吗？",
+//     createTime: new Date("2025-07-07T14:00:00"),
+//     updateTime: new Date("2025-07-07T14:05:00"),
+//     applyStatus: 0,
+//     userVO: {
+//       id: 1001,
+//       nickname: "小明",
+//       avatar: "https://i.pravatar.cc/150?img=3"
+//     },
+//     groupVO: null,
+//   },
+//   {
+//     id: 2,
+//     fromUserId: 1002,
+//     toUserId: 2001,
+//     groupId: "G1942436901383626753",
+//     contactType: 1, // 群
+//     applyInfo: "请求加入 Netty 群",
+//     createTime: new Date("2025-07-07T15:10:00"),
+//     updateTime: new Date("2025-07-07T15:12:00"),
+//     applyStatus: 1,
+//     userVO: {
+//       id: 1002,
+//       nickname: "小红",
+//       avatar: "https://i.pravatar.cc/150?img=5"
+//     },
+//     groupVO: {
+//       id: "G1942436901383626753",
+//       groupName: "Netty 技术交流群",
+//       groupAvatar: "https://i.pravatar.cc/150?img=10"
+//     },
+//   },
+//   {
+//     id: 3,
+//     fromUserId: 1003,
+//     toUserId: 2001,
+//     groupId: null,
+//     contactType: 0,
+//     applyInfo: "加个好友，一起学习 React！",
+//     createTime: new Date("2025-07-08T09:30:00"),
+//     updateTime: new Date("2025-07-08T09:35:00"),
+//     applyStatus: 2,
+//     userVO: {
+//       id: 1003,
+//       nickname: "张三",
+//       avatar: "https://i.pravatar.cc/150?img=8"
+//     },
+//     groupVO: null,
+//   },
+// ];
+
+// interface Props {
+//   data: API.ContactApplyVO[];
+// }
+
+// const PAGE_SIZE = 5;
+
+// const ContactApplyList: React.FC<Props> = ({ data }) => {
+//   const [currentPage, setCurrentPage] = useState(1);
+
+//   const pagedData = data.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
+//   const renderStatusTag = (status: number) => {
+//     switch (status) {
+//       case 0: return <Tag color="blue">待处理</Tag>;
+//       case 1: return <Tag color="green">已接受</Tag>;
+//       case 2: return <Tag color="red">已拒绝</Tag>;
+//       case 3: return <Tag color="default">已拉黑</Tag>;
+//       default: return <Tag>未知</Tag>;
+//     }
+//   };
+
+//   return (
+//     <Card title="新的好友/群申请" bordered style={{ borderRadius: 12 }}>
+//       <List
+//         itemLayout="vertical"
+//         dataSource={pagedData}
+//         renderItem={(item) => {
+//           const isGroup = item.contactType === 1;
+//           const name = isGroup ? item.groupVO?.groupName : item.userVO?.nickname;
+//           const avatar = isGroup ? item.groupVO?.groupAvatar : item.userVO?.avatar;
+
+//           return (
+//             <List.Item style={{ padding: 12, border: '1px solid #eee', borderRadius: 8, marginBottom: 12 }}>
+//               {/* 上部分 */}
+//               <Space align="start">
+//                 <Avatar src={avatar} icon={isGroup ? <TeamOutlined /> : <UserOutlined />} />
+//                 <Space size="large">
+//                   <Text strong>{name ?? "未知用户"}</Text>
+//                   <Tag color={isGroup ? "purple" : "cyan"}>
+//                     {isGroup ? "群申请" : "好友申请"}
+//                   </Tag>
+//                 </Space>
+//               </Space>
+//               <Divider style={{ margin: "8px 0" }} />
+//               <Space direction="vertical" style={{ width: "100%" }} size={4}>
+//                 <Text>备注：{item.applyInfo || "无备注信息"}</Text>
+//                 <Space>
+//                   {renderStatusTag(item.applyStatus ?? 0)}
+//                   <Text type="secondary">
+//                     申请时间：{new Date(item.createTime).toLocaleString()}
+//                   </Text>
+//                 </Space>
+//               </Space>
+//             </List.Item>
+//           );
+//         }}
+//       />
+
+//       {/* 分页器 */}
+//       <div style={{ textAlign: "center", marginTop: 16 }}>
+//         <Pagination
+//           current={currentPage}
+//           pageSize={PAGE_SIZE}
+//           total={data.length}
+//           onChange={(page) => setCurrentPage(page)}
+//           showSizeChanger={false}
+//         />
+//       </div>
+//     </Card>
+//   );
+// };
+

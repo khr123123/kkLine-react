@@ -18,10 +18,15 @@ import SettingPage from './pages/SettingPage'
 import YoutubePage from './pages/YoutubePage'
 import UserListPage from './adminPages/UserListPage'
 import GroupListpage from './adminPages/GroupListpage'
+import NotifiPage from './pages/NotifiPage'
 const router = createBrowserRouter([
   {
     path: '/login',
     element: <LoginPage />
+  },
+  {
+    path: '/notifications',
+    element: <RouteGuard><NotifiPage /></RouteGuard>
   },
   {
     path: '/',
@@ -92,11 +97,10 @@ const router = createBrowserRouter([
         path: 'youtube',
         element: <YoutubePage />
       },
-
       {
         path: 'setting',
         element: <SettingPage />
-      }
+      },
     ]
   },
   {
@@ -113,11 +117,11 @@ const router = createBrowserRouter([
       },
       {
         path: 'userList',
-        element: <UserListPage/>
+        element: <UserListPage />
       },
       {
         path: 'gourpList',
-        element: <GroupListpage/>
+        element: <GroupListpage />
       },
       {
         path: 'messagePanel',

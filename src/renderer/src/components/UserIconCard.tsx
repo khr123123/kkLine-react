@@ -45,13 +45,14 @@ const UserIconCard: React.FC<UserIconCardProps> = ({ user }) => {
             open={clicked}
             onOpenChange={handleClickChange}
         >
-            <Avatar
-                style={{ marginLeft: 15, cursor: 'pointer' }}
-                shape="square"
-                size={46}
-                src={imageUrl || user.userAvatar}
-                icon={<UserOutlined />}
-            />
+            <div style={{ marginLeft: 15, cursor: 'pointer' }}>
+                <Avatar
+                    shape="square"
+                    size={46}
+                    src={imageUrl || user.userAvatar}
+                    icon={<UserOutlined />}
+                />
+            </div>
         </Popover>
     );
 };
