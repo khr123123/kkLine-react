@@ -112,7 +112,6 @@ const columns: ProColumns<Group>[] = [
     }
 ];
 
-
 // 主表格组件
 export default () => {
     const actionRef = useRef<ActionType | undefined>(undefined);

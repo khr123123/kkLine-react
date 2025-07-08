@@ -11,7 +11,6 @@ interface AvatarUploaderProps {
   initialUrl?: string;
   onSuccess: (url: string) => void;
 }
-
 const PicUploader: React.FC<AvatarUploaderProps> = ({ token, initialUrl, onSuccess }) => {
   const [imageUrl, setImageUrl] = useState<string>(initialUrl || '');
   const [loading, setLoading] = useState(false);

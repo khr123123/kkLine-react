@@ -1,100 +1,30 @@
 import { UsergroupAddOutlined } from '@ant-design/icons'
+import { loadContact } from '@renderer/api/contactApis'
 import { genGroup } from '@renderer/api/groupApis'
 import GroupForm from '@renderer/components/GroupForm'
 import { Avatar, Button, Input, List, message, Modal, Typography } from 'antd'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-
+import dayjs from "dayjs"
 const { Text } = Typography
 
-interface Group {
-    id: number
-    name: string
-    avatar: string
-    members: number
-    joinedAt: string // 加入时间
-}
-
-const initialGroups: Group[] = [
-    {
-        id: 101,
-        name: '技术交流群',
-        avatar: 'https://cdn-icons-png.flaticon.com/512/2922/2922510.png',
-        members: 36,
-        joinedAt: '2024-03-15'
-    },
-    {
-        id: 102,
-        name: 'React 开发组',
-        avatar: 'https://cdn-icons-png.flaticon.com/512/2922/2922656.png',
-        members: 18,
-        joinedAt: '2024-08-01'
-    },
-    {
-        id: 103,
-        name: '前端技术大会',
-        avatar: 'https://cdn-icons-png.flaticon.com/512/2922/2922650.png',
-        members: 128,
-        joinedAt: '2025-01-10'
-    },
-    {
-        id: 104,
-        name: '算法每日一题',
-        avatar: 'https://cdn-icons-png.flaticon.com/512/2922/2922662.png',
-        members: 52,
-        joinedAt: '2024-11-23'
-    },
-    {
-        id: 105,
-        name: '开源项目协作',
-        avatar: 'https://cdn-icons-png.flaticon.com/512/2922/2922636.png',
-        members: 74,
-        joinedAt: '2024-12-05'
-    },
-    {
-        id: 106,
-        name: 'Go语言学习群',
-        avatar: 'https://cdn-icons-png.flaticon.com/512/2922/2922676.png',
-        members: 22,
-        joinedAt: '2025-02-14'
-    },
-    {
-        id: 107,
-        name: '面试突击营',
-        avatar: 'https://cdn-icons-png.flaticon.com/512/2922/2922694.png',
-        members: 91,
-        joinedAt: '2024-09-10'
-    },
-    {
-        id: 108,
-        name: '日语互助交流群',
-        avatar: 'https://cdn-icons-png.flaticon.com/512/2922/2922608.png',
-        members: 47,
-        joinedAt: '2023-12-20'
-    },
-    {
-        id: 109,
-        name: 'AI 创作交流群',
-        avatar: 'https://cdn-icons-png.flaticon.com/512/2922/2922616.png',
-        members: 66,
-        joinedAt: '2025-03-01'
-    },
-    {
-        id: 110,
-        name: '全栈开发者圈',
-        avatar: 'https://cdn-icons-png.flaticon.com/512/2922/2922646.png',
-        members: 120,
-        joinedAt: '2025-01-25'
-    }
-]
-
 const GroupsPage: React.FC = () => {
-    const [groups] = useState<Group[]>(initialGroups)
-    const [selectedGroup, setSelectedGroup] = useState<Group | null>(null)
+    const [groups, setGroups] = useState<API.GroupVO[]>()
+    const [selectedGroup, setSelectedGroup] = useState<API.GroupVO | null>(null)
     const navigate = useNavigate()
     const [isModalOpen, setIsModalOpen] = useState(false);
     const handleCancel = () => setIsModalOpen(false);
-
+    useEffect(() => {
+        const fetchGroups = async () => {
+            const res = await loadContact({ contactType: 1 }) as API.BaseResponseGroupVO
+            if (res.code === 0 && Array.isArray(res.data)) {
+                const groupList = res.data.map((item) => item.groupVO).filter(Boolean);
+                setGroups(groupList);
+            }
+        };
+        fetchGroups();
+    }, []);
+    
     return (
         <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
             <div className="drag" style={{ height: 25, width: '100%' }}></div>
@@ -148,6 +78,7 @@ const GroupsPage: React.FC = () => {
                 </Modal>
             </div>
             <List
+                loading={!groups}
                 className='scrollableDiv'
                 itemLayout="horizontal"
                 dataSource={groups}
@@ -167,7 +98,7 @@ const GroupsPage: React.FC = () => {
                         }}
                     >
                         <List.Item.Meta
-                            avatar={<Avatar shape="square" size={50} src={item.avatar} />}
+                            avatar={<Avatar shape="square" size={50} src={item.groupAvatar} />}
                             title={
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                                     <Text
@@ -178,16 +109,16 @@ const GroupsPage: React.FC = () => {
                                             textOverflow: 'ellipsis'
                                         }}
                                     >
-                                        {item.name}
+                                        {item.groupName}
                                     </Text>
                                     <Text type="secondary" style={{ fontSize: 12 }}>
-                                        （{item.members}）
+                                        （{item.memberCount}）
                                     </Text>
                                 </div>
                             }
                             description={
                                 <Text type="secondary" style={{ fontSize: 12 }}>
-                                    加入时间：{item.joinedAt}
+                                    加入时间：{dayjs(item.createTime).format('YYYY-MM-DD')}
                                 </Text>
                             }
                         />

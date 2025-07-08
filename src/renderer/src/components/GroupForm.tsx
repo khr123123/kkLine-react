@@ -65,7 +65,7 @@ const GroupForm: React.FC<GroupFormProps> = ({ initialValues, onSubmit, }) => {
                     <Form.Item
                         name="joinType"
                         label="加入方式"
-                        rules={[{ required: true }]}
+                        rules={[{ required: true, message: '请选择加入方式' }]}
                     >
                         <Radio.Group>
                             <Radio value={0}>直接加入</Radio>
