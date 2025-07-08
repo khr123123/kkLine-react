@@ -2,10 +2,11 @@ import { UsergroupAddOutlined } from '@ant-design/icons'
 import { loadContact } from '@renderer/api/contactApis'
 import { genGroup } from '@renderer/api/groupApis'
 import GroupForm from '@renderer/components/GroupForm'
-import { Avatar, Button, Input, List, message, Modal, Typography } from 'antd'
+import { Avatar, Badge, Button, Input, List, message, Modal, Typography } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import dayjs from "dayjs"
+import { useUserStore } from '@renderer/store/useUserStore'
 const { Text } = Typography
 
 const GroupsPage: React.FC = () => {
@@ -13,6 +14,7 @@ const GroupsPage: React.FC = () => {
     const [selectedGroup, setSelectedGroup] = useState<API.GroupVO | null>(null)
     const navigate = useNavigate()
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const user = useUserStore(state => state.user)
     const handleCancel = () => setIsModalOpen(false);
     useEffect(() => {
         const fetchGroups = async () => {
@@ -24,7 +26,7 @@ const GroupsPage: React.FC = () => {
         };
         fetchGroups();
     }, []);
-    
+
     return (
         <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
             <div className="drag" style={{ height: 25, width: '100%' }}></div>
@@ -84,45 +86,48 @@ const GroupsPage: React.FC = () => {
                 dataSource={groups}
                 style={{ flexGrow: 1, overflowY: 'auto' }}
                 renderItem={(item) => (
-                    <List.Item
-                        className={"list-item"}
-                        key={item.id}
-                        style={{
-                            backgroundColor: selectedGroup?.id === item.id ? '#bae7ff' : undefined,
-                            cursor: 'pointer',
-                            padding: '12px 16px'
-                        }}
-                        onClick={() => {
-                            setSelectedGroup(item)
-                            navigate(`/groups/${item.id}`)
-                        }}
-                    >
-                        <List.Item.Meta
-                            avatar={<Avatar shape="square" size={50} src={item.groupAvatar} />}
-                            title={
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                    <Text
-                                        strong
-                                        style={{
-                                            whiteSpace: 'nowrap',
-                                            overflow: 'hidden',
-                                            textOverflow: 'ellipsis'
-                                        }}
-                                    >
-                                        {item.groupName}
-                                    </Text>
+                    <>
+                        <List.Item
+                            className={"list-item"}
+                            key={item.id}
+                            style={{
+                                backgroundColor: selectedGroup?.id === item.id ? '#bae7ff' : undefined,
+                                cursor: 'pointer',
+                                padding: '12px 16px'
+                            }}
+                            onClick={() => {
+                                setSelectedGroup(item)
+                                navigate(`/groups/${item.id}`)
+                            }}
+                        >
+                            <List.Item.Meta
+                                avatar={<Avatar shape="square" size={50} src={item.groupAvatar} />}
+                                title={
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                        <Text
+                                            strong
+                                            style={{
+                                                whiteSpace: 'nowrap',
+                                                overflow: 'hidden',
+                                                textOverflow: 'ellipsis'
+                                            }}
+                                        >
+                                            {item.groupName}
+                                        </Text>
+                                        <Text type="secondary" style={{ fontSize: 12 }}>
+                                            （{item.memberCount}）
+                                        </Text>
+                                    </div>
+                                }
+                                description={
                                     <Text type="secondary" style={{ fontSize: 12 }}>
-                                        （{item.memberCount}）
+                                        加入时间：{dayjs(item.createTime).format('YYYY-MM-DD')}
                                     </Text>
-                                </div>
-                            }
-                            description={
-                                <Text type="secondary" style={{ fontSize: 12 }}>
-                                    加入时间：{dayjs(item.createTime).format('YYYY-MM-DD')}
-                                </Text>
-                            }
-                        />
-                    </List.Item>
+                                }
+                            />
+                            {user?.id === item.groupOwner && <Badge status="processing" />}
+                        </List.Item>
+                    </>
                 )}
             />
         </div>

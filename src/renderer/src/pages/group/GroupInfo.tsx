@@ -16,21 +16,23 @@ import dayjs from "dayjs";
 import { useParams } from "react-router-dom";
 import { createStyles } from "antd-style";
 import MembersGrid from "@renderer/components/MembersGrid";
+import { getGroupInfoWithMembers } from "@renderer/api/groupApis";
+import { useUserStore } from "@renderer/store/useUserStore";
 const { Title, Text, Paragraph } = Typography;
 
-interface GroupMember {
+interface Member {
     name: string;
     avatar?: string;
     isOwner?: boolean;
 }
 
 interface GroupData {
-    groupName: string;
+    groupName: string | undefined;
     groupAvatar?: string;
-    joinType: 0 | 1;
-    createTime: string;
-    members: GroupMember[];
+    joinType: number | undefined;
+    createTime: string | undefined;
     groupNotice?: string;
+    members: Member[];
 }
 const useStyle = createStyles(({ prefixCls, css }) => ({
     linearGradientButton: css`
@@ -60,65 +62,28 @@ const GroupInfo: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const { groupId } = useParams();
     const { styles } = useStyle();
+    const user = useUserStore(state => state.user)
 
     useEffect(() => {
         const fetchGroupInfo = async () => {
+            if (!groupId) return;
             setLoading(true);
             try {
-                const res = await new Promise<GroupData>((resolve) =>
-                    setTimeout(() => {
-                        resolve({
-                            groupName: "Netty 技术交流群",
-                            groupAvatar: "https://i.pravatar.cc/100?img=12",
-                            joinType: 1,
-                            createTime: "2024-11-20T15:30:00",
-                            members: [
-                                { name: "Alice", avatar: "https://i.pravatar.cc/40?img=3", isOwner: true },
-                                { name: "Bob", avatar: "https://i.pravatar.cc/40?img=5" },
-                                { name: "Cindy", avatar: "https://i.pravatar.cc/40?img=6" },
-                                { name: "David", avatar: "https://i.pravatar.cc/40?img=7" },
-                                { name: "Eva", avatar: "https://i.pravatar.cc/40?img=8" },
-                                { name: "Frank", avatar: "https://i.pravatar.cc/40?img=9" },
-                                { name: "Grace", avatar: "https://i.pravatar.cc/40?img=10" },
-                                { name: "Grace", avatar: "https://i.pravatar.cc/40?img=10" },
-                                { name: "Grace", avatar: "https://i.pravatar.cc/40?img=10" },
-                                { name: "Grace", avatar: "https://i.pravatar.cc/40?img=10" },
-                                { name: "Grace", avatar: "https://i.pravatar.cc/40?img=10" },
-                                { name: "Grace", avatar: "https://i.pravatar.cc/40?img=10" }, { name: "Grace", avatar: "https://i.pravatar.cc/40?img=10" },
-                                { name: "Grace", avatar: "https://i.pravatar.cc/40?img=10" },
-                                { name: "Grace", avatar: "https://i.pravatar.cc/40?img=10" },
-                                { name: "Grace", avatar: "https://i.pravatar.cc/40?img=10" }, { name: "Grace", avatar: "https://i.pravatar.cc/40?img=10" },
-                                { name: "Grace", avatar: "https://i.pravatar.cc/40?img=10" },
-                                { name: "Grace", avatar: "https://i.pravatar.cc/40?img=10" },
-                                { name: "Grace", avatar: "https://i.pravatar.cc/40?img=10" }, { name: "Grace", avatar: "https://i.pravatar.cc/40?img=10" },
-                                { name: "Grace", avatar: "https://i.pravatar.cc/40?img=10" },
-                                { name: "Grace", avatar: "https://i.pravatar.cc/40?img=10" },
-                                { name: "Grace", avatar: "https://i.pravatar.cc/40?img=10" },
-                                { name: "Grace", avatar: "https://i.pravatar.cc/40?img=10" },
-                                { name: "Grace", avatar: "https://i.pravatar.cc/40?img=10" }, { name: "Grace", avatar: "https://i.pravatar.cc/40?img=10" },
-                                { name: "Grace", avatar: "https://i.pravatar.cc/40?img=10" },
-                                { name: "Grace", avatar: "https://i.pravatar.cc/40?img=10" },
-                                { name: "Grace", avatar: "https://i.pravatar.cc/40?img=10" }, { name: "Grace", avatar: "https://i.pravatar.cc/40?img=10" },
-                                { name: "Grace", avatar: "https://i.pravatar.cc/40?img=10" },
-                                { name: "Grace", avatar: "https://i.pravatar.cc/40?img=10" },
-                                { name: "Grace", avatar: "https://i.pravatar.cc/40?img=10" }, { name: "Grace", avatar: "https://i.pravatar.cc/40?img=10" },
-                                { name: "Grace", avatar: "https://i.pravatar.cc/40?img=10" },
-                                { name: "Grace", avatar: "https://i.pravatar.cc/40?img=10" },
-                                { name: "Grace", avatar: "https://i.pravatar.cc/40?img=10" },
-                                { name: "Grace", avatar: "https://i.pravatar.cc/40?img=10" },
-                                { name: "Grace", avatar: "https://i.pravatar.cc/40?img=10" }, { name: "Grace", avatar: "https://i.pravatar.cc/40?img=10" },
-                                { name: "Grace", avatar: "https://i.pravatar.cc/40?img=10" },
-                                { name: "Grace", avatar: "https://i.pravatar.cc/40?img=10" },
-                                { name: "Grace", avatar: "https://i.pravatar.cc/40?img=10" }, { name: "Grace", avatar: "https://i.pravatar.cc/40?img=10" },
-                                { name: "Grace", avatar: "https://i.pravatar.cc/40?img=10" },
-                                { name: "Grace", avatar: "https://i.pravatar.cc/40?img=10" },
-                                { name: "Grace", avatar: "https://i.pravatar.cc/40?img=10" }, { name: "Grace", avatar: "https://i.pravatar.cc/40?img=10" },
-                            ],
-                            groupNotice: "请大家文明交流，不允许发布广告或不当言论。",
-                        });
-                    }, 500)
-                );
-                setGroup(res);
+                const res = await getGroupInfoWithMembers({ id: groupId });
+                const resData = res.data as API.GroupVO;
+                const members: Member[] = resData.userVOList?.map((item) => ({
+                    name: item.userName,
+                    avatar: item.userAvatar,
+                    isOwner: resData.groupOwner === user?.id, //  判断是否是群主
+                })) as Member[]
+                setGroup({
+                    groupName: resData.groupName,
+                    groupAvatar: resData.groupAvatar,
+                    joinType: resData.joinType,
+                    createTime: resData.createTime,
+                    groupNotice: resData.groupNotice,
+                    members,
+                });
             } finally {
                 setLoading(false);
             }
@@ -139,24 +104,24 @@ const GroupInfo: React.FC = () => {
         return <div style={{ textAlign: "center", padding: 60 }}>未找到群信息</div>;
     }
 
-    const renderJoinTag = () =>
-        group.joinType === 0 ? (
-            <Tag color="green">直接加入</Tag>
-        ) : (
-            <Tag color="orange">管理员同意</Tag>
-        );
-
     return (
         <Card style={{ width: "calc(100% - 40px)", borderRadius: 16, margin: "0 auto", marginTop: 26 }}>
             {/* 群头像 + 群名称信息 */}
             <Space align="start">
                 <Avatar size={64} src={group.groupAvatar} icon={<UserOutlined />} />
                 <Space direction="vertical" size={4}>
-                    <Space>
+                    <Space size={"large"} >
                         <Title level={4} style={{ margin: 0 }}>
-                            {group.groupName}（ID: {groupId}）
+                            {group.groupName}<br />
+                            <span style={{ fontSize: 18 }}>ID: {groupId}</span>
                         </Title>
-                        {renderJoinTag()}
+                        {
+                            group.joinType === 0 ? (
+                                <Tag color="green">直接加入</Tag>
+                            ) : (
+                                <Tag color="orange">管理员同意</Tag>
+                            )
+                        }
                     </Space>
                     <Text type="secondary">
                         创建时间：{dayjs(group.createTime).format("YYYY年MM月DD日 HH:mm")}
