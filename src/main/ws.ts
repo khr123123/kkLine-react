@@ -35,49 +35,41 @@ export const initWs = (loginUser: LoginUser, _mainWindow: Electron.BrowserWindow
 export const createWs = (url: string) => {
     if (!url) return
     ws = new WebSocket(url)
-
     ws.onopen = () => {
         console.log(url + ' .. WebSocket连接成功')
         ws?.send('heart beat')
         retryCount = 0
     }
-
     ws.onmessage = async (event: WebSocket.MessageEvent) => {
         try {
-            // ws 的 event.data 类型是 string | Buffer | ArrayBuffer | Buffer[]
-            // 这里假设是字符串 JSON
-            const msgData: MessageData = JSON.parse(event.data.toString())
-            console.log('🚀 ~ 收到服务器消息 ~ 消息类型:', msgData.messageType)
-
-            // 你处理消息的函数调用，示例略
-            // await handleMessage(msgData)
-
-            // 例如给渲染进程发消息（mainWindow 是 Electron BrowserWindow）
-            if (mainWindow?.webContents) {
-                mainWindow.webContents.send('recive-message', msgData)
+            const msgData: MessageData = JSON.parse(event.data.toString());
+            console.log('🚀 ~ Received message from server ~ Type:', msgData.messageType);
+            if (msgData.messageType === 19) {
+                if (mainWindow?.webContents) {
+                    mainWindow.webContents.send('upload-progress', msgData.data);
+                }
             }
-        } catch (error) {
-            console.error('消息处理异常:', error)
-        }
-    }
 
+        } catch (error) {
+            console.error('Message handling error:', error);
+        }
+    };
     ws.onclose = (event: WebSocket.CloseEvent) => {
         console.log('ws.onclose ~ event:', event)
         handleReconnect(event)
     }
-
     ws.onerror = (event: WebSocket.ErrorEvent) => {
         console.log('ws.onerror ~ event:', event)
         handleReconnect(event)
     }
-
-    // 心跳定时器，注意这里要确保 ws 是 open 状态
+    // Heartbeat timer: ensure the WebSocket connection is open
     setInterval(() => {
         if (ws && ws.readyState === WebSocket.OPEN) {
-            ws.send('heart beat')
-            console.log('💕 heart beat')
+            ws.send('heart beat');
+            console.log('sent Heartbeat sent');
         }
-    }, 5000)
+    }, 5000); // 30 秒
+
 }
 
 let isReconnecting = false

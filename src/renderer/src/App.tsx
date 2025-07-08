@@ -17,6 +17,7 @@ import SessionsPage from './pages/session/SessionsPage'
 import SettingPage from './pages/SettingPage'
 import YoutubePage from './pages/YoutubePage'
 import UserListPage from './adminPages/UserListPage'
+import GroupListpage from './adminPages/GroupListpage'
 const router = createBrowserRouter([
   {
     path: '/login',
@@ -116,7 +117,7 @@ const router = createBrowserRouter([
       },
       {
         path: 'gourpList',
-        element: <>gourpList</>
+        element: <GroupListpage/>
       },
       {
         path: 'messagePanel',

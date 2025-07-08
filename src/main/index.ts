@@ -103,6 +103,7 @@ function registerIpcHandlers(mainWindow: BrowserWindow) {
       return false
     }
   })
+
 }
 
 function createTray(win: BrowserWindow) {

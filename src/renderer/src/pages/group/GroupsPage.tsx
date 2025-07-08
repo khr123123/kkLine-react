@@ -1,4 +1,5 @@
 import { UsergroupAddOutlined } from '@ant-design/icons'
+import { genGroup } from '@renderer/api/groupApis'
 import GroupForm from '@renderer/components/GroupForm'
 import { Avatar, Button, Input, List, message, Modal, Typography } from 'antd'
 import React, { useState } from 'react'
@@ -132,17 +133,20 @@ const GroupsPage: React.FC = () => {
                         onSubmit={async (data) => {
                             console.log('创建群聊数据', data);
                             try {
-                                // const res = await createGroup(data); // 调用API
-                                message.success('创建成功');
-                                setIsModalOpen(false);
+                                const res = await genGroup(data) as API.BaseResponseGroupVO
+                                if (res.code === 0) {
+                                    message.success('创建群聊成功!');
+                                    setIsModalOpen(false);
+                                } else {
+                                    message.error(`群聊创建失败,${res.message}.`);
+                                }
                             } catch (e) {
-                                message.error('创建失败');
+                                message.error('群聊创建失败' + e);
                             }
                         }}
                     />
                 </Modal>
             </div>
-
             <List
                 className='scrollableDiv'
                 itemLayout="horizontal"

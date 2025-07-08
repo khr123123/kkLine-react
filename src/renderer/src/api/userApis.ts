@@ -43,7 +43,7 @@ export async function getUserById(
 
 /** 获取当前登录用户信息 GET /user/get/login */
 export async function getLoginUser(options?: { [key: string]: any }) {
-  return request<API.BaseResponseLoginUserVO>('/user/get/login', {
+  return request<API.BaseResponseUserVO>('/user/get/login', {
     method: 'GET',
     ...(options || {})
   })

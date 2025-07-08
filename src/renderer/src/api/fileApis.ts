@@ -3,9 +3,9 @@
 import request from '@renderer/http/request'
 
 /** 文件上传相关 POST /file/upload */
-export async function uploadFile(
+export async function uploadFile1(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
-  params: API.uploadFileParams,
+  params: API.uploadFile1Params,
   body: {},
   options?: { [key: string]: any }
 ) {

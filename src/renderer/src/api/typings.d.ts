@@ -315,6 +315,7 @@ declare namespace API {
     fileUrl?: string
     fileName?: string
     fileType?: string
+    fileSize?: string
     data?: Record<string, any>
   }
 
@@ -365,7 +366,7 @@ declare namespace API {
     pages?: number
   }
 
-  type uploadFileParams = {
+  type uploadFile1Params = {
     uploadFileRequest: UploadFileRequest
   }
 
@@ -458,17 +459,17 @@ declare namespace API {
 
   type UserUpdateMyRequest = {
     /** 用户名，2～10个字符 */
-    userName: string
+    userName?: string
     /** 用户头像URL */
-    userAvatar: string
+    userAvatar?: string
     /** 用户自我介绍，最大200字符 */
     userProfile?: string
     /** 用户性别（0：女性，1：男性，2：未知） */
-    userSex: number
+    userSex?: number
     /** 地区名称 */
-    areaName: string
+    areaName?: string
     /** 地区邮编（格式示例：123-4567） */
-    areaCode: string
+    areaCode?: string
   }
 
   type UserUpdateRequest = {
