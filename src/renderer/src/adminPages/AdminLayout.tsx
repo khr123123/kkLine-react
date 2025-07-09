@@ -88,21 +88,22 @@ const AdminLayout: React.FC = () => {
       <Content
         style={{
           backgroundColor: '#fcfcfc',
+          height: '100vh',
           display: 'flex',
           flexDirection: 'column',
-          justifyContent: 'flex-start',
-          height: '100vh',
-          overflowY: 'auto',
         }}
       >
         <GlobalToolBar />
-        <Title level={3} style={{ margin: '16px 24px', marginBottom: 0, marginTop: 0 }}>
-          {title}
-        </Title>
-        <div style={{ padding: '16px' }}>
+        <div style={{
+          flex: 1,
+          overflow: 'auto',
+          marginTop: 12,
+        }}
+        >
           <Outlet />
         </div>
       </Content>
+
       <FloatButton
         tooltip={'去聊天'}
         type="primary"

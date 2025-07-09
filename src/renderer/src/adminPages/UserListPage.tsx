@@ -12,6 +12,8 @@ import {
     QuestionOutlined,
 } from '@ant-design/icons';
 import GlobalLoading from '@renderer/components/GlobalLoding';
+import Title from 'antd/lib/typography/Title';
+
 // 用户类型
 type User = API.User;
 
@@ -136,7 +138,7 @@ const columns: ProColumns<User>[] = [
             <>
                 <EditOutlined
                     style={{ fontSize: 20, color: '#1890ff', marginRight: 12, cursor: 'pointer' }}
-                    onClick={() => action?.startEditable?.(record.id)}
+                    onClick={() => action?.startEditable?.(record.id as any)}
                     title="编辑"
                 />
                 <Popconfirm
@@ -169,11 +171,16 @@ export default () => {
     const actionRef = useRef<ActionType | undefined>(undefined);
     const [loading, setLoading] = useState(false);
     return (
-        <>
+        <div style={{
+            overflow: 'hidden',
+            background: '#fff',
+            padding: 16,
+        }}>
             <GlobalLoading loading={loading} />
             <ProTable<User>
                 columns={columns}
                 actionRef={actionRef}
+                className='scrollableDiv'
                 cardBordered
                 rowKey="id"
                 pagination={{
@@ -183,6 +190,14 @@ export default () => {
                 search={{ labelWidth: 'auto' }}
                 dateFormatter="string"
                 headerTitle="用户列表"
+                toolbar={{
+                    title: (
+                        <Title level={3} style={{ margin: '16px 24px', marginBottom: 0, marginTop: 0 }}>
+                            用户查询区
+                        </Title>
+                    ),
+                    tooltip: '用于搜索用户信息',
+                }}
                 toolBarRender={() => [
                     <Button
                         key="new"
@@ -227,6 +242,6 @@ export default () => {
                 }}
                 editable={{ type: 'multiple' }}
             />
-        </>
+        </div>
     );
 };

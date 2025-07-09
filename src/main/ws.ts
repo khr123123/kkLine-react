@@ -68,7 +68,7 @@ export const createWs = (url: string) => {
             ws.send('heart beat');
             console.log('sent Heartbeat sent');
         }
-    }, 5000); // 30 秒
+    }, 8000); // 30 秒
 
 }
 
