@@ -31,7 +31,7 @@ export async function dealWithApply(
 
 /** 加载收到的好友或群组申请 分页查询当前用户收到的申请记录 POST /contactApply/loadApply */
 export async function loadApply(body: API.ApplyQueryRequest, options?: { [key: string]: any }) {
-  return request<API.BaseResponseListContactApplyVO>('/contactApply/loadApply', {
+  return request<API.BaseResponsePageContactApplyVO>('/contactApply/loadApply', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'

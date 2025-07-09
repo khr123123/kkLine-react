@@ -16,17 +16,17 @@ const GroupsPage: React.FC = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const user = useUserStore(state => state.user)
     const handleCancel = () => setIsModalOpen(false);
+    const fetchGroups = async () => {
+        const res = await loadContact({ contactType: 1 }) as API.BaseResponseGroupVO
+        if (res.code === 0 && Array.isArray(res.data)) {
+            const groupList = res.data.map((item) => item.groupVO).filter(Boolean);
+            setGroups(groupList);
+        }
+    };
     useEffect(() => {
-        const fetchGroups = async () => {
-            const res = await loadContact({ contactType: 1 }) as API.BaseResponseGroupVO
-            if (res.code === 0 && Array.isArray(res.data)) {
-                const groupList = res.data.map((item) => item.groupVO).filter(Boolean);
-                setGroups(groupList);
-            }
-        };
         fetchGroups();
     }, []);
-
+    const [formKey, setFormKey] = useState(0);
     return (
         <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
             <div className="drag" style={{ height: 25, width: '100%' }}></div>
@@ -52,7 +52,10 @@ const GroupsPage: React.FC = () => {
                     type="primary"
                     icon={<UsergroupAddOutlined />}
                     style={{ fontSize: 20 }}
-                    onClick={() => setIsModalOpen(true)}
+                    onClick={() => {
+                        setIsModalOpen(true)
+                        setFormKey(prev => prev + 1);
+                    }}
                 />
                 <Modal
                     title="创建群组"
@@ -62,6 +65,7 @@ const GroupsPage: React.FC = () => {
                     footer={null} // 表单组件自己控制提交
                 >
                     <GroupForm
+                        key={formKey}
                         onSubmit={async (data) => {
                             console.log('创建群聊数据', data);
                             try {
@@ -69,6 +73,7 @@ const GroupsPage: React.FC = () => {
                                 if (res.code === 0) {
                                     message.success('创建群聊成功!');
                                     setIsModalOpen(false);
+                                    fetchGroups()
                                 } else {
                                     message.error(`群聊创建失败,${res.message}.`);
                                 }
@@ -121,7 +126,7 @@ const GroupsPage: React.FC = () => {
                                 }
                                 description={
                                     <Text type="secondary" style={{ fontSize: 12 }}>
-                                        加入时间：{dayjs(item.createTime).format('YYYY-MM-DD')}
+                                        {user?.id === item.groupOwner ? "创建" : "加入"}时间：{dayjs(item.createTime).format('YYYY-MM-DD')}
                                     </Text>
                                 }
                             />

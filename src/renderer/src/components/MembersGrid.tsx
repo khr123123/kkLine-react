@@ -43,7 +43,11 @@ const MembersGrid: React.FC<{ members: GroupMember[] }> = ({ members }) => {
                 maxHeight: ROWS * AVATAR_SIZE + GAP * (ROWS - 1),
             }}
         >
-            {members.slice(0, maxShowCount - (showMore ? 1 : 0)).map((member, idx) => (
+            {[...members].sort((a, b) => {
+                if (a.isOwner) return -1;
+                if (b.isOwner) return 1;
+                return 0;
+            }).slice(0, maxShowCount - (showMore ? 1 : 0)).map((member, idx) => (
                 <div
                     key={idx}
                     style={{ textAlign: "center", position: "relative", height: AVATAR_SIZE }}

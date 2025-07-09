@@ -38,12 +38,6 @@ declare namespace API {
     message?: string
   }
 
-  type BaseResponseListContactApplyVO = {
-    code?: number
-    data?: ContactApplyVO[]
-    message?: string
-  }
-
   type BaseResponseListContactVO = {
     code?: number
     data?: ContactVO[]
@@ -77,6 +71,18 @@ declare namespace API {
   type BaseResponseMessageSendDTO = {
     code?: number
     data?: MessageSendDTO
+    message?: string
+  }
+
+  type BaseResponseObject = {
+    code?: number
+    data?: Record<string, any>
+    message?: string
+  }
+
+  type BaseResponsePageContactApplyVO = {
+    code?: number
+    data?: PageContactApplyVO
     message?: string
   }
 
@@ -324,6 +330,20 @@ declare namespace API {
     asc?: boolean
   }
 
+  type PageContactApplyVO = {
+    records?: ContactApplyVO[]
+    total?: number
+    size?: number
+    current?: number
+    orders?: OrderItem[]
+    optimizeCountSql?: PageContactApplyVO
+    searchCount?: PageContactApplyVO
+    optimizeJoinOfCountSql?: boolean
+    maxLimit?: number
+    countId?: string
+    pages?: number
+  }
+
   type PageGroupVO = {
     records?: GroupVO[]
     total?: number
@@ -366,7 +386,7 @@ declare namespace API {
     pages?: number
   }
 
-  type uploadFile1Params = {
+  type uploadFileParams = {
     uploadFileRequest: UploadFileRequest
   }
 

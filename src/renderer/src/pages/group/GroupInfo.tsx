@@ -17,7 +17,6 @@ import { useParams } from "react-router-dom";
 import { createStyles } from "antd-style";
 import MembersGrid from "@renderer/components/MembersGrid";
 import { getGroupInfoWithMembers } from "@renderer/api/groupApis";
-import { useUserStore } from "@renderer/store/useUserStore";
 const { Title, Text, Paragraph } = Typography;
 
 interface Member {
@@ -62,7 +61,6 @@ const GroupInfo: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const { groupId } = useParams();
     const { styles } = useStyle();
-    const user = useUserStore(state => state.user)
 
     useEffect(() => {
         const fetchGroupInfo = async () => {
@@ -74,7 +72,7 @@ const GroupInfo: React.FC = () => {
                 const members: Member[] = resData.userVOList?.map((item) => ({
                     name: item.userName,
                     avatar: item.userAvatar,
-                    isOwner: resData.groupOwner === user?.id, //  判断是否是群主
+                    isOwner: resData.groupOwner === item?.id, //  判断是否是群主
                 })) as Member[]
                 setGroup({
                     groupName: resData.groupName,

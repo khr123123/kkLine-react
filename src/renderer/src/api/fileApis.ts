@@ -2,14 +2,14 @@
 /* eslint-disable */
 import request from '@renderer/http/request'
 
-/** 文件上传相关 POST /file/upload */
-export async function uploadFile1(
+/** 文件上传并且监听上传进度 POST /file/uploadFileWithProgressListener */
+export async function uploadFile(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
-  params: API.uploadFile1Params,
+  params: API.uploadFileParams,
   body: {},
   options?: { [key: string]: any }
 ) {
-  return request<API.BaseResponseString>('/file/upload', {
+  return request<API.BaseResponseObject>('/file/uploadFileWithProgressListener', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
