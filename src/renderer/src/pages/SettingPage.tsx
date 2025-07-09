@@ -16,6 +16,7 @@ import {
 import { LoadingOutlined, LogoutOutlined, PlusOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useUserStore } from '@renderer/store/useUserStore';
+import { userLogout } from '@renderer/api/userApis';
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -151,12 +152,13 @@ const SettingPage: React.FC = () => {
                                     type: 'loading',
                                     content: '正在退出...',
                                 });
-                                setTimeout(() => {
+                                setTimeout(async () => {
                                     message.success('退出成功！', 0.5).then(() => {
                                         clearUser();
                                         navigate('/login');
                                     });
-                                    // logout api TODO
+                                    await userLogout()
+                                    window.electron.ipcRenderer.send('ws-close')
                                 }, 1000);
                             }
                             }

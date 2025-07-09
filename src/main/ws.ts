@@ -106,6 +106,7 @@ const handleReconnect = (event: WebSocket.CloseEvent | WebSocket.ErrorEvent) => 
 export const closeWs = () => {
     needReconnect = false
     if (ws) {
+        console.log("close ws connection"); // 推荐
         ws.close()
     }
 }

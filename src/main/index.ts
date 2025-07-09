@@ -101,15 +101,7 @@ function registerIpcHandlers(mainWindow: BrowserWindow) {
     }
   })
   // 2. 退出登陆 关闭WS
-  ipcMain.handle('ws-close', () => {
-    try {
-      closeWs()
-      return true
-    } catch (e) {
-      console.error('WS 关闭失败:', e)
-      return false
-    }
-  })
+  ipcMain.on('ws-close', () => closeWs())
   //获取登录用户信息
   ipcMain.handle('get-login-user', () => currentLoginUser);
 

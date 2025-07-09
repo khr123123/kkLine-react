@@ -52,13 +52,14 @@ const PicUploader: React.FC<AvatarUploaderProps> = ({ token, initialUrl, onSucce
 
   return (
     <Upload
-      name="avatar"
+      name="file"
       listType="picture-card"
       className="avatar-uploader"
       showUploadList={false}
-      action="http://127.0.0.1:8080/api/test/testProgress"
+      action="http://127.0.0.1:8080/api/file/uploadFileWithProgressListener"
       headers={{ Authorization: token }}
       beforeUpload={beforeUpload}
+      data={{ biz: "picture" }}
     >
       {imageUrl ? (
         <img src={imageUrl} alt="avatar" style={{ width: '100%', borderRadius: 4 }} />
