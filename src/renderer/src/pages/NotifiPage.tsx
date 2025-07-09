@@ -82,7 +82,6 @@ const NotifiPage: React.FC = () => {
 
     return (
         <>
-            {/* 顶部关闭按钮 */}
             <div className="drag" style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <Title level={4} style={{ margin: 0, padding: 16, paddingBottom: 4 }}>好友/群申请列表</Title>
                 <Tooltip title="关闭">
@@ -97,7 +96,7 @@ const NotifiPage: React.FC = () => {
                 </Tooltip>
             </div>
 
-            <Card style={{ width: 'calc(100% - 20px)', margin: '1px auto', minHeight: 550 }} loading={loading}>
+            <Card style={{ width: 'calc(100% - 20px)', margin: '2px auto', minHeight: 550, }} loading={loading}>
                 {data.length === 0 ? (
                     <Empty description="暂无申请消息" />
                 ) : (
@@ -132,7 +131,7 @@ const NotifiPage: React.FC = () => {
                             <Card
                                 key={item.id}
                                 size="small"
-                                style={{ marginBottom: 4 }}
+                                style={{ marginBottom: 4, }}
                                 title={
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: 52 }}>
                                         <Space>

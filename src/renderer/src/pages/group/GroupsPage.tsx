@@ -1,5 +1,5 @@
 import { UsergroupAddOutlined } from '@ant-design/icons'
-import { loadContact } from '@renderer/api/contactApis'
+import { loadAllGroup } from '@renderer/api/contactApis'
 import { genGroup } from '@renderer/api/groupApis'
 import GroupForm from '@renderer/components/GroupForm'
 import { Avatar, Badge, Button, Input, List, message, Modal, Typography } from 'antd'
@@ -17,7 +17,7 @@ const GroupsPage: React.FC = () => {
     const user = useUserStore(state => state.user)
     const handleCancel = () => setIsModalOpen(false);
     const fetchGroups = async () => {
-        const res = await loadContact({ contactType: 1 }) as API.BaseResponseGroupVO
+        const res = await loadAllGroup() as API.BaseResponseGroupVO
         if (res.code === 0 && Array.isArray(res.data)) {
             const groupList = res.data.map((item) => item.groupVO).filter(Boolean);
             setGroups(groupList);

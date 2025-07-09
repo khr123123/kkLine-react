@@ -44,6 +44,12 @@ declare namespace API {
     message?: string
   }
 
+  type BaseResponseListFriendItemDTO = {
+    code?: number
+    data?: FriendItemDTO[]
+    message?: string
+  }
+
   type BaseResponseListGroup = {
     code?: number
     data?: Group[]
@@ -161,11 +167,6 @@ declare namespace API {
     applyStatus: number
   }
 
-  type ContactListRequest = {
-    /** 联系人类型（例如：1=好友，2=群聊） */
-    contactType: number
-  }
-
   type ContactQueryRequest = {
     /** 联系人ID（好友或群） */
     id: string
@@ -185,6 +186,18 @@ declare namespace API {
   type DeleteRequest = {
     /** 要删除的数据 ID，必须为正整数 */
     id: number
+  }
+
+  type FriendItemDTO = {
+    id?: number
+    userName?: string
+    userAvatar?: string
+    headLetter?: string
+  }
+
+  type FriendListRequest = {
+    /** 字母区间段，1表示A-I，2表示J-R，3表示S-Z */
+    letterSegment: number
   }
 
   type getRegisterEmailCodeParams = {

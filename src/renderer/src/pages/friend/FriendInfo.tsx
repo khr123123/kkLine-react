@@ -21,6 +21,7 @@ import {
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { createStyles } from "antd-style";
+import { getUserVoById } from "@renderer/api/userApis";
 const { Title, Text, Paragraph } = Typography;
 
 interface UserProfile {
@@ -71,22 +72,8 @@ const FriendInfo: React.FC = () => {
         const fetchUser = async () => {
             setLoading(true);
             try {
-                const res = await new Promise<UserProfile>((resolve) =>
-                    setTimeout(() => {
-                        resolve({
-                            userName: "况浩然",
-                            userAvatar: "https://i.pravatar.cc/40?img=10",
-                            userSex: 0,
-                            userEmail: "khr@example.com",
-                            userAccount: "khr123",
-                            areaName: "神奈川県横浜市",
-                            areaCode: "123-4567",
-                            userProfile: "热爱全栈开发，熟悉 Java、React、Netty 等。热爱全栈开发，熟悉 Java、React、Netty 等。热爱全栈开发，熟悉 Java、React、Netty 等。热爱全栈开发，熟悉 Java、React、Netty 等。",
-                            lastLogOutTime: "2025-07-04T10:24:00",
-                        });
-                    }, 200)
-                );
-                setUser(res);
+                const res = await getUserVoById({ id: friendId });
+                setUser(res.data);
             } catch (err) {
                 console.error("用户获取失败", err);
             } finally {
@@ -140,7 +127,7 @@ const FriendInfo: React.FC = () => {
 
             <Descriptions column={1} size="small">
                 <Descriptions.Item label="账号">{user.userAccount}</Descriptions.Item>
-                <Descriptions.Item label="邮箱">{friendId || "—"}</Descriptions.Item>
+                <Descriptions.Item label="邮箱">{user.userEmail || "—"}</Descriptions.Item>
                 <Descriptions.Item label="地区">
                     {user.areaName || "—"}（{user.areaCode || "无"}）
                 </Descriptions.Item>
@@ -149,15 +136,11 @@ const FriendInfo: React.FC = () => {
                 </Descriptions.Item>
             </Descriptions>
 
-            {user.userProfile && (
-                <>
-                    <Divider size={"middle"} />
-                    <Text strong>个人简介</Text>
-                    <Paragraph style={{ marginTop: 8 }} ellipsis={{ rows: 2, expandable: true, symbol: "更多" }}>
-                        {user.userProfile}
-                    </Paragraph>
-                </>
-            )}
+            <Divider size={"middle"} />
+            <Text strong>个人简介</Text>
+            <Paragraph style={{ marginTop: 8 }} ellipsis={{ rows: 2, expandable: true, symbol: "更多" }}>
+                {user.userProfile ?? "这个人很懒，暂时没有简介.."}
+            </Paragraph>
 
             <Divider />
 

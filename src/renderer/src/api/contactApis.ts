@@ -14,14 +14,22 @@ export async function delContact(body: API.ContactDelRequest, options?: { [key: 
   })
 }
 
-/** 查询所有联系人/所有群组 查询当前用户的所有联系人或群组列表 POST /contact/loadContact */
-export async function loadContact(body: API.ContactListRequest, options?: { [key: string]: any }) {
-  return request<API.BaseResponseListContactVO>('/contact/loadContact', {
+/** 分段查询所有联系人 POST /contact/loadAllFriend */
+export async function loadAllFriend(body: API.FriendListRequest, options?: { [key: string]: any }) {
+  return request<API.BaseResponseListFriendItemDTO>('/contact/loadAllFriend', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
     },
     data: body,
+    ...(options || {})
+  })
+}
+
+/** 查询所有所有群组 POST /contact/loadAllGroup */
+export async function loadAllGroup(options?: { [key: string]: any }) {
+  return request<API.BaseResponseListContactVO>('/contact/loadAllGroup', {
+    method: 'POST',
     ...(options || {})
   })
 }
