@@ -152,10 +152,10 @@ function createNotificationWindow(): void {
   }
 
   notificationWindow = new BrowserWindow({
-    width: 600,
-    height: 800,
-    minWidth: 400,
-    minHeight: 600,
+    width: 520,
+    height: 700,
+    minWidth: 520,
+    minHeight: 700,
     frame: false,
     resizable: true,
     show: false,

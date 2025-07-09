@@ -9,6 +9,7 @@ import {
     DeleteOutlined,
 } from '@ant-design/icons';
 import GlobalLoading from '@renderer/components/GlobalLoding';
+import Title from 'antd/lib/typography/Title';
 type Group = API.Group;
 const columns: ProColumns<Group>[] = [
     {
@@ -117,7 +118,11 @@ export default () => {
     const actionRef = useRef<ActionType | undefined>(undefined);
     const [loading, setLoading] = useState(false);
     return (
-        <>
+        <div style={{
+            overflow: 'hidden',
+            background: '#fff',
+            padding: 16,
+        }}>
             <GlobalLoading loading={loading} />
             <ProTable<Group>
                 columns={columns}
@@ -130,7 +135,14 @@ export default () => {
                 }}
                 search={{ labelWidth: 'auto' }}
                 dateFormatter="string"
-                headerTitle="用户列表"
+                toolbar={{
+                    title: (
+                        <Title level={3} style={{ margin: '16px 24px', marginBottom: 0, marginTop: 0 }}>
+                            群组查询区
+                        </Title>
+                    ),
+                    tooltip: '用于搜索群组信息',
+                }}
                 toolBarRender={() => [
                     <Button
                         key="new"
@@ -175,6 +187,6 @@ export default () => {
                 }}
                 editable={{ type: 'multiple' }}
             />
-        </>
+        </div>
     );
 };

@@ -1,5 +1,4 @@
 import WebSocket from 'ws'
-import { DatabaseService } from '../db/BaseDAO.js'
 
 interface LoginUser {
     token: string
@@ -15,16 +14,18 @@ let ws: WebSocket | null = null
 let wsUrl: string | null = null
 let mainWindow: Electron.BrowserWindow | null = null
 
-let needReconnect = true
-let maxRetryCount = 5
-let retryCount = 0
+let needReconnect = true // Whether reconnection is needed
+let maxRetryCount = 5 // Maximum number of retries
+let retryCount = 0 // Current retry attempt
 let userId: string | number | null = null
 
+// Initialize WebSocket with user login info and the Electron main window
 export const initWs = (loginUser: LoginUser, _mainWindow: Electron.BrowserWindow) => {
     mainWindow = _mainWindow
-    console.log('🚀 ~ initWs ~ loginUser:', loginUser, _mainWindow)
+    console.log('Initializing WebSocket with login user info:', loginUser, _mainWindow)
     const token = loginUser.token
     userId = loginUser.id
+    console.log('Current User is:', userId);
     wsUrl = `ws://127.0.0.1:8081/ws?token=${token}`
     needReconnect = true
     maxRetryCount = 5
@@ -32,81 +33,95 @@ export const initWs = (loginUser: LoginUser, _mainWindow: Electron.BrowserWindow
     createWs(wsUrl)
 }
 
+// Create the WebSocket connection
 export const createWs = (url: string) => {
     if (!url) return
     ws = new WebSocket(url)
+
+    // Connection opened
     ws.onopen = () => {
-        console.log(url + ' .. WebSocket连接成功')
-        ws?.send('heart beat')
-        retryCount = 0
+        console.log(`WebSocket connected successfully: ${url}`)
+        ws?.send('heart beat') // Send heartbeat immediately
+        retryCount = 0 // Reset retry counter
     }
+
+    // Message received
     ws.onmessage = async (event: WebSocket.MessageEvent) => {
         try {
             const msgData: MessageData = JSON.parse(event.data.toString());
-            console.log('🚀 ~ Received message from server ~ Type:', msgData.messageType);
+            console.log(`Received message from server, type: ${msgData.messageType}`);
             if (msgData.messageType === 19) {
                 if (mainWindow?.webContents) {
+                    console.log('Upload progress message sent to renderer process:', msgData.data)
                     mainWindow.webContents.send('upload-progress', msgData.data);
                 }
             }
-
         } catch (error) {
-            console.error('Message handling error:', error);
+            console.error('Error while processing server message:', error);
         }
     };
+
+    // Connection closed
     ws.onclose = (event: WebSocket.CloseEvent) => {
-        console.log('ws.onclose ~ event:', event)
-        handleReconnect(event)
+        console.warn(`WebSocket connection closed, code: ${event.code}`)
+        handleReconnect()
     }
+
+    // Connection error
     ws.onerror = (event: WebSocket.ErrorEvent) => {
-        console.log('ws.onerror ~ event:', event)
-        handleReconnect(event)
+        console.error('WebSocket encountered an error:', event)
+        handleReconnect()
     }
-    // Heartbeat timer: ensure the WebSocket connection is open
+
+    // Heartbeat timer: keep the connection alive
     setInterval(() => {
         if (ws && ws.readyState === WebSocket.OPEN) {
             ws.send('heart beat');
-            console.log('sent Heartbeat sent');
+            console.log('Heartbeat sent')
         }
-    }, 8000); // 30 秒
-
+    }, 8000); // Send heartbeat every 8 seconds
 }
 
-let isReconnecting = false
-let retryDelay = 5000
+let isReconnecting = false // Whether currently reconnecting
+let retryDelay = 5000 // Initial delay for retries
 
-const handleReconnect = (event: WebSocket.CloseEvent | WebSocket.ErrorEvent) => {
+// Handle reconnection logic
+const handleReconnect = () => {
     if (isReconnecting) {
-        console.log('已经在重连中了')
+        console.log('Already attempting to reconnect, skipping this attempt')
         return
     }
     if (!needReconnect) {
-        console.log('不需要重连')
+        console.log('Reconnection disabled; skipping reconnect')
         return
     }
     if (retryCount >= maxRetryCount) {
-        console.log('重试次数达到上限，不再重连')
+        console.error('Maximum number of retries reached. Stopping reconnection.')
         needReconnect = false
         return
     }
+
     isReconnecting = true
     retryCount++
-    retryDelay = Math.min(retryDelay * 2, 30000)
-    console.log(`尝试重连中... (${retryCount}/${maxRetryCount})，间隔: ${retryDelay}ms`)
+    retryDelay = Math.min(retryDelay * 2, 30000) // Exponential backoff with a cap
+    console.log(`Attempting to reconnect... (${retryCount}/${maxRetryCount}), delay: ${retryDelay}ms`)
+
     setTimeout(() => {
         if (ws) {
-            ws.removeAllListeners()
-            ws.close()
+            ws.removeAllListeners() // Clean up existing listeners
+            ws.close() // Close the previous connection
         }
+        console.log('Re-establishing WebSocket connection...')
         createWs(wsUrl!)
         isReconnecting = false
     }, retryDelay)
 }
 
+// Close WebSocket and disable reconnection
 export const closeWs = () => {
     needReconnect = false
     if (ws) {
-        console.log("close ws connection"); // 推荐
+        console.log('Manually closing WebSocket connection')
         ws.close()
     }
 }

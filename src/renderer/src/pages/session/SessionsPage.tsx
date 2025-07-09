@@ -208,7 +208,7 @@ const SessionsPage: React.FC = () => {
             allowClear
           />
           <Badge count={noReadApplyCount} size="small" style={{ width: 16, fontSize: 11 }} offset={[1, -5]}>
-            <MessageOutlined style={{ fontSize: 20 }} onClick={() => window.electron.ipcRenderer.invoke('open-notification-window')} />
+            <MessageOutlined className="hover-icon" style={{ fontSize: 20, }} onClick={() => window.electron.ipcRenderer.invoke('open-notification-window')} />
           </Badge>
         </div>
         <List

@@ -121,3 +121,14 @@ textarea::-webkit-scrollbar-track {
 :where(.css-dev-only-do-not-override-1hbti3n).ant-conversations .ant-conversations-item-active {
     background-color: #bae7ff !important;
 }
+
+/* 你的 CSS 文件 */
+.hover-icon {
+    cursor: pointer;
+    transition: color 0.3s;
+}
+
+.hover-icon:hover {
+    color: #1890ff;
+    /* Hover 变蓝 */
+}
