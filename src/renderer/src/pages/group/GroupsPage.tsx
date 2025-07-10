@@ -7,6 +7,7 @@ import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import dayjs from "dayjs"
 import { useUserStore } from '@renderer/store/useUserStore'
+import { useGlobalReloadStore } from '@renderer/store/useGlobalReloadStore'
 const { Text } = Typography
 
 const GroupsPage: React.FC = () => {
@@ -15,6 +16,7 @@ const GroupsPage: React.FC = () => {
     const navigate = useNavigate()
     const [isModalOpen, setIsModalOpen] = useState(false);
     const user = useUserStore(state => state.user)
+    const reloadCount = useGlobalReloadStore(state => state.reloadMap['groupList'] || 0)
     const handleCancel = () => setIsModalOpen(false);
     const fetchGroups = async () => {
         const res = await loadAllGroup() as API.BaseResponseGroupVO
@@ -25,7 +27,7 @@ const GroupsPage: React.FC = () => {
     };
     useEffect(() => {
         fetchGroups();
-    }, []);
+    }, [reloadCount]);
     const [formKey, setFormKey] = useState(0);
     return (
         <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
