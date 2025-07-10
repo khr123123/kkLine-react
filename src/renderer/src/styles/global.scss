@@ -115,7 +115,7 @@ textarea::-webkit-scrollbar-track {
 }
 
 .list-item:hover {
-    background-color: #E7E7E7;
+    background-color: var(--my-hover-color);
 }
 
 :where(.css-dev-only-do-not-override-1hbti3n).ant-conversations .ant-conversations-item-active {

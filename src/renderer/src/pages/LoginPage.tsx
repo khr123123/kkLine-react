@@ -81,7 +81,6 @@ const Page = () => {
         // 登录成功后调用 IPC 初始化 WebSocket
         window.electron.ipcRenderer.invoke('ws-init', res.data)
       }
-
     } catch (error: any) {
       console.error('登录异常', error)
       message.error(error?.response?.data?.msg || '登录请求异常')
@@ -279,7 +278,6 @@ const Page = () => {
                   }}
                 >
                   去看看
-
                 </Button>
               )
             }}

@@ -10,12 +10,12 @@ import {
   TeamOutlined,
   YoutubeOutlined
 } from '@ant-design/icons'
+import { useUserStore } from '@renderer/store/useUserStore'
 import { FloatButton, Layout, Menu, theme } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { Outlet, useLocation, useMatches, useNavigate } from 'react-router-dom'
 import { useIsAdmin } from '../auth/RouteGuard'
 import GlobalToolBar from './GlobalToolBar'
-import { useUserStore } from '@renderer/store/useUserStore'
 import UserIconCard from './UserIconCard'
 const { Sider, Content } = Layout
 
@@ -28,9 +28,7 @@ const BaseLayout: React.FC = () => {
   const navigate = useNavigate()
   const isAdmin = useIsAdmin()
   const location = useLocation()
-  const user = useUserStore(state => state.user)
-
-  const { token } = theme.useToken();
+  const user = useUserStore((state) => state.user)
 
   useEffect(() => {
     if (selectedMenuKey === 'myGithub') {
@@ -54,7 +52,7 @@ const BaseLayout: React.FC = () => {
   )
 
   const RightAreaComponent = (matched?.handle as HandleWithRightArea)?.RightArea ?? (() => null)
-
+  const { token } = theme.useToken()
   return (
     <Layout style={{ height: '100vh' }}>
       <Sider
@@ -66,11 +64,10 @@ const BaseLayout: React.FC = () => {
           flexDirection: 'column',
           alignItems: 'center',
           paddingTop: 20,
-          borderRight: '1px solid #eee',
-          overflow: 'hidden',
+          overflow: 'hidden'
         }}
       >
-        <span className='no-drag'>
+        <span className="no-drag">
           <UserIconCard user={user as API.UserVO} />
         </span>
         <Menu
@@ -99,7 +96,6 @@ const BaseLayout: React.FC = () => {
       {!matched?.handle ? (
         <Content
           style={{
-            backgroundColor: token.colorBgLayout,
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'flex-start',
@@ -115,8 +111,8 @@ const BaseLayout: React.FC = () => {
           <Sider
             width={280}
             style={{
-              backgroundColor: token.colorBgLayout,
-              borderRight: '1px solid #ddd',
+              backgroundColor: 'var(--ant-background-color)',
+              borderRight: `1px solid ${token.colorBorderBg}`,
               display: 'flex',
               flexDirection: 'column'
             }}
@@ -125,7 +121,6 @@ const BaseLayout: React.FC = () => {
           </Sider>
           <Content
             style={{
-              backgroundColor: token.colorBgLayout,
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'flex-start',

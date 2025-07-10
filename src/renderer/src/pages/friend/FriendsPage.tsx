@@ -1,8 +1,8 @@
-import React, { useEffect, useState, useRef } from 'react';
 import { RedoOutlined } from '@ant-design/icons';
 import { Conversations, type ConversationsProps } from '@ant-design/x';
 import { loadAllFriend } from '@renderer/api/contactApis';
 import { Avatar, Divider, type GetProp, Input, Spin, theme } from 'antd';
+import React, { useEffect, useRef, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { useNavigate } from 'react-router-dom';
 
@@ -16,7 +16,7 @@ const FriendsPage: React.FC = () => {
     const loadingRef = useRef(false);
     const scrollableDivRef = useRef<HTMLDivElement>(null);
     const navigate = useNavigate();
-    const { token } = theme.useToken();
+    const { token } = theme.useToken()
 
     // 用 ref 保存所有好友，避免重复追加相同数据
     const allDataRef = useRef<GetProp<ConversationsProps, 'items'>>([]);

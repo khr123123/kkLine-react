@@ -1,6 +1,10 @@
 // App.tsx
+import { ConfigProvider, theme } from 'antd'
+import { useEffect } from 'react'
 import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom'
 import AdminLayout from './adminPages/AdminLayout'
+import GroupListpage from './adminPages/GroupListpage'
+import UserListPage from './adminPages/UserListPage'
 import { RouteGuard } from './auth/RouteGuard'
 import BaseLayout from './components/BaseLayout'
 import WatermarkPage from './components/WatermarkPage'
@@ -9,6 +13,7 @@ import FriendsPage from './pages/friend/FriendsPage'
 import GroupInfo from './pages/group/GroupInfo'
 import GroupsPage from './pages/group/GroupsPage'
 import LoginPage from './pages/LoginPage'
+import NotifiPage from './pages/NotifiPage'
 import OpenAiChatPage from './pages/openAi/OpenAiChatPage'
 import OpenAiSessionPage from './pages/openAi/OpenAiSessionPage'
 import SearchPage from './pages/SearchPage'
@@ -16,11 +21,7 @@ import ChatPage from './pages/session/ChatPage'
 import SessionsPage from './pages/session/SessionsPage'
 import SettingPage from './pages/SettingPage'
 import YoutubePage from './pages/YoutubePage'
-import UserListPage from './adminPages/UserListPage'
-import GroupListpage from './adminPages/GroupListpage'
-import NotifiPage from './pages/NotifiPage'
 import { useThemeStore } from './store/useThemeStore'
-import { ConfigProvider, theme } from 'antd';
 const router = createBrowserRouter([
   {
     path: '/login',
@@ -28,7 +29,11 @@ const router = createBrowserRouter([
   },
   {
     path: '/notifications',
-    element: <RouteGuard><NotifiPage /></RouteGuard>
+    element: (
+      <RouteGuard>
+        <NotifiPage />
+      </RouteGuard>
+    )
   },
   {
     path: '/',
@@ -102,7 +107,7 @@ const router = createBrowserRouter([
       {
         path: 'setting',
         element: <SettingPage />
-      },
+      }
     ]
   },
   {
@@ -134,18 +139,29 @@ const router = createBrowserRouter([
 ])
 
 export default function App() {
-  const { themeMode } = useThemeStore();
+  const { themeMode } = useThemeStore()
   const getAlgorithm = () => {
-    if (themeMode === 'light') return theme.defaultAlgorithm;
-    if (themeMode === 'dark') return theme.darkAlgorithm;
-    if (themeMode === 'compact') return theme.compactAlgorithm;
-    return theme.defaultAlgorithm;
-  };
-
+    if (themeMode === 'light') return theme.defaultAlgorithm
+    if (themeMode === 'dark') return theme.darkAlgorithm
+    if (themeMode === 'compact') return theme.compactAlgorithm
+    return theme.defaultAlgorithm
+  }
+  useEffect(() => {
+    const root = document.documentElement
+    switch (themeMode) {
+      case 'dark':
+        root.style.setProperty('--my-hover-color', '#1F1F1F')
+        break
+      case 'compact':
+      case 'light':
+      default:
+        root.style.setProperty('--my-hover-color', '#E7E7E7')
+        break
+    }
+  }, [themeMode])
   return (
-    <ConfigProvider theme={{ algorithm: getAlgorithm(), }}>
+    <ConfigProvider theme={{ algorithm: getAlgorithm(), hashed: false }}>
       <RouterProvider router={router} />
     </ConfigProvider>
-  );
-
+  )
 }

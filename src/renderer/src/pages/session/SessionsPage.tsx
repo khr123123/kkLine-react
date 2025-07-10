@@ -1,10 +1,16 @@
-import { DeleteOutlined, MessageOutlined, NotificationOutlined, PushpinOutlined, UsergroupAddOutlined, VerticalAlignBottomOutlined, VerticalAlignTopOutlined } from '@ant-design/icons'
+import {
+  DeleteOutlined,
+  MessageOutlined,
+  PushpinOutlined,
+  VerticalAlignBottomOutlined,
+  VerticalAlignTopOutlined
+} from '@ant-design/icons'
 import GlobalLoading from '@renderer/components/GlobalLoding'
 import type { MenuProps } from 'antd'
-import { Avatar, Badge, Button, Dropdown, Input, List, Menu, Modal, theme, Typography } from 'antd'
+import { Avatar, Badge, Dropdown, Input, List, Menu, theme, Typography } from 'antd'
 import React, { useEffect, useState } from 'react'
-const { Text } = Typography
 import { useNavigate } from 'react-router-dom'
+const { Text } = Typography
 interface Contact {
   id: number
   name: string
@@ -164,26 +170,26 @@ const SessionsPage: React.FC = () => {
 
   const menu = <Menu onClick={onMenuClick} items={getMenuItems(contextContact)} />
 
-  const [globalLoading, setGlobalLoading] = useState(true);
-  const [data, setData] = useState<any>(null);
+  const [globalLoading, setGlobalLoading] = useState(true)
+  const [data, setData] = useState<any>(null)
   useEffect(() => {
     const fetchData = async () => {
       try {
         const res = await new Promise((resolve) =>
-          setTimeout(() => resolve({ user: "KK", role: "admin" }), 200)
-        );
-        setData(res);
+          setTimeout(() => resolve({ user: 'KK', role: 'admin' }), 200)
+        )
+        setData(res)
       } catch (error) {
-        console.error(error);
+        console.error(error)
       } finally {
-        setGlobalLoading(false); // 请求完毕关闭加载蒙层
+        setGlobalLoading(false) // 请求完毕关闭加载蒙层
       }
-    };
-    fetchData();
-  }, []);
+    }
+    fetchData()
+  }, [])
 
-  const [noReadApplyCount, setNoReadApplyCount] = useState<number>(0);
-  const { token } = theme.useToken();
+  const [noReadApplyCount, setNoReadApplyCount] = useState<number>(0)
+  const { token } = theme.useToken()
   return (
     <>
       {/* 全局加载蒙层 */}
@@ -199,21 +205,26 @@ const SessionsPage: React.FC = () => {
             alignItems: 'center',
             padding: '0 10px',
             paddingBottom: 10,
-            backgroundColor: token.colorBgLayout,
-            zIndex: 10,
+            backgroundColor: 'var(--ant-primary-color)',
+            zIndex: 10
           }}
         >
-          <Input.Search
-            placeholder="搜索联系人"
-            style={{ flex: 1, marginRight: 10 }}
-            allowClear
-          />
-          <Badge count={noReadApplyCount} size="small" style={{ width: 16, fontSize: 11 }} offset={[1, -5]}>
-            <MessageOutlined className="hover-icon" style={{ fontSize: 20, }} onClick={() => window.electron.ipcRenderer.invoke('open-notification-window')} />
+          <Input.Search placeholder="搜索联系人" style={{ flex: 1, marginRight: 10 }} allowClear />
+          <Badge
+            count={noReadApplyCount}
+            size="small"
+            style={{ width: 16, fontSize: 11 }}
+            offset={[1, -5]}
+          >
+            <MessageOutlined
+              className="hover-icon"
+              style={{ fontSize: 20 }}
+              onClick={() => window.electron.ipcRenderer.invoke('open-notification-window')}
+            />
           </Badge>
         </div>
         <List
-          className='scrollableDiv'
+          className="scrollableDiv"
           itemLayout="horizontal"
           dataSource={sortedContacts}
           style={{ flexGrow: 1, overflowY: 'auto' }}
@@ -230,13 +241,13 @@ const SessionsPage: React.FC = () => {
               key={item.id}
             >
               <List.Item
-                className='list-item'
+                className="list-item"
                 style={{
                   backgroundColor:
                     selectedContact?.id === item.id
                       ? token.controlItemBgActiveHover //  选中：主色背景
                       : item.isTop
-                        ? token.colorErrorBgFilledHover  //  置顶：使用 error 背景（偏粉色）
+                        ? token.colorErrorBgFilledHover //  置顶：使用 error 背景（偏粉色）
                         : undefined,
                   cursor: 'pointer',
                   padding: '12px 16px'
@@ -277,7 +288,9 @@ const SessionsPage: React.FC = () => {
                       >
                         {item.name}
                       </Text>
-                      {item.isTop && <PushpinOutlined style={{ marginLeft: 8, color: '#1890ff' }} />}
+                      {item.isTop && (
+                        <PushpinOutlined style={{ marginLeft: 8, color: '#1890ff' }} />
+                      )}
                     </div>
                   }
                   description={
@@ -292,14 +305,11 @@ const SessionsPage: React.FC = () => {
           )}
         />
       </div>
-
     </>
   )
 }
 
 export default SessionsPage
-
-
 
 // import {
 //   Tag,
@@ -438,4 +448,3 @@ export default SessionsPage
 //     </Card>
 //   );
 // };
-

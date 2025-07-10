@@ -1,22 +1,22 @@
-import React, { useState } from 'react';
+import { LoadingOutlined, LogoutOutlined, PlusOutlined } from '@ant-design/icons';
+import { userLogout } from '@renderer/api/userApis';
+import { useUserStore } from '@renderer/store/useUserStore';
 import {
-    Form,
-    Input,
-    Switch,
-    Select,
     Button,
     Card,
-    Typography,
+    Col,
+    Form,
+    Image,
+    Input,
     message,
     Row,
-    Col,
+    Select,
+    Switch,
+    Typography,
     Upload,
-    Image,
 } from 'antd';
-import { LoadingOutlined, LogoutOutlined, PlusOutlined } from '@ant-design/icons';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useUserStore } from '@renderer/store/useUserStore';
-import { userLogout } from '@renderer/api/userApis';
 import { useThemeStore } from '../store/useThemeStore'; // 根据你的实际路径调整
 
 const { Title } = Typography;
@@ -92,7 +92,6 @@ const SettingPage: React.FC = () => {
             // 你可以这里保存头像url 和 主题到服务器或 localStorage
         }, 1000);
     };
-
     return (
         <Card style={{ width: 'calc(100% - 20px)', margin: '14px auto' }}>
             <Title level={3}>设置中心</Title>

@@ -1,32 +1,21 @@
 import { createFromIconfontCN, WechatWorkOutlined } from '@ant-design/icons'
-import { FloatButton, Layout, Menu, Typography } from 'antd'
+import UserIconCard from '@renderer/components/UserIconCard'
+import { useUserStore } from '@renderer/store/useUserStore'
+import { FloatButton, Layout, Menu } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import GlobalToolBar from '../components/GlobalToolBar'
-import UserIconCard from '@renderer/components/UserIconCard'
-import { useUserStore } from '@renderer/store/useUserStore'
 
 const { Sider, Content } = Layout
-const { Title } = Typography
-
 const AdminLayout: React.FC = () => {
   const [selectedMenuKey, setSelectedMenuKey] = useState('/admin/userList')
   const location = useLocation()
   const navigate = useNavigate()
-  const user = useUserStore(state => state.user)
+  const user = useUserStore((state) => state.user)
 
   const IconFont = createFromIconfontCN({
-    scriptUrl: [
-      '//at.alicdn.com/t/c/font_4966877_38zkbedurio.js'
-    ]
+    scriptUrl: ['//at.alicdn.com/t/c/font_4966877_38zkbedurio.js']
   })
-
-  // 路由对应标题映射
-  const routeTitleMap: Record<string, string> = {
-    '/admin/userList': '用户管理',
-    '/admin/gourpList': '群组管理',
-    '/admin/messagePanel': '消息管理',
-  }
 
   useEffect(() => {
     navigate(selectedMenuKey)
@@ -37,9 +26,6 @@ const AdminLayout: React.FC = () => {
       window.electron.ipcRenderer.send('resize-window', { width: 1200, height: 700 })
     }
   }, [location.pathname])
-
-  // 从映射中获取当前路径对应的标题，找不到默认空字符串
-  const title = routeTitleMap[location.pathname] || ''
 
   return (
     <Layout style={{ height: '100vh' }}>
@@ -52,11 +38,10 @@ const AdminLayout: React.FC = () => {
           flexDirection: 'column',
           alignItems: 'center',
           paddingTop: 20,
-          borderRight: '1px solid #eee',
           overflow: 'hidden'
         }}
       >
-        <span className='no-drag'>
+        <span className="no-drag">
           <UserIconCard user={user as API.UserVO} />
         </span>
         <Menu
@@ -87,18 +72,18 @@ const AdminLayout: React.FC = () => {
       </Sider>
       <Content
         style={{
-          backgroundColor: '#fcfcfc',
           height: '100vh',
           display: 'flex',
-          flexDirection: 'column',
+          flexDirection: 'column'
         }}
       >
         <GlobalToolBar />
-        <div style={{
-          flex: 1,
-          overflow: 'auto',
-          marginTop: 12,
-        }}
+        <div
+          style={{
+            flex: 1,
+            overflow: 'auto',
+            marginTop: 12
+          }}
         >
           <Outlet />
         </div>

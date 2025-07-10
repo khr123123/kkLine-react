@@ -2,12 +2,12 @@ import { UsergroupAddOutlined } from '@ant-design/icons'
 import { loadAllGroup } from '@renderer/api/contactApis'
 import { genGroup } from '@renderer/api/groupApis'
 import GroupForm from '@renderer/components/GroupForm'
+import { useGlobalReloadStore } from '@renderer/store/useGlobalReloadStore'
+import { useUserStore } from '@renderer/store/useUserStore'
 import { Avatar, Badge, Button, Input, List, message, Modal, theme, Typography } from 'antd'
+import dayjs from "dayjs"
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import dayjs from "dayjs"
-import { useUserStore } from '@renderer/store/useUserStore'
-import { useGlobalReloadStore } from '@renderer/store/useGlobalReloadStore'
 const { Text } = Typography
 
 const GroupsPage: React.FC = () => {
@@ -42,7 +42,7 @@ const GroupsPage: React.FC = () => {
                     alignItems: 'center',
                     padding: '0 10px',
                     paddingBottom: 10,
-                    backgroundColor: token.colorBgLayout,
+                    backgroundColor: "var(--ant-primary-color)",
                     zIndex: 10,
                 }}
             >
