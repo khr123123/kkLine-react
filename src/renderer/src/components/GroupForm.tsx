@@ -1,17 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { Form, Input, Button, Upload, Radio, message } from 'antd';
+import { Form, Input, Button, Radio, } from 'antd';
 import PicUploader from './PicUploader';
 import { useUserStore } from '@renderer/store/useUserStore';
 
 export type GroupFormProps = {
     initialValues?: Partial<API.GroupCreateRequest>;
     onSubmit?: (formData: API.GroupCreateRequest) => void;
-    loading?: boolean;
 };
 const GroupForm: React.FC<GroupFormProps> = ({ initialValues, onSubmit, }) => {
     const [form] = Form.useForm();
     const [avatarUrl, setAvatarUrl] = useState<string | undefined>(initialValues?.groupAvatar);
-    const [loading, setLoading] = useState(false);
     const user = useUserStore(state => state.user);
 
     useEffect(() => {
@@ -74,7 +72,7 @@ const GroupForm: React.FC<GroupFormProps> = ({ initialValues, onSubmit, }) => {
                     </Form.Item>
 
                     <Form.Item>
-                        <Button type="primary" htmlType="submit" loading={loading}>
+                        <Button type="primary" htmlType="submit" >
                             {initialValues ? '更新群聊' : '创建群聊'}
                         </Button>
                     </Form.Item>

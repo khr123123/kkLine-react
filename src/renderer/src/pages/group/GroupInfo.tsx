@@ -15,14 +15,16 @@ import {
     Menu,
     Popconfirm,
     Result,
+    Modal,
 } from "antd";
-import { DeleteOutlined, DownOutlined, UserOutlined, WechatOutlined } from "@ant-design/icons";
+import { DeleteOutlined, DownOutlined, EditOutlined, UserOutlined, WechatOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { useNavigate, useParams } from "react-router-dom";
 import { createStyles } from "antd-style";
 import MembersGrid from "@renderer/components/MembersGrid";
-import { delGroup, getGroupInfoWithMembers } from "@renderer/api/groupApis";
+import { delGroup, editGroup, getGroupInfoWithMembers } from "@renderer/api/groupApis";
 import { useGlobalReloadStore } from "@renderer/store/useGlobalReloadStore";
+import GroupForm from "@renderer/components/GroupForm";
 const { Title, Text, Paragraph } = Typography;
 
 interface Member {
@@ -69,6 +71,7 @@ const GroupInfo: React.FC = () => {
     const { styles } = useStyle();
     const triggerReload = useGlobalReloadStore(state => state.triggerReload)
     const navigate = useNavigate();
+    const [isModalOpen, setIsModalOpen] = useState(false);
     const fetchGroupInfo = async () => {
         if (!groupId) return;
         setLoading(true);
@@ -126,6 +129,7 @@ const GroupInfo: React.FC = () => {
         }
     };
 
+    const handleCancel = () => setIsModalOpen(false);
     const menu = (
         <Menu>
             <Menu.Item key="1">
@@ -142,89 +146,118 @@ const GroupInfo: React.FC = () => {
                     </Space>
                 </Popconfirm>
             </Menu.Item>
-            <Menu.Item key="2" onClick={() => message.info('点击了...')}>
-                ...
+            <Menu.Item key="2" onClick={() => setIsModalOpen(true)} icon={<EditOutlined />}>
+                编辑群聊
             </Menu.Item>
         </Menu>
     );
     return (
-        <Card style={{ width: "calc(100% - 40px)", borderRadius: 16, margin: "0 auto", marginTop: 26 }}>
-            <Flex justify="space-between" align="center" style={{ width: '100%' }}>
-                <Flex align="center" gap={16}>
-                    <Avatar
-                        size={64}
-                        src={group.groupAvatar}
-                        icon={<UserOutlined />}
-                        style={{ flexShrink: 0 }}
-                    />
-                    <Flex vertical justify="center">
-                        <Space size="small" align="center">
-                            <Title level={4} style={{ margin: 0 }}>{group.groupName}</Title>
-                            {
-                                group.joinType === 0
-                                    ? <Tag color="green">直接加入</Tag>
-                                    : <Tag color="orange">管理员同意</Tag>
+        <>
+            <Modal
+                title="修改群组"
+                closable={{ 'aria-label': 'Custom Close Button' }}
+                open={isModalOpen}
+                onCancel={handleCancel}
+                footer={null} // 表单组件自己控制提交
+            >
+                <GroupForm
+                    initialValues={group}
+                    onSubmit={async (data) => {
+                        try {
+                            const res = await editGroup({ id: groupId!, ...data }) as API.BaseResponseGroupVO
+                            if (res.code === 0) {
+                                message.success('群聊修改!');
+                                setIsModalOpen(false);
+                                triggerReload('groupList')
+                                fetchGroupInfo()
+                            } else {
+                                message.error(`群聊修改失败,${res.message}.`);
                             }
-                        </Space>
-                        <Text type="secondary" style={{ fontSize: 14 }}>
-                            ID: {groupId}<br />创建时间：{dayjs(group.createTime).format("YYYY年MM月DD日")}
-                        </Text>
-                    </Flex>
-                </Flex>
-                <Dropdown overlay={menu} trigger={['click']}>
-                    <a onClick={(e) => e.preventDefault()}>
-                        <Space>
-                            操作菜单 <DownOutlined />
-                        </Space>
-                    </a>
-                </Dropdown>
-            </Flex>
-            <Divider />
-
-            {/* 群成员 */}
-            <div style={{ marginBottom: 16 }}>
-                <Text strong>
-                    群成员（{group.members.length}人）
-                </Text>
-                <div style={{ height: 18 }}></div>
-                <MembersGrid members={group.members} />
-            </div>
-
-
-            {/* 公告 */}
-            {group.groupNotice && (
-                <>
-                    <Divider />
-                    <Text strong>群公告</Text>
-                    <Paragraph style={{ marginTop: 8 }} ellipsis={{ rows: 2, expandable: true, symbol: "更多" }}>
-                        {group.groupNotice}
-                    </Paragraph>
-                </>
-            )}
-
-            <Divider />
-
-            <Space style={{ justifyContent: "center", width: "100%" }}>
-                <ConfigProvider
-                    button={{
-                        className: styles.linearGradientButton,
+                        } catch (e) {
+                            message.error('群聊修改失败' + e);
+                        }
                     }}
-                >
-                    <Button
-                        style={{ width: 180 }}
-                        block
-                        type="primary"
-                        size="large"
-                        icon={<WechatOutlined style={{ fontSize: 26 }} />}
-                        onClick={() => {
-                            message.success(`发消息`);
+                />
+            </Modal>
+            <Card style={{ width: "calc(100% - 40px)", borderRadius: 16, margin: "0 auto", marginTop: 26 }}>
+                <Flex justify="space-between" align="center" style={{ width: '100%' }}>
+                    <Flex align="center" gap={16}>
+                        <Avatar
+                            size={64}
+                            src={group.groupAvatar}
+                            icon={<UserOutlined />}
+                            style={{ flexShrink: 0 }}
+                        />
+                        <Flex vertical justify="center">
+                            <Space size="small" align="center">
+                                <Title level={4} style={{ margin: 0 }}>{group.groupName}</Title>
+                                {
+                                    group.joinType === 0
+                                        ? <Tag color="green">直接加入</Tag>
+                                        : <Tag color="orange">管理员同意</Tag>
+                                }
+                            </Space>
+                            <Text type="secondary" style={{ fontSize: 14 }}>
+                                ID: {groupId}<br />创建时间：{dayjs(group.createTime).format("YYYY年MM月DD日")}
+                            </Text>
+                        </Flex>
+                    </Flex>
+                    <Dropdown overlay={menu} trigger={['click']}>
+                        <a onClick={(e) => e.preventDefault()}>
+                            <Space>
+                                操作菜单 <DownOutlined />
+                            </Space>
+                        </a>
+                    </Dropdown>
+                </Flex>
+                <Divider />
+
+                {/* 群成员 */}
+                <div style={{ marginBottom: 16 }}>
+                    <Text strong>
+                        群成员（{group.members.length}人）
+                    </Text>
+                    <div style={{ height: 18 }}></div>
+                    <MembersGrid members={group.members} />
+                </div>
+
+
+                {/* 公告 */}
+                {group.groupNotice && (
+                    <>
+                        <Divider />
+                        <Text strong>群公告</Text>
+                        <Paragraph style={{ marginTop: 8 }} ellipsis={{ rows: 2, expandable: true, symbol: "更多" }}>
+                            {group.groupNotice}
+                        </Paragraph>
+                    </>
+                )}
+
+                <Divider />
+
+                <Space style={{ justifyContent: "center", width: "100%" }}>
+                    <ConfigProvider
+                        button={{
+                            className: styles.linearGradientButton,
                         }}
                     >
-                        发消息
-                    </Button>
-                </ConfigProvider>
-            </Space>
-        </Card>
+                        <Button
+                            style={{ width: 180 }}
+                            block
+                            type="primary"
+                            size="large"
+                            icon={<WechatOutlined style={{ fontSize: 26 }} />}
+                            onClick={() => {
+                                message.success(`发消息`);
+                            }}
+                        >
+                            发消息
+                        </Button>
+                    </ConfigProvider>
+                </Space>
+            </Card>
+
+        </>
     );
 };
 

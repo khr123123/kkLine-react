@@ -49,7 +49,8 @@ export const createWs = (url: string) => {
             console.log(`📩 收到服务器消息，类型: ${messageType}`);
 
             switch (messageType) {
-                case MessageType.INIT: {
+                // ===== 0 系统初始化 =====
+                case MessageType.INIT: {  // 0 END
                     console.log('🚀 初始化消息接收');
                     // 断言成 InitMessageDTO，处理初始化数据
                     const initData = msgData.content?.extraData as InitMessageDTO;
@@ -60,34 +61,35 @@ export const createWs = (url: string) => {
                     break;
                 }
 
-                case MessageType.FILE_TRANSMITTING: {
-                    // 处理文件上传进度
-                    console.log('⬆️ 文件上传进度消息');
-                    if (mainWindow?.webContents) {
-                        console.log('上传进度数据发送到渲染进程 percent :', msgData.content?.extraData.percent, "%");
-                        mainWindow.webContents.send('upload-progress', msgData.content?.extraData);
-                    }
-                    break;
-                }
-
                 // ===== 10–19 群组相关 =====
-                case MessageType.GROUP_CREATE: { // 10 
+                case MessageType.GROUP_CREATE: { // 10   END
                     console.log('🎉 收到新建群组消息');
                     console.log('群组信息:', msgData.contact);
                     console.log('群组信息头像:', msgData.content?.extraData);
                     console.log('消息:', msgData.content?.text);
                     break;
                 }
-                case MessageType.DISSOLUTION_GROUP: { // 11
+                case MessageType.DISSOLUTION_GROUP: { // 11 END
                     console.log('⚠️ 收到解散群组的通知');
                     console.log('被解散的群组信息:', msgData.contact);
                     console.log('消息:', msgData.content?.text);
                     break;
                 }
 
-                case MessageType.GROUP_NAME_UPDATE: {
-                    console.log('📝 群名称更新消息:', msgData.content?.text);
-                    console.log('Group name update received:', msgData.content?.text || msgData.contact);
+                case MessageType.GROUP_NAME_UPDATE: { // 15  END
+                    console.log('📝 群名称更新消息,新群名字:', msgData.contact?.contactName);
+                    console.log('更新后的群组信息:', msgData.contact);
+                    break;
+                }
+
+                // ===== 30–39 文件传输相关 =====
+                case MessageType.FILE_TRANSMITTING: {// 31 END
+                    // 处理文件上传进度
+                    console.log('⬆️ 文件上传进度消息');
+                    if (mainWindow?.webContents) {
+                        console.log('上传进度数据发送到渲染进程 percent :', msgData.content?.extraData.percent, "%");
+                        mainWindow.webContents.send('upload-progress', msgData.content?.extraData);
+                    }
                     break;
                 }
 

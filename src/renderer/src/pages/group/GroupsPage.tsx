@@ -69,7 +69,6 @@ const GroupsPage: React.FC = () => {
                     <GroupForm
                         key={formKey}
                         onSubmit={async (data) => {
-                            console.log('创建群聊数据', data);
                             try {
                                 const res = await genGroup(data) as API.BaseResponseGroupVO
                                 if (res.code === 0) {
