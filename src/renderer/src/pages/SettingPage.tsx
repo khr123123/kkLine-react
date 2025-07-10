@@ -17,6 +17,7 @@ import { LoadingOutlined, LogoutOutlined, PlusOutlined } from '@ant-design/icons
 import { useNavigate } from 'react-router-dom';
 import { useUserStore } from '@renderer/store/useUserStore';
 import { userLogout } from '@renderer/api/userApis';
+import { useThemeStore } from '../store/useThemeStore'; // 根据你的实际路径调整
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -34,11 +35,15 @@ const SettingPage: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [avatarUrl, setAvatarUrl] = useState<string>('');
     const [uploadLoading, setUploadLoading] = useState(false);
-    const navigate = useNavigate()
-    const clearUser = useUserStore(state => state.clearUser)
+    const navigate = useNavigate();
+    const clearUser = useUserStore((state) => state.clearUser);
     const [messageApi, contextHolder] = message.useMessage();
 
-    // 只做本地预览，不实际上传
+    // 从 zustand 读取和修改主题
+    const themeMode = useThemeStore((state) => state.themeMode);
+    const setThemeMode = useThemeStore((state) => state.setThemeMode);
+
+    // 头像上传校验
     const beforeUpload = (file: File) => {
         const isImage = file.type.startsWith('image/');
         if (!isImage) {
@@ -84,23 +89,12 @@ const SettingPage: React.FC = () => {
             message.success('设置已保存');
             console.log('保存的设置：', values);
             console.log('头像地址:', avatarUrl);
+            // 你可以这里保存头像url 和 主题到服务器或 localStorage
         }, 1000);
     };
 
-    const uploadButton = (
-        <div>
-            {uploadLoading ? <LoadingOutlined /> : <PlusOutlined />}
-            <div style={{ marginTop: 8 }}>上传头像</div>
-        </div>
-    );
-
     return (
-        <Card
-            style={{
-                width: 'calc(100% - 20px)',
-                margin: '14px auto',
-            }}
-        >
+        <Card style={{ width: 'calc(100% - 20px)', margin: '14px auto' }}>
             <Title level={3}>设置中心</Title>
             <Form<SettingFormValues>
                 form={form}
@@ -110,11 +104,11 @@ const SettingPage: React.FC = () => {
                     username: 'KKUser',
                     email: '',
                     notifications: true,
-                    theme: 'light',
+                    theme: themeMode,
                 }}
             >
                 <Row gutter={24} align="top">
-                    {/* 左侧头像列，宽度固定 */}
+                    {/* 左侧头像 */}
                     <Col flex="160px" style={{ textAlign: 'center' }}>
                         <Upload
                             name="avatar"
@@ -123,8 +117,7 @@ const SettingPage: React.FC = () => {
                             showUploadList={false}
                             beforeUpload={beforeUpload}
                             onChange={handleChange}
-                            customRequest={({ file, onSuccess }) => {
-                                // 模拟上传成功
+                            customRequest={({ onSuccess }) => {
                                 setTimeout(() => {
                                     onSuccess && onSuccess("ok");
                                 }, 500);
@@ -138,7 +131,10 @@ const SettingPage: React.FC = () => {
                                     preview={false}
                                 />
                             ) : (
-                                uploadButton
+                                <div>
+                                    {uploadLoading ? <LoadingOutlined /> : <PlusOutlined />}
+                                    <div style={{ marginTop: 8 }}>上传头像</div>
+                                </div>
                             )}
                         </Upload>
                         {contextHolder}
@@ -148,26 +144,22 @@ const SettingPage: React.FC = () => {
                             danger
                             icon={<LogoutOutlined />}
                             onClick={() => {
-                                messageApi.open({
-                                    type: 'loading',
-                                    content: '正在退出...',
-                                });
+                                messageApi.open({ type: 'loading', content: '正在退出...' });
                                 setTimeout(async () => {
                                     message.success('退出成功！', 0.5).then(() => {
                                         clearUser();
                                         navigate('/login');
                                     });
-                                    await userLogout()
-                                    window.electron.ipcRenderer.send('ws-close')
+                                    await userLogout();
+                                    window.electron.ipcRenderer.send('ws-close');
                                 }, 1000);
-                            }
-                            }
+                            }}
                         >
                             Logout
                         </Button>
                     </Col>
 
-                    {/* 右侧表单列，占剩余宽度 */}
+                    {/* 右侧表单 */}
                     <Col flex="auto">
                         <Row gutter={16}>
                             <Col span={12}>
@@ -203,10 +195,12 @@ const SettingPage: React.FC = () => {
 
                             <Col span={12}>
                                 <Form.Item label="主题风格" name="theme">
-                                    <Select>
+                                    <Select
+                                        value={themeMode}
+                                        onChange={(value: 'light' | 'dark') => setThemeMode(value)}
+                                    >
                                         <Option value="light">浅色模式</Option>
                                         <Option value="dark">深色模式</Option>
-                                        <Option value="system">跟随系统</Option>
                                     </Select>
                                 </Form.Item>
                             </Col>

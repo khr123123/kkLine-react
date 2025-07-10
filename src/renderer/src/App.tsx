@@ -19,6 +19,8 @@ import YoutubePage from './pages/YoutubePage'
 import UserListPage from './adminPages/UserListPage'
 import GroupListpage from './adminPages/GroupListpage'
 import NotifiPage from './pages/NotifiPage'
+import { useThemeStore } from './store/useThemeStore'
+import { ConfigProvider, theme } from 'antd';
 const router = createBrowserRouter([
   {
     path: '/login',
@@ -132,5 +134,17 @@ const router = createBrowserRouter([
 ])
 
 export default function App() {
-  return <RouterProvider router={router}></RouterProvider>
+  const { themeMode } = useThemeStore();
+  const getAlgorithm = () => {
+    if (themeMode === 'light') return theme.defaultAlgorithm;
+    if (themeMode === 'dark') return theme.darkAlgorithm;
+    return theme.defaultAlgorithm;
+  };
+
+  return (
+    <ConfigProvider theme={{ algorithm: getAlgorithm() }}>
+      <RouterProvider router={router} />
+    </ConfigProvider>
+  );
+
 }
