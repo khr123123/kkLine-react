@@ -138,11 +138,12 @@ export default function App() {
   const getAlgorithm = () => {
     if (themeMode === 'light') return theme.defaultAlgorithm;
     if (themeMode === 'dark') return theme.darkAlgorithm;
+    if (themeMode === 'compact') return theme.compactAlgorithm;
     return theme.defaultAlgorithm;
   };
 
   return (
-    <ConfigProvider theme={{ algorithm: getAlgorithm() }}>
+    <ConfigProvider theme={{ algorithm: getAlgorithm(), }}>
       <RouterProvider router={router} />
     </ConfigProvider>
   );

@@ -1,7 +1,7 @@
 import { DeleteOutlined, MessageOutlined, NotificationOutlined, PushpinOutlined, UsergroupAddOutlined, VerticalAlignBottomOutlined, VerticalAlignTopOutlined } from '@ant-design/icons'
 import GlobalLoading from '@renderer/components/GlobalLoding'
 import type { MenuProps } from 'antd'
-import { Avatar, Badge, Button, Dropdown, Input, List, Menu, Modal, Typography } from 'antd'
+import { Avatar, Badge, Button, Dropdown, Input, List, Menu, Modal, theme, Typography } from 'antd'
 import React, { useEffect, useState } from 'react'
 const { Text } = Typography
 import { useNavigate } from 'react-router-dom'
@@ -183,6 +183,7 @@ const SessionsPage: React.FC = () => {
   }, []);
 
   const [noReadApplyCount, setNoReadApplyCount] = useState<number>(0);
+  const { token } = theme.useToken();
   return (
     <>
       {/* 全局加载蒙层 */}
@@ -198,7 +199,7 @@ const SessionsPage: React.FC = () => {
             alignItems: 'center',
             padding: '0 10px',
             paddingBottom: 10,
-            background: '#fff',
+            backgroundColor: token.colorBgLayout,
             zIndex: 10,
           }}
         >
@@ -233,9 +234,9 @@ const SessionsPage: React.FC = () => {
                 style={{
                   backgroundColor:
                     selectedContact?.id === item.id
-                      ? '#bae7ff' // 选中蓝色背景
+                      ? token.controlItemBgActiveHover //  选中：主色背景
                       : item.isTop
-                        ? '#fff5f8' // 置顶粉色背景
+                        ? token.colorErrorBgFilledHover  //  置顶：使用 error 背景（偏粉色）
                         : undefined,
                   cursor: 'pointer',
                   padding: '12px 16px'

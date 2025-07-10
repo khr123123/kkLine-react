@@ -2,7 +2,7 @@ import { UsergroupAddOutlined } from '@ant-design/icons'
 import { loadAllGroup } from '@renderer/api/contactApis'
 import { genGroup } from '@renderer/api/groupApis'
 import GroupForm from '@renderer/components/GroupForm'
-import { Avatar, Badge, Button, Input, List, message, Modal, Typography } from 'antd'
+import { Avatar, Badge, Button, Input, List, message, Modal, theme, Typography } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import dayjs from "dayjs"
@@ -29,6 +29,7 @@ const GroupsPage: React.FC = () => {
         fetchGroups();
     }, [reloadCount]);
     const [formKey, setFormKey] = useState(0);
+    const { token } = theme.useToken();
     return (
         <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
             <div className="drag" style={{ height: 25, width: '100%' }}></div>
@@ -41,7 +42,7 @@ const GroupsPage: React.FC = () => {
                     alignItems: 'center',
                     padding: '0 10px',
                     paddingBottom: 10,
-                    background: '#fff',
+                    backgroundColor: token.colorBgLayout,
                     zIndex: 10,
                 }}
             >
@@ -97,7 +98,8 @@ const GroupsPage: React.FC = () => {
                             className={"list-item"}
                             key={item.id}
                             style={{
-                                backgroundColor: selectedGroup?.id === item.id ? '#bae7ff' : undefined,
+                                backgroundColor:
+                                    selectedGroup?.id === item.id ? token.controlItemBgActiveHover : undefined,
                                 cursor: 'pointer',
                                 padding: '12px 16px'
                             }}

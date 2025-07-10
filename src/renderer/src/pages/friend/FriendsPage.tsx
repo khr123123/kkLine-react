@@ -81,19 +81,19 @@ const FriendsPage: React.FC = () => {
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
-            <div className="drag" style={{ height: 25, width: '100%' }}></div>
+            <div className="drag" style={{ height: 25, width: '100%', backgroundColor: token.colorBgLayout, }}></div>
             <div
                 style={{
                     height: 46,
                     position: 'sticky',
                     top: 25,
-                    background: token.colorBgContainer,
+                    backgroundColor: token.colorBgLayout,
                     zIndex: 100,
                 }}
             >
                 <Input.Search
                     placeholder="搜索联系人"
-                    style={{ margin: '12px 10px 0 10px', width: 'calc(100% - 20px)' }}
+                    style={{ margin: '12px 10px 0 10px', width: 'calc(100% - 20px)', }}
                     allowClear
                 />
             </div>
@@ -101,7 +101,7 @@ const FriendsPage: React.FC = () => {
                 id="scrollableDiv"
                 ref={scrollableDivRef}
                 style={{
-                    background: token.colorBgContainer,
+                    backgroundColor: token.colorBgLayout,
                     borderRadius: token.borderRadius,
                     overflow: 'auto',
                     flex: 1,

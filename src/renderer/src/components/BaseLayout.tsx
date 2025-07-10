@@ -10,7 +10,7 @@ import {
   TeamOutlined,
   YoutubeOutlined
 } from '@ant-design/icons'
-import { FloatButton, Layout, Menu } from 'antd'
+import { FloatButton, Layout, Menu, theme } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { Outlet, useLocation, useMatches, useNavigate } from 'react-router-dom'
 import { useIsAdmin } from '../auth/RouteGuard'
@@ -29,6 +29,8 @@ const BaseLayout: React.FC = () => {
   const isAdmin = useIsAdmin()
   const location = useLocation()
   const user = useUserStore(state => state.user)
+
+  const { token } = theme.useToken();
 
   useEffect(() => {
     if (selectedMenuKey === 'myGithub') {
@@ -65,7 +67,7 @@ const BaseLayout: React.FC = () => {
           alignItems: 'center',
           paddingTop: 20,
           borderRight: '1px solid #eee',
-          overflow: 'hidden'
+          overflow: 'hidden',
         }}
       >
         <span className='no-drag'>
@@ -97,7 +99,7 @@ const BaseLayout: React.FC = () => {
       {!matched?.handle ? (
         <Content
           style={{
-            backgroundColor: '#fcfcfc',
+            backgroundColor: token.colorBgLayout,
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'flex-start',
@@ -113,7 +115,7 @@ const BaseLayout: React.FC = () => {
           <Sider
             width={280}
             style={{
-              backgroundColor: '#fff',
+              backgroundColor: token.colorBgLayout,
               borderRight: '1px solid #ddd',
               display: 'flex',
               flexDirection: 'column'
@@ -123,7 +125,7 @@ const BaseLayout: React.FC = () => {
           </Sider>
           <Content
             style={{
-              backgroundColor: '#fcfcfc',
+              backgroundColor: token.colorBgLayout,
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'flex-start',

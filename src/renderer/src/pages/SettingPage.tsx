@@ -197,10 +197,11 @@ const SettingPage: React.FC = () => {
                                 <Form.Item label="主题风格" name="theme">
                                     <Select
                                         value={themeMode}
-                                        onChange={(value: 'light' | 'dark') => setThemeMode(value)}
+                                        onChange={(value: 'light' | 'dark' | "compact") => setThemeMode(value)}
                                     >
                                         <Option value="light">浅色模式</Option>
                                         <Option value="dark">深色模式</Option>
+                                        <Option value="compact">紧凑模式</Option>
                                     </Select>
                                 </Form.Item>
                             </Col>

@@ -1,7 +1,8 @@
 ﻿// store/useThemeStore.ts
 import { create } from 'zustand'
 
-type ThemeMode = 'light' | 'dark';
+
+type ThemeMode = 'light' | 'dark' | "compact";
 
 interface ThemeState {
     themeMode: ThemeMode;
