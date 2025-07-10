@@ -117,7 +117,7 @@ const FriendsPage: React.FC = () => {
                             <Spin indicator={<RedoOutlined spin />} size="small" />
                         </div>
                     }
-                    endMessage={<Divider plain>没有更多好友了 🤐</Divider>}
+                    endMessage={<Divider plain>{data.length}个朋友</Divider>}
                     scrollableTarget="scrollableDiv"
                     style={{ overflow: 'hidden' }}
                 >
