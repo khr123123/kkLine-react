@@ -60,6 +60,27 @@ export const createWs = (url: string) => {
                     // TODO: 这里做初始化界面或状态相关操作
                     break;
                 }
+                // ===== 1–9 好友相关 =====
+                case MessageType.ADD_FRIEND: { // 1   END
+                    console.log('🤗 收到打招呼消息');
+                    console.log('申请源头来自:', msgData.sender);
+                    console.log('发送给:', msgData.contact);
+                    console.log('消息:', msgData.content?.text);
+                    console.log('对方信息:', msgData.content?.extraData);
+                    break;
+                }
+                case MessageType.CONTACT_APPLY: { // 2   END
+                    console.log('🔈 收到申请消息');
+                    console.log('来自:', msgData.sender);
+                    console.log('消息:', msgData.content?.text);
+                    break;
+                }
+                case MessageType.EDIT_MY_NAME: { // 3   END
+                    console.log('😶 收到朋友改名或者改头像消息');
+                    console.log('改名朋友ID:', msgData.sender?.userId);
+                    console.log(`改名朋友的新名字和头像:${msgData.sender?.userName},${msgData.sender?.userAvatar}`);
+                    break;
+                }
 
                 // ===== 10–19 群组相关 =====
                 case MessageType.GROUP_CREATE: { // 10   END

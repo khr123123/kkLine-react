@@ -10,7 +10,7 @@ export enum MessageType {
 
     // ===== 1–9 好友相关 =====
     ADD_FRIEND = 1,          // 添加好友打招呼消息
-    CONTACT_APPLY = 2,       // 好友申请
+    CONTACT_APPLY = 2,       // 好友/加群申请
     EDIT_MY_NAME = 3,        // 更新昵称
 
     // ===== 10–19 群组相关 =====
@@ -39,7 +39,6 @@ export enum MessageType {
 export enum ContactType {
     USER = 0,
     GROUP = 1,
-    // 你可以根据后台 ContactType 枚举补充
 }
 
 export interface MessageSendDTO {
@@ -83,7 +82,7 @@ export interface FileInfoDTO {
 
 // WsInitDTO 对应后端的类结构
 export interface InitMessageDTO {
-  chatSessionVOList: any[];  // 你可以根据ChatSessionVO的TS类型替换any
-  chatMessageList: any[];    // 同上，替换为ChatMessage类型
-  applyCount: number;
+    chatSessionVOList: any[];  // 你可以根据ChatSessionVO的TS类型替换any
+    chatMessageList: any[];    // 同上，替换为ChatMessage类型
+    applyCount: number;
 }
