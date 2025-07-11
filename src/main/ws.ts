@@ -75,8 +75,25 @@ export const createWs = (url: string) => {
                     console.log('消息:', msgData.content?.text);
                     break;
                 }
-
-                case MessageType.GROUP_NAME_UPDATE: { // 15  END
+                case MessageType.ADD_GROUP: { // 12   END
+                    console.log('😀 收到有人进群通知');
+                    console.log('群组信息:', msgData.contact);
+                    console.log('消息:', msgData.content?.text);
+                    break;
+                }
+                case MessageType.LEAVE_GROUP: { // 13  END
+                    console.log('😒 收到有人退群通知');
+                    console.log('群组信息:', msgData.contact);
+                    console.log('消息:', msgData.content?.text);
+                    break;
+                }
+                case MessageType.REMOVE_GROUP: { // 14  TODO
+                    console.log('😒 收到有人被踢出群的通知');
+                    console.log('群组信息:', msgData.contact);
+                    console.log('消息:', msgData.content?.text);
+                    break;
+                }
+                case MessageType.GROUP_NAME_UPDATE: { // 15  TODO
                     console.log('📝 群名称更新消息,新群名字:', msgData.contact?.contactName);
                     console.log('更新后的群组信息:', msgData.contact);
                     break;

@@ -104,7 +104,6 @@ function registerIpcHandlers(mainWindow: BrowserWindow) {
   ipcMain.on('ws-close', () => closeWs())
   //获取登录用户信息
   ipcMain.handle('get-login-user', () => currentLoginUser);
-
   // 3. 打开[新的通知]窗口
   ipcMain.handle('open-notification-window', () => {
     createNotificationWindow();

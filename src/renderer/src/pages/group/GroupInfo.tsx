@@ -17,21 +17,17 @@ import {
     Result,
     Modal,
 } from "antd";
-import { DeleteOutlined, DownOutlined, EditOutlined, UserOutlined, WechatOutlined } from "@ant-design/icons";
+import { DeleteOutlined, DownOutlined, EditOutlined, LogoutOutlined, UserOutlined, WechatOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { useNavigate, useParams } from "react-router-dom";
 import { createStyles } from "antd-style";
-import MembersGrid from "@renderer/components/MembersGrid";
+import MembersGrid, { GroupMember } from "@renderer/components/MembersGrid";
 import { delGroup, editGroup, getGroupInfoWithMembers } from "@renderer/api/groupApis";
 import { useGlobalReloadStore } from "@renderer/store/useGlobalReloadStore";
 import GroupForm from "@renderer/components/GroupForm";
+import { useUserStore } from "@renderer/store/useUserStore";
+import { delContact } from "@renderer/api/contactApis";
 const { Title, Text, Paragraph } = Typography;
-
-interface Member {
-    name: string;
-    avatar?: string;
-    isOwner?: boolean;
-}
 
 interface GroupData {
     groupName: string | undefined;
@@ -39,7 +35,8 @@ interface GroupData {
     joinType: number | undefined;
     createTime: string | undefined;
     groupNotice?: string;
-    members: Member[];
+    isOner: boolean;
+    members: GroupMember[];
 }
 const useStyle = createStyles(({ prefixCls, css }) => ({
     linearGradientButton: css`
@@ -69,7 +66,11 @@ const GroupInfo: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const { groupId } = useParams();
     const { styles } = useStyle();
+    //全局事件触发器
     const triggerReload = useGlobalReloadStore(state => state.triggerReload)
+    //全局事件接收器
+    const reloadCount = useGlobalReloadStore(state => state.reloadMap['groupList'] || 0)
+    const user = useUserStore(state => state.user);
     const navigate = useNavigate();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const fetchGroupInfo = async () => {
@@ -78,26 +79,27 @@ const GroupInfo: React.FC = () => {
         try {
             const res = await getGroupInfoWithMembers({ id: groupId });
             const resData = res.data as API.GroupVO;
-            const members: Member[] = resData.userVOList?.map((item) => ({
-                name: item.userName,
-                avatar: item.userAvatar,
-                isOwner: resData.groupOwner === item?.id, //  判断是否是群主
-            })) as Member[]
+            const members: GroupMember[] = resData.userVOList?.map((item) => ({
+                ...item,
+                isOwner: resData.groupOwner === item?.id,
+            })) as GroupMember[]
             setGroup({
                 groupName: resData.groupName,
                 groupAvatar: resData.groupAvatar,
                 joinType: resData.joinType,
                 createTime: resData.createTime,
                 groupNotice: resData.groupNotice,
+                isOner: resData.groupOwner === user?.id,
                 members,
             });
         } finally {
             setLoading(false);
         }
     };
+
     useEffect(() => {
         fetchGroupInfo();
-    }, [groupId]);
+    }, [groupId, reloadCount]);
 
     if (loading) {
         return (
@@ -128,29 +130,66 @@ const GroupInfo: React.FC = () => {
             message.error("删除失败，请稍后重试");
         }
     };
+    const handleLeaveGroup = async () => {
+        if (!groupId) return;
+        const hide = message.loading(`已成功退出群聊「${group.groupName}」...`, 0);
+        try {
+            const res = await delContact({ contactId: groupId, applyStatus: 2 }) as API.BaseResponseGroupVO
+            if (res.code === 0) {
+                message.success(`已成功退出群聊「${group.groupName}」`);
+                triggerReload('groupList')
+                navigate('/groups')
+            } else {
+                message.error(res.message);
+            }
+            hide();
+        } catch (e) {
+            hide();
+            message.error("退出失败，请稍后重试");
+        }
+    };
 
     const handleCancel = () => setIsModalOpen(false);
-    const menu = (
-        <Menu>
-            <Menu.Item key="1">
-                <Popconfirm
-                    title="确认删除该群聊？"
-                    description="删除后无法恢复，是否继续？"
-                    okText="确认"
-                    cancelText="取消"
-                    onConfirm={handleRemoveGroup}
-                >
-                    <Space>
-                        <DeleteOutlined />
-                        删除群聊
-                    </Space>
-                </Popconfirm>
-            </Menu.Item>
-            <Menu.Item key="2" onClick={() => setIsModalOpen(true)} icon={<EditOutlined />}>
-                编辑群聊
-            </Menu.Item>
-        </Menu>
-    );
+    const menu = () => {
+        return !group.isOner ? (
+            <Menu>
+                <Menu.Item key="1">
+                    <Popconfirm
+                        title="确认退出该群聊？"
+                        description="退出后无法恢复，是否继续？"
+                        okText="确认"
+                        cancelText="取消"
+                        onConfirm={handleLeaveGroup}
+                    >
+                        <Space>
+                            <LogoutOutlined />
+                            退出该群
+                        </Space>
+                    </Popconfirm>
+                </Menu.Item>
+            </Menu>
+        ) : (
+            <Menu>
+                <Menu.Item key="1">
+                    <Popconfirm
+                        title="确认删除该群聊？"
+                        description="删除后无法恢复，是否继续？"
+                        okText="确认"
+                        cancelText="取消"
+                        onConfirm={handleRemoveGroup}
+                    >
+                        <Space>
+                            <DeleteOutlined />
+                            删除群聊
+                        </Space>
+                    </Popconfirm>
+                </Menu.Item>
+                <Menu.Item key="2" onClick={() => setIsModalOpen(true)} icon={<EditOutlined />}>
+                    编辑群聊
+                </Menu.Item>
+            </Menu>
+        );
+    };
     return (
         <>
             <Modal
@@ -211,7 +250,6 @@ const GroupInfo: React.FC = () => {
                     </Dropdown>
                 </Flex>
                 <Divider />
-
                 {/* 群成员 */}
                 <div style={{ marginBottom: 16 }}>
                     <Text strong>
@@ -220,8 +258,6 @@ const GroupInfo: React.FC = () => {
                     <div style={{ height: 18 }}></div>
                     <MembersGrid members={group.members} />
                 </div>
-
-
                 {/* 公告 */}
                 {group.groupNotice && (
                     <>

@@ -169,7 +169,9 @@ const NotifiPage: React.FC = () => {
                                             </div>
                                         </div>
                                     </div>
-                                    {actionNode}
+                                    <div>
+                                        {actionNode}
+                                    </div>
                                 </div>
                             </Card>
                         );

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
     InteractionOutlined,
     SearchOutlined,
@@ -95,6 +95,10 @@ const SearchPage: React.FC = () => {
         if (res.code === 0) {
             message.success(`已发送申请${msg}给：${result.contactId}`);
             setPopoverInput('');
+            if (textButtonRef.current) {
+                textButtonRef.current.innerText = '已发送申请';
+                textButtonRef.current.disabled = true;
+            }
         } else {
             message.error(`${res.message}`);
         }
@@ -125,6 +129,7 @@ const SearchPage: React.FC = () => {
         alignItems: 'flex-start',
     };
     const [openPopover, setOpenPopover] = useState(false);
+    const textButtonRef = useRef<HTMLButtonElement>(null);
     return (
         <div style={containerStyle}>
             <Title
@@ -222,6 +227,7 @@ const SearchPage: React.FC = () => {
                                 }
                             >
                                 <Button
+                                    ref={textButtonRef}
                                     type={getDisplayInfo(result).buttonType}
                                     disabled={getDisplayInfo(result).buttonDisabled}
                                     style={{ borderRadius: 8, minWidth: 100 }}
