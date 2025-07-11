@@ -115,11 +115,11 @@ textarea::-webkit-scrollbar-track {
 }
 
 .list-item:hover {
-    background-color: var(--my-hover-color);
+    background-color: var(--my-hover-color) !important;
 }
 
-:where(.css-dev-only-do-not-override-1hbti3n).ant-conversations .ant-conversations-item-active {
-    background-color: #bae7ff !important;
+.ant-conversations-item-active {
+    background-color: var(--my-active-color) !important;
 }
 
 /* 你的 CSS 文件 */

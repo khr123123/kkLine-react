@@ -151,11 +151,13 @@ export default function App() {
     switch (themeMode) {
       case 'dark':
         root.style.setProperty('--my-hover-color', '#1F1F1F')
+        root.style.setProperty('--my-active-color', '#15417E')
         break
       case 'compact':
       case 'light':
       default:
         root.style.setProperty('--my-hover-color', '#E7E7E7')
+        root.style.setProperty('--my-active-color', '#bae7ff')
         break
     }
   }, [themeMode])

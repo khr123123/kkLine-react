@@ -64,7 +64,7 @@ const BaseLayout: React.FC = () => {
           flexDirection: 'column',
           alignItems: 'center',
           paddingTop: 20,
-          overflow: 'hidden'
+          overflow: 'hidden',
         }}
       >
         <span className="no-drag">
@@ -111,7 +111,7 @@ const BaseLayout: React.FC = () => {
           <Sider
             width={280}
             style={{
-              backgroundColor: 'var(--ant-background-color)',
+              backgroundColor: token.colorBgLayout,
               borderRight: `1px solid ${token.colorBorderBg}`,
               display: 'flex',
               flexDirection: 'column'

@@ -1,7 +1,7 @@
 import { RedoOutlined } from '@ant-design/icons';
 import { Conversations, type ConversationsProps } from '@ant-design/x';
 import { loadAllFriend } from '@renderer/api/contactApis';
-import { Avatar, Divider, type GetProp, Input, Spin, theme } from 'antd';
+import { Avatar, Divider, type GetProp, Input, Spin } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { useNavigate } from 'react-router-dom';
@@ -16,8 +16,6 @@ const FriendsPage: React.FC = () => {
     const loadingRef = useRef(false);
     const scrollableDivRef = useRef<HTMLDivElement>(null);
     const navigate = useNavigate();
-    const { token } = theme.useToken()
-
     // 用 ref 保存所有好友，避免重复追加相同数据
     const allDataRef = useRef<GetProp<ConversationsProps, 'items'>>([]);
 
@@ -81,13 +79,13 @@ const FriendsPage: React.FC = () => {
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
-            <div className="drag" style={{ height: 25, width: '100%', backgroundColor: token.colorBgLayout, }}></div>
+            <div className="drag" style={{ height: 25, width: '100%', }}></div>
             <div
                 style={{
                     height: 46,
                     position: 'sticky',
                     top: 25,
-                    backgroundColor: token.colorBgLayout,
+
                     zIndex: 100,
                 }}
             >
@@ -101,8 +99,7 @@ const FriendsPage: React.FC = () => {
                 id="scrollableDiv"
                 ref={scrollableDivRef}
                 style={{
-                    backgroundColor: token.colorBgLayout,
-                    borderRadius: token.borderRadius,
+
                     overflow: 'auto',
                     flex: 1,
                 }}

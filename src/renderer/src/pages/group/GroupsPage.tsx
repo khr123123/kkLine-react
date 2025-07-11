@@ -42,7 +42,6 @@ const GroupsPage: React.FC = () => {
                     alignItems: 'center',
                     padding: '0 10px',
                     paddingBottom: 10,
-                    backgroundColor: "var(--ant-primary-color)",
                     zIndex: 10,
                 }}
             >

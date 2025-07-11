@@ -172,7 +172,6 @@ export default () => {
     <div
       style={{
         overflow: 'hidden',
-        backgroundColor: 'var(--color-bg-1)',
         padding: 16
       }}
     >
@@ -198,7 +197,6 @@ export default () => {
                 margin: '16px 24px',
                 marginBottom: 0,
                 marginTop: 0,
-                color: 'var(--color-text-1)'
               }}
             >
               用户查询区
