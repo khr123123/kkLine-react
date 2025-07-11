@@ -37,18 +37,26 @@ const FriendsPage: React.FC = () => {
             // 合并数据
             // 按 group (首字母) 和 label (用户名) 排序
             allDataRef.current.sort((a, b) => {
-                if (a.group === b.group) {
+                const groupA = (a.group || '').toUpperCase();
+                const groupB = (b.group || '').toUpperCase();
+
+                // 将 '#' 排到最后
+                const isAHash = groupA === '#';
+                const isBHash = groupB === '#';
+
+                if (isAHash && !isBHash) return 1;
+                if (!isAHash && isBHash) return -1;
+
+                if (groupA === groupB) {
                     return (a.label || '').localeCompare(b.label || '');
                 }
-                return (a.group || '').localeCompare(b.group || '');
+
+                return groupA.localeCompare(groupB);
             });
+
 
             // 更新状态
             setData([...allDataRef.current]);
-
-            // 直接更新 state
-            setData(allDataRef.current);
-
             setCurrentSegment(segment + 1);
             setHasMore(segment < MAX_LETTER_SEGMENT);
 
