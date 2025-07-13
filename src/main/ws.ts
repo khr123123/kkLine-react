@@ -1,6 +1,6 @@
 import WebSocket from 'ws'
+import type { InitMessageDTO, MessageSendDTO } from './common/messageType'
 import { MessageType } from './common/messageType'
-import type { MessageSendDTO, InitMessageDTO } from './common/messageType'
 interface LoginUser {
     token: string
     id: string | number
@@ -119,7 +119,45 @@ export const createWs = (url: string) => {
                     console.log('更新后的群组信息:', msgData.contact);
                     break;
                 }
-
+                // ===== 20–29 聊天相关 =====
+                case MessageType.CHAT: { // 20  
+                    console.log('💬 聊天消息');
+                    console.log('发送方:', msgData.sender);
+                    console.log('接收方:', msgData.contact);
+                    console.log('消息:', msgData.content?.text);
+                    console.log('消息ID:', msgData.messageId);
+                    console.log('消息类型:', msgData.messageType);
+                }
+                case MessageType.MEDIA_CHAT: { // 21  
+                    console.log('🖼️ 媒体消息');
+                    console.log('发送方:', msgData.sender);
+                    console.log('接收方:', msgData.contact);
+                    console.log('消息:', msgData.content?.text);
+                    console.log('消息ID:', msgData.messageId);
+                    console.log('消息类型:', msgData.messageType);
+                }
+                case MessageType.TYPING: { // 22  
+                    console.log('✍ 对方正在输入中...');
+                    console.log('接收方:', msgData.contact);
+                    console.log('消息:', msgData.content?.text);
+                    console.log('消息ID:', msgData.messageId);
+                    console.log('消息类型:', msgData.messageType);
+                }
+                case MessageType.TYPING: { // 23  
+                    console.log('🤟 对方正在输入输入结束');
+                    console.log('接收方:', msgData.contact);
+                    console.log('消息:', msgData.content?.text);
+                    console.log('消息ID:', msgData.messageId);
+                    console.log('消息类型:', msgData.messageType);
+                }
+                case MessageType.REVOKE_MESSAGE: { // 24  
+                    console.log('🙃 对方撤回了一条消息');
+                    console.log('发送方:', msgData.sender);
+                    console.log('接收方:', msgData.contact);
+                    console.log('消息:', msgData.content?.text);
+                    console.log('消息ID:', msgData.messageId);
+                    console.log('消息类型:', msgData.messageType);
+                }
                 // ===== 30–39 文件传输相关 =====
                 case MessageType.FILE_TRANSMITTING: {// 31 END
                     // 处理文件上传进度
