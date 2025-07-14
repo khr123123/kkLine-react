@@ -19,3 +19,26 @@ export const formatDate = (timestamp: number | string): string => {
         return timestampTime.format('YY/MM/DD')
     }
 }
+
+/**
+ * 格式化时间为日常表达
+ * @param time 时间字符串或时间戳
+ * @returns {string} 如“刚刚”，“5分钟前”，“昨天”，“3天前”等
+ */
+export function formatRelativeTime(time: string | number) {
+  const now = dayjs()
+  const msgTime = dayjs(time)
+
+  const diffSeconds = now.diff(msgTime, 'second')
+  const diffMinutes = now.diff(msgTime, 'minute')
+  const diffHours = now.diff(msgTime, 'hour')
+  const diffDays = now.diff(msgTime, 'day')
+
+  if (diffSeconds < 10) return '刚刚'
+  if (diffMinutes < 60) return `${diffMinutes}分钟前`
+  if (diffHours < 24) return `${diffHours}小时前`
+  if (diffDays === 1) return '昨天'
+  if (diffDays <= 7) return `${diffDays}天前`
+
+  return msgTime.format('YYYY-MM-DD')
+}

@@ -62,7 +62,7 @@ const PicUploader: React.FC<AvatarUploaderProps> = ({ token, initialUrl, onSucce
       data={{ biz: 'picture' }}
     >
       {imageUrl ? (
-        <Avatar src={imageUrl} size={100} alt="avatar" shape="square" />
+        <Avatar src={imageUrl} size={88} alt="avatar" shape="square" />
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           {loading ? (
