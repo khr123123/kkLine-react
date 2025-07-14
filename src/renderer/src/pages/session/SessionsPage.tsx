@@ -21,6 +21,7 @@ interface Contact {
   lastMessage: string;
   lastReceiveTime: string;
   noReadCount: number;
+  memberCount: number;
   topType: number; // 0 or 1
 }
 
@@ -47,7 +48,6 @@ const SessionsPage: React.FC = () => {
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [contextContact, setContextContact] = useState<Contact | null>(null);
   const navigate = useNavigate();
-
   const handleTop = (contact: Contact) => {
     setContacts((prev) => {
       const isCurrentlyTop = isTop(contact);
@@ -61,14 +61,12 @@ const SessionsPage: React.FC = () => {
       }
     });
   };
-
   const handleDelete = (contact: Contact) => {
     setContacts((prev) => prev.filter((c) => c.sessionId !== contact.sessionId));
     if (selectedContact?.sessionId === contact.sessionId) {
       setSelectedContact(null);
     }
   };
-
   const onMenuClick: MenuProps['onClick'] = ({ key }) => {
     if (!contextContact) return;
     if (key === 'top') {
@@ -79,41 +77,20 @@ const SessionsPage: React.FC = () => {
     }
     setContextContact(null);
   };
-
   const sortedContacts = [...contacts].sort((a, b) => {
     if (a.topType === 1 && b.topType !== 1) return -1;
     if (a.topType !== 1 && b.topType === 1) return 1;
     return a.sessionId - b.sessionId;
   });
-
   const menu = <Menu onClick={onMenuClick} items={getMenuItems(contextContact)} />;
-
   const [globalLoading, setGlobalLoading] = useState(true);
-  const [data, setData] = useState<any>(null);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const res = await new Promise((resolve) =>
-          setTimeout(() => resolve({ user: 'KK', role: 'admin' }), 200)
-        );
-        setData(res);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setGlobalLoading(false);
-      }
-    };
-    fetchData();
-  }, []);
-
   const [noReadApplyCount, setNoReadApplyCount] = useState<number>(0);
   const { token } = theme.useToken();
   const [ellipsis] = useState(true);
   useEffect(() => {
     window.electron.ipcRenderer.invoke('get-session-list').then((result: any) => {
-      console.log(result);
       setContacts(result);
+      setGlobalLoading(false);
     });
   }, []);
 
@@ -213,6 +190,11 @@ const SessionsPage: React.FC = () => {
                         }}
                       >
                         {item.contactName}
+                        {item.sessionId.toString().startsWith('G') && item.memberCount > 0 &&
+                          <Text type="secondary" style={{ fontSize: 12 }}>
+                            （{item.memberCount}）
+                          </Text>
+                        }
                       </Text>
                       {item.topType === 1 && (
                         <PushpinOutlined style={{ marginLeft: 8, color: '#1890ff' }} />

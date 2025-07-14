@@ -4,7 +4,7 @@ import { join } from 'path';
 import icon from '../../resources/wechat.png?asset';
 import { Menu, nativeImage, Tray } from 'electron';
 import { closeWs, initWs } from './ws'
-import { queryAllSession } from '../db/dbService';
+import { queryAllSession, queryMessagesBySession } from '../db/dbService';
 
 let mainWindow: BrowserWindow;
 function createWindow(): void {
@@ -117,6 +117,9 @@ function registerIpcHandlers(mainWindow: BrowserWindow) {
   // 6. 初始化Session列表
   ipcMain.handle('get-session-list', () => {
     return queryAllSession(currentLoginUser.id)
+  })
+  ipcMain.handle('get-message-list', (_, sessionId) => {
+    return queryMessagesBySession(sessionId)
   })
 }
 

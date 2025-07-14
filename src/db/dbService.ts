@@ -138,3 +138,18 @@ export function queryAllSession(userId: number | string) {
   `);
   return stmt.all(userId);
 }
+// 根据 sessionId 查询对应会话的消息（按 sendTime 升序）
+export function queryMessagesBySession(sessionId: string) {
+  const stmt = db.prepare(`
+    SELECT
+      id, sessionId, messageType, messageContent,
+      sendUserId, sendUserName, sendTime,
+      contactId, fileUrl, fileName, fileType, fileSize,
+      sendStatus
+    FROM chatMessage
+    WHERE sessionId = ?
+    ORDER BY sendTime ASC
+  `)
+
+  return stmt.all(sessionId)
+}

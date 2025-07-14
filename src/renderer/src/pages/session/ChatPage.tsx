@@ -1,7 +1,7 @@
 import { LinkOutlined, SmileOutlined, UserOutlined } from '@ant-design/icons'
 import { Attachments, Bubble, Sender } from '@ant-design/x'
 import { Button, Flex, Popover, Space } from 'antd'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { CopyOutlined, DeleteOutlined, RedoOutlined, ShareAltOutlined } from '@ant-design/icons';
 import { Actions, ActionsProps } from '@ant-design/x';
 import { Modal, message, Typography } from 'antd';
@@ -9,6 +9,8 @@ import { useParams } from 'react-router-dom'
 import type { BubbleProps, } from "@ant-design/x"
 import { BubbleContentType } from '@ant-design/x/es/bubble/interface'
 import EmojiPicker from 'emoji-picker-react';
+import { useUserStore } from '@renderer/store/useUserStore';
+import { getUserVoById } from '@renderer/api/userApis';
 const actionItems: ActionsProps['items'] = [
   {
     key: 'retry',
@@ -187,38 +189,71 @@ const ChatPage: React.FC = () => {
     };
     setMessages((prev) => [...prev, newMsg]);
   };
+  const user = useUserStore((state) => state.user)
 
-
-  const roles = {
-    me: {
-      placement: 'end' as const,
-      avatar: { icon: <UserOutlined />, style: { background: 'red' } },
-      style: { maxWidth: '100%' }
-
-    },
-    friend: {
-      placement: 'start' as const,
-      avatar: { icon: <UserOutlined />, style: { background: '#d9d9d9' } },
-      style: { maxWidth: '100%' }
-
-    }
-  }
   const onClick: ActionsProps['onClick'] = ({ keyPath }) => {
     message.success(`you clicked ${keyPath.join(',')}`);
   };
   const [value, setValue] = useState<string>('');
   const [open, setOpen] = React.useState(false);
+
+
+  //对方是朋友
+  const [friendInfo, setFriendInfo] = useState<any>(null)
+  const getContactIdFromSession = (sessionId: string, myId: string): string => {
+    if (sessionId.startsWith(myId)) {
+      return sessionId.slice(myId.length)
+    } else if (sessionId.endsWith(myId)) {
+      return sessionId.slice(0, sessionId.length - myId.length)
+    } else {
+      console.warn('sessionId 不包含我的ID，返回空字符串')
+      return ''
+    }
+  }
+  const fetchFriendInfoAndMessages = async () => {
+    if (!sessionId || !user?.id) return
+    const contactId = Number(getContactIdFromSession(sessionId, user.id.toString()))
+    const userRes = await getUserVoById({ id: contactId })
+    setFriendInfo(userRes.data)
+    const result = await window.electron.ipcRenderer.invoke('get-message-list', sessionId)
+    const res = result.map((item: any) => ({
+      _key: item.id,
+      role: item.contactId === user?.id ? 'me' : 'friend',
+      content: item.messageContent,
+      avatar: item.contactId === user?.id
+        ? { src: user?.userAvatar }
+        : { src: friendInfo.userAvatar }
+    }))
+    setMessages(res)
+  }
+
+  useEffect(() => {
+    if (sessionId?.startsWith('G')) {
+      //TODO
+    } else {
+      fetchFriendInfoAndMessages()
+    }
+  }, [sessionId])
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '95vh', width: '100%', }}>
       <Space style={{ padding: '0 16px', marginBottom: 8 }}>
-        <Typography.Text strong style={{ fontSize: 18 }}>{sessionId}</Typography.Text>
+        <Typography.Text strong style={{ fontSize: 18 }}>{friendInfo?.userName}</Typography.Text>
         <Actions items={actionItems} onClick={onClick} />
       </Space>
       <Flex vertical gap="small" style={{ flex: 1, overflowY: 'auto' }}>
         <Bubble.List
           autoScroll
           className="scrollableDiv"
-          roles={roles}
+          roles={{
+            me: {
+              placement: 'end',
+              style: { maxWidth: '100%' }
+            },
+            friend: {
+              placement: 'start',
+              style: { maxWidth: '100%' }
+            }
+          }}
           items={messages}
           style={{
             padding: 16,
