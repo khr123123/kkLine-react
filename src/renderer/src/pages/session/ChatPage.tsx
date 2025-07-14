@@ -82,16 +82,18 @@ const ChatPage: React.FC = () => {
     const result = await window.electron.ipcRenderer.invoke('get-message-list', sessionId)
     const messagesWithTime: CustomBubbleProps[] = []
     let lastTimestamp = 0
-
+    let lastTimeNodeContent: string = ""
     for (const item of result) {
       const currentTimestamp = new Date(item.sendTime).getTime()
-      if (lastTimestamp === 0 || currentTimestamp - lastTimestamp > 10 * 6 * 1000) {
-        // 如果和上一条消息时间间隔超过10分钟，插入时间节点
-        messagesWithTime.push({
-          _key: `time-${item.id}`,
-          role: 'time',
-          content: formatRelativeTime(currentTimestamp),
-        })
+      if (lastTimestamp === 0 || currentTimestamp - lastTimestamp > 10 * 60 * 1000) {
+        if (lastTimeNodeContent !== formatRelativeTime(currentTimestamp)) {
+          lastTimeNodeContent = formatRelativeTime(currentTimestamp)
+          messagesWithTime.push({
+            _key: `time-${item.id}`,
+            role: 'time',
+            content: lastTimeNodeContent,
+          })
+        }
       }
       const sysMsgType = [24];
       if (sysMsgType.includes(item.messageType)) {
@@ -126,21 +128,22 @@ const ChatPage: React.FC = () => {
     const map = new Map<number, string>()
     resData.userVOList?.forEach((m: any) => map.set(m.id, m.userAvatar))
     setMemberMap(map)
-
     const result = await window.electron.ipcRenderer.invoke('get-message-list', sessionId)
-
     const messagesWithTime: CustomBubbleProps[] = []
     let lastTimestamp = 0
-
+    let lastTimeNodeContent: string = ""
     for (const item of result) {
       const currentTimestamp = new Date(item.sendTime).getTime()
       if (lastTimestamp === 0 || currentTimestamp - lastTimestamp > 10 * 60 * 1000) {
         // 如果和上一条消息时间间隔超过10分钟，插入时间节点
-        messagesWithTime.push({
-          _key: `time-${item.id}`,
-          role: 'time',
-          content: formatRelativeTime(currentTimestamp),
-        })
+        if (lastTimeNodeContent !== formatRelativeTime(currentTimestamp)) {
+          lastTimeNodeContent = formatRelativeTime(currentTimestamp)
+          messagesWithTime.push({
+            _key: `time-${item.id}`,
+            role: 'time',
+            content: lastTimeNodeContent,
+          })
+        }
       }
       const sysMsgType = [3, 10, 11, 12, 13, 14, 15, 24];
       if (sysMsgType.includes(item.messageType)) {
@@ -195,8 +198,8 @@ const ChatPage: React.FC = () => {
     if (res.code === 0) {
       window.electron.ipcRenderer.send('user-send-message', res.data);
       const newMessages: CustomBubbleProps[] = [];
-      // 判断是否要插入时间节点（比如间隔超过 5 分钟 = 300000 ms）
-      if (now - lastMessageTimeRef.current > 5 * 60 * 1000) {
+      // 判断是否要插入时间节点（比如间隔超过 1 分钟 ）
+      if (now - lastMessageTimeRef.current > 1 * 60 * 1000) {
         newMessages.push({
           _key: `time-${now}`,
           role: 'time',
