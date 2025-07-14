@@ -1,7 +1,7 @@
 import { LinkOutlined, SmileOutlined, } from '@ant-design/icons'
 import { Bubble, Sender } from '@ant-design/x'
 import { Button, Flex, Popover, Space, Avatar, Typography, message, Modal, theme } from 'antd'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { CopyOutlined, DeleteOutlined, RedoOutlined, ShareAltOutlined } from '@ant-design/icons'
 import { Actions, ActionsProps } from '@ant-design/x'
 import { useParams } from 'react-router-dom'
@@ -12,6 +12,8 @@ import { useUserStore } from '@renderer/store/useUserStore'
 import { getUserVoById } from '@renderer/api/userApis'
 import { getGroupInfoWithMembers } from '@renderer/api/groupApis'
 import { formatRelativeTime } from "../../utils/timeUtil"
+import { sendMsg } from '@renderer/api/chatApis'
+import { Snowflake } from '@renderer/utils/SnowflakeIdUtil'
 const { Text } = Typography;
 const actionItems: ActionsProps['items'] = [
   { key: 'retry', label: 'Retry', icon: <RedoOutlined /> },
@@ -64,6 +66,7 @@ const ChatPage: React.FC = () => {
   const [members, setMembers] = useState<any[]>([])
   const [memberMap, setMemberMap] = useState<Map<number, string>>(new Map())
   const { token } = theme.useToken()
+  const lastMessageTimeRef = useRef<number>(0);
   const getContactIdFromSession = (sessionId: string, myId: string): string => {
     if (sessionId.startsWith(myId)) return sessionId.slice(myId.length)
     if (sessionId.endsWith(myId)) return sessionId.slice(0, sessionId.length - myId.length)
@@ -82,7 +85,7 @@ const ChatPage: React.FC = () => {
 
     for (const item of result) {
       const currentTimestamp = new Date(item.sendTime).getTime()
-      if (lastTimestamp === 0 || currentTimestamp - lastTimestamp > 10 * 60 * 1000) {
+      if (lastTimestamp === 0 || currentTimestamp - lastTimestamp > 10 * 6 * 1000) {
         // 如果和上一条消息时间间隔超过10分钟，插入时间节点
         messagesWithTime.push({
           _key: `time-${item.id}`,
@@ -101,16 +104,16 @@ const ChatPage: React.FC = () => {
       } else {
         messagesWithTime.push({
           _key: item.id,
-          role: item.contactId === user?.id ? 'me' : 'friend',
+          role: item.sendUserId === user?.id ? 'me' : 'friend',
           content: item.messageContent,
-          avatar: item.contactId === user?.id
+          avatar: item.sendUserId === user?.id
             ? { src: user?.userAvatar }
             : { src: resData.userAvatar },
         })
+        lastTimestamp = currentTimestamp
       }
-      lastTimestamp = currentTimestamp
     }
-
+    lastMessageTimeRef.current = result[result.length - 1].sendTime
     setMessages(messagesWithTime)
   }
 
@@ -150,16 +153,16 @@ const ChatPage: React.FC = () => {
       } else {
         messagesWithTime.push({
           _key: item.id,
-          role: item.contactId === user?.id ? 'me' : 'friend',
+          role: item.sendUserId === user?.id ? 'me' : 'friend',
           content: item.messageContent,
-          avatar: item.contactId === user?.id
+          avatar: item.sendUserId === user?.id
             ? { src: user?.userAvatar }
             : { src: map.get(item.sendUserId) }
         })
+        lastTimestamp = currentTimestamp
       }
-      lastTimestamp = currentTimestamp
     }
-
+    lastMessageTimeRef.current = result[result.length - 1].sendTime
     setMessages(messagesWithTime)
   }
 
@@ -173,17 +176,48 @@ const ChatPage: React.FC = () => {
     }
   }, [sessionId])
 
-  const sendMessage = () => {
-    if (!value.trim()) return
-    const newMsg: CustomBubbleProps = {
-      _key: Date.now(),
-      role: 'me',
-      content: value,
+
+  const sendMessage = async () => {
+    if (!value.trim()) return;
+    if (!sessionId || !user?.id) return;
+
+    const id = Snowflake.nextId();
+    let res: any;
+    const now = Date.now(); // 当前时间戳
+
+    if (sessionId.startsWith('G')) {
+      res = await sendMsg({ messageId: id, messageContent: value, contactId: sessionId, messageType: 20 });
+    } else {
+      const contactId = getContactIdFromSession(sessionId, user.id.toString());
+      res = await sendMsg({ messageId: id, messageContent: value, contactId, messageType: 20 });
     }
-    setMessages(prev => [...prev, newMsg])
-    setValue('')
-    message.info('Send message!')
-  }
+
+    if (res.code === 0) {
+      window.electron.ipcRenderer.send('user-send-message', res.data);
+      const newMessages: CustomBubbleProps[] = [];
+      // 判断是否要插入时间节点（比如间隔超过 5 分钟 = 300000 ms）
+      if (now - lastMessageTimeRef.current > 5 * 60 * 1000) {
+        newMessages.push({
+          _key: `time-${now}`,
+          role: 'time',
+          content: formatRelativeTime(now),
+          style: { margin: '0 auto' }
+        });
+      }
+      // 添加实际消息
+      newMessages.push({
+        _key: Date.now(),
+        role: 'me',
+        avatar: { src: user?.userAvatar },
+        content: value,
+      });
+
+      setMessages(prev => [...prev, ...newMessages]);
+      setValue('');
+      lastMessageTimeRef.current = now;
+    }
+  };
+
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '95vh', width: '100%' }}>
@@ -218,7 +252,7 @@ const ChatPage: React.FC = () => {
                   height: 10,
                   minHeight: 10,
                   lineHeight: 0,
-                  marginBottom: -6,
+                  marginBottom: -4,
                 },
               },
             },
@@ -233,7 +267,7 @@ const ChatPage: React.FC = () => {
                   minHeight: 10,
                   lineHeight: 0,
                   border: `1px solid ${token.colorBorder}`,
-                  marginBottom: -8,
+                  marginBottom: -6,
                 },
               },
             }

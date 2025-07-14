@@ -4,7 +4,7 @@ import { join } from 'path';
 import icon from '../../resources/wechat.png?asset';
 import { Menu, nativeImage, Tray } from 'electron';
 import { closeWs, initWs } from './ws'
-import { queryAllSession, queryMessagesBySession } from '../db/dbService';
+import { insertChatMessageRecordIgnore, queryAllSession, queryMessagesBySession } from '../db/dbService';
 
 let mainWindow: BrowserWindow;
 function createWindow(): void {
@@ -118,8 +118,27 @@ function registerIpcHandlers(mainWindow: BrowserWindow) {
   ipcMain.handle('get-session-list', () => {
     return queryAllSession(currentLoginUser.id)
   })
+  // 6. 初始化Msg列表
   ipcMain.handle('get-message-list', (_, sessionId) => {
     return queryMessagesBySession(sessionId)
+  })
+  // 7. 当前用户发送消息后 直接在本地后端保存即可
+  ipcMain.on('user-send-message', (_, msgData) => {
+    insertChatMessageRecordIgnore({
+      id: msgData.messageId,
+      sessionId: msgData.contact?.chatSessionId,
+      messageType: msgData.messageType,
+      messageContent: msgData.content?.text,
+      sendUserId: currentLoginUser.id,
+      sendUserName: currentLoginUser.userName,
+      sendTime: msgData.sendTime,
+      contactId: msgData.contact?.contactId,
+      fileUrl: msgData.file?.fileUrl,
+      fileSize: msgData.file?.fileSize,
+      fileName: msgData.file?.fileName,
+      fileType: msgData.file?.fileType,
+      sendStatus: 1,
+    });
   })
 }
 

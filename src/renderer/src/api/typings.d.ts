@@ -136,11 +136,10 @@ declare namespace API {
   }
 
   type ChatSendRequest = {
-    messageId?: number
+    messageId?: string
     contactId: string
     messageContent: string
     messageType: number
-    sendTime?: string
     fileUrl?: string
     fileSize?: string
     fileName?: string
