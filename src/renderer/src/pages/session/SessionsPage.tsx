@@ -4,195 +4,121 @@ import {
   PushpinOutlined,
   VerticalAlignBottomOutlined,
   VerticalAlignTopOutlined
-} from '@ant-design/icons'
-import GlobalLoading from '@renderer/components/GlobalLoding'
-import type { MenuProps } from 'antd'
-import { Avatar, Badge, Dropdown, Input, List, Menu, theme, Typography } from 'antd'
-import React, { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-const { Text } = Typography
+} from '@ant-design/icons';
+import GlobalLoading from '@renderer/components/GlobalLoding';
+import type { MenuProps } from 'antd';
+import { Avatar, Badge, Dropdown, Input, List, Menu, theme, Typography } from 'antd';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { formatDate } from "../../utils/timeUtil"
+
+const { Text } = Typography;
+
 interface Contact {
-  id: number
-  name: string
-  avatar: string
-  lastMessage: string
-  lastTime: string
-  notRead: number
-  isTop?: boolean
+  sessionId: number;
+  contactName: string;
+  contactAvatar: string;
+  lastMessage: string;
+  lastReceiveTime: string;
+  noReadCount: number;
+  topType: number; // 0 or 1
 }
 
-const initialContacts: Contact[] = [
-  {
-    id: 1,
-    name: '张三',
-    avatar:
-      'https://khr-picture-1305009273.cos.ap-shanghai.myqcloud.com/public/1866835837082255362/2024-12-13_O44QxUxdg8hgNYLU.png',
-    lastMessage: '你好！',
-    lastTime: '12:00',
-    notRead: 2
-  },
-  {
-    id: 2,
-    name: '李四',
-    avatar:
-      'https://www.bing.com/th/id/OIP.g5M-iZUiocFCi9YAzojtRAAAAA?w=193&h=211&c=8&rs=1&qlt=90&o=6&cb=ircwebp2&dpr=1.3&pid=3.1&rm=2',
-    lastMessage: '今天吃饭了吗？',
-    lastTime: '12:00',
-    notRead: 2,
-    isTop: false
-  },
-  {
-    id: 3,
-    name: '李四',
-    avatar:
-      'https://www.bing.com/th/id/OIP.g5M-iZUiocFCi9YAzojtRAAAAA?w=193&h=211&c=8&rs=1&qlt=90&o=6&cb=ircwebp2&dpr=1.3&pid=3.1&rm=2',
-    lastMessage: '今天吃饭了吗？',
-    lastTime: '12-10',
-    notRead: 2,
-    isTop: false
-  },
-  {
-    id: 4,
-    name: '李1',
-    avatar:
-      'https://www.bing.com/th/id/OIP.g5M-iZUiocFCi9YAzojtRAAAAA?w=193&h=211&c=8&rs=1&qlt=90&o=6&cb=ircwebp2&dpr=1.3&pid=3.1&rm=2',
-    lastMessage: '今天吃饭了吗？',
-    lastTime: '12-10',
-    notRead: 2,
-    isTop: false
-  },
-  {
-    id: 5,
-    name: '李2',
-    avatar:
-      'https://www.bing.com/th/id/OIP.g5M-iZUiocFCi9YAzojtRAAAAA?w=193&h=211&c=8&rs=1&qlt=90&o=6&cb=ircwebp2&dpr=1.3&pid=3.1&rm=2',
-    lastMessage: '今天吃饭了吗？',
-    lastTime: '12-10',
-    notRead: 0,
-    isTop: false
-  },
-  {
-    id: 6,
-    name: '李6',
-    avatar:
-      'https://www.bing.com/th/id/OIP.g5M-iZUiocFCi9YAzojtRAAAAA?w=193&h=211&c=8&rs=1&qlt=90&o=6&cb=ircwebp2&dpr=1.3&pid=3.1&rm=2',
-    lastMessage: '今天吃饭了吗？',
-    lastTime: '12-10',
-    notRead: 0,
-    isTop: false
-  },
-  {
-    id: 7,
-    name: '李7',
-    avatar:
-      'https://www.bing.com/th/id/OIP.g5M-iZUiocFCi9YAzojtRAAAAA?w=193&h=211&c=8&rs=1&qlt=90&o=6&cb=ircwebp2&dpr=1.3&pid=3.1&rm=2',
-    lastMessage: '今天吃饭了吗？',
-    lastTime: '12-10',
-    notRead: 0,
-    isTop: false
-  },
-  {
-    id: 123456,
-    name: '腾讯新闻',
-    avatar:
-      'https://th.bing.com/th/id/ODLS.eb37fcc5-7670-48e7-8c00-cda0f210ba5b?w=32&h=32&qlt=90&pcl=fffffc&o=6&cb=ircwebp2&pid=1.2',
-    lastMessage: '今天吃饭了吗？',
-    lastTime: '12-10',
-    notRead: 2,
-    isTop: false
-  }
-]
+const isTop = (contact: Contact) => contact.topType === 1;
 
 const getMenuItems = (contact: Contact | null): MenuProps['items'] => {
-  if (!contact) return []
+  if (!contact) return [];
   return [
     {
-      label: contact.isTop ? '取消置顶' : '置顶',
+      label: isTop(contact) ? '取消置顶' : '置顶',
       key: 'top',
-      icon: contact.isTop ? <VerticalAlignBottomOutlined /> : <VerticalAlignTopOutlined />
+      icon: isTop(contact) ? <VerticalAlignBottomOutlined /> : <VerticalAlignTopOutlined />
     },
     {
       label: '删除',
       key: 'delete',
       icon: <DeleteOutlined />
     }
-  ]
-}
+  ];
+};
 
 const SessionsPage: React.FC = () => {
-  const [contacts, setContacts] = useState<Contact[]>(initialContacts)
-  const [selectedContact, setSelectedContact] = useState<Contact | null>(null)
-  const [contextContact, setContextContact] = useState<Contact | null>(null)
-  const navigate = useNavigate()
+  const [contacts, setContacts] = useState<Contact[]>([]);
+  const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
+  const [contextContact, setContextContact] = useState<Contact | null>(null);
+  const navigate = useNavigate();
 
-  // 置顶联系人：把联系人移到数组头部，并设置 isTop
   const handleTop = (contact: Contact) => {
     setContacts((prev) => {
-      const isCurrentlyTop = contact.isTop ?? false
+      const isCurrentlyTop = isTop(contact);
       if (isCurrentlyTop) {
-        // 取消置顶，保持原顺序
-        return prev.map((c) => (c.id === contact.id ? { ...c, isTop: false } : c))
+        return prev.map((c) =>
+          c.sessionId === contact.sessionId ? { ...c, topType: 0 } : c
+        );
       } else {
-        // 置顶，放到头部
-        const filtered = prev.filter((c) => c.id !== contact.id)
-        return [{ ...contact, isTop: true }, ...filtered]
+        const filtered = prev.filter((c) => c.sessionId !== contact.sessionId);
+        return [{ ...contact, topType: 1 }, ...filtered];
       }
-    })
-  }
+    });
+  };
 
-  // 删除联系人：从数组中移除
   const handleDelete = (contact: Contact) => {
-    setContacts((prev) => prev.filter((c) => c.id !== contact.id))
-    // 如果当前选中被删了，清空或选中第一条
-    if (selectedContact?.id === contact.id) {
-      setSelectedContact(null)
+    setContacts((prev) => prev.filter((c) => c.sessionId !== contact.sessionId));
+    if (selectedContact?.sessionId === contact.sessionId) {
+      setSelectedContact(null);
     }
-  }
+  };
 
-  // 菜单点击事件
   const onMenuClick: MenuProps['onClick'] = ({ key }) => {
-    if (!contextContact) return
+    if (!contextContact) return;
     if (key === 'top') {
-      handleTop(contextContact)
+      handleTop(contextContact);
     }
     if (key === 'delete') {
-      handleDelete(contextContact)
+      handleDelete(contextContact);
     }
-    setContextContact(null)
-  }
+    setContextContact(null);
+  };
 
-  // 给联系人排序，isTop=true的放最前面，其他按id排序（可根据需求改）
   const sortedContacts = [...contacts].sort((a, b) => {
-    if (a.isTop && !b.isTop) return -1
-    if (!a.isTop && b.isTop) return 1
-    return a.id - b.id
-  })
+    if (a.topType === 1 && b.topType !== 1) return -1;
+    if (a.topType !== 1 && b.topType === 1) return 1;
+    return a.sessionId - b.sessionId;
+  });
 
-  const menu = <Menu onClick={onMenuClick} items={getMenuItems(contextContact)} />
+  const menu = <Menu onClick={onMenuClick} items={getMenuItems(contextContact)} />;
 
-  const [globalLoading, setGlobalLoading] = useState(true)
-  const [data, setData] = useState<any>(null)
+  const [globalLoading, setGlobalLoading] = useState(true);
+  const [data, setData] = useState<any>(null);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         const res = await new Promise((resolve) =>
           setTimeout(() => resolve({ user: 'KK', role: 'admin' }), 200)
-        )
-        setData(res)
+        );
+        setData(res);
       } catch (error) {
-        console.error(error)
+        console.error(error);
       } finally {
-        setGlobalLoading(false) // 请求完毕关闭加载蒙层
+        setGlobalLoading(false);
       }
-    }
-    fetchData()
-  }, [])
+    };
+    fetchData();
+  }, []);
 
-  const [noReadApplyCount, setNoReadApplyCount] = useState<number>(0)
-  const { token } = theme.useToken()
+  const [noReadApplyCount, setNoReadApplyCount] = useState<number>(0);
+  const { token } = theme.useToken();
+  const [ellipsis] = useState(true);
+  useEffect(() => {
+    window.electron.ipcRenderer.invoke('get-session-list').then((result: any) => {
+      console.log(result);
+      setContacts(result);
+    });
+  }, []);
+
   return (
     <>
-      {/* 全局加载蒙层 */}
       <GlobalLoading loading={globalLoading} />
       <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
         <div className="drag" style={{ height: 25, width: '100%' }}></div>
@@ -232,39 +158,40 @@ const SessionsPage: React.FC = () => {
               overlay={menu}
               trigger={['contextMenu']}
               onOpenChange={(open) => {
-                if (!open) setContextContact(null)
+                if (!open) setContextContact(null);
               }}
               onVisibleChange={(visible) => {
-                if (visible) setContextContact(item)
+                if (visible) setContextContact(item);
               }}
-              key={item.id}
+              key={item.sessionId}
             >
               <List.Item
                 className="list-item"
                 style={{
                   backgroundColor:
-                    selectedContact?.id === item.id
-                      ? token.controlItemBgActiveHover //  选中：主色背景
-                      : item.isTop
-                        ? token.colorErrorBgFilledHover //  置顶：使用 error 背景（偏粉色）
+                    selectedContact?.sessionId === item.sessionId
+                      ? token.controlItemBgActiveHover
+                      : item.topType === 1
+                        ? token.colorErrorBgFilledHover
                         : undefined,
                   cursor: 'pointer',
-                  padding: '12px 16px'
+                  padding: '12px 16px',
+                  maxHeight: '74px',
                 }}
                 onClick={() => {
-                  setSelectedContact(item)
-                  navigate(`/sessions/${item.id}`)
+                  setSelectedContact(item);
+                  navigate(`/sessions/${item.sessionId}`);
                 }}
               >
                 <List.Item.Meta
                   avatar={
-                    item.id === 123456 ? (
+                    item.sessionId === 123456 ? (
                       <Badge dot>
-                        <Avatar shape="square" size={50} src={item.avatar} />
+                        <Avatar shape="square" size={50} src={item.contactAvatar} />
                       </Badge>
                     ) : (
-                      <Badge count={item.notRead}>
-                        <Avatar shape="square" size={50} src={item.avatar} />
+                      <Badge count={item.noReadCount}>
+                        <Avatar shape="square" size={50} src={item.contactAvatar} />
                       </Badge>
                     )
                   }
@@ -285,17 +212,24 @@ const SessionsPage: React.FC = () => {
                           textOverflow: 'ellipsis'
                         }}
                       >
-                        {item.name}
+                        {item.contactName}
                       </Text>
-                      {item.isTop && (
+                      {item.topType === 1 && (
                         <PushpinOutlined style={{ marginLeft: 8, color: '#1890ff' }} />
                       )}
                     </div>
                   }
                   description={
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span>{item.lastMessage}</span>
-                      <span>{item.lastTime}</span>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', }}>
+                      <Text
+                        style={ellipsis ? { width: 160, color: "#888888" } : undefined}
+                        ellipsis={ellipsis ? { tooltip: item.lastMessage } : false}
+                      >
+                        {item.lastMessage}
+                      </Text>
+                      <span style={{ fontSize: 12, whiteSpace: 'nowrap' }}>
+                        {formatDate(item.lastReceiveTime)}
+                      </span>
                     </div>
                   }
                 />
@@ -305,145 +239,7 @@ const SessionsPage: React.FC = () => {
         />
       </div>
     </>
-  )
-}
+  );
+};
 
-export default SessionsPage
-
-// import {
-//   Tag,
-//   Pagination,
-//   Space,
-//   Card,
-//   Divider
-// } from "antd";
-// import { UserOutlined, TeamOutlined } from "@ant-design/icons";
-// const mockContactApplyList: API.ContactApplyVO[] = [
-//   {
-//     id: 1,
-//     fromUserId: 1001,
-//     toUserId: 2001,
-//     groupId: null,
-//     contactType: 0, // 好友
-//     applyInfo: "你好，可以加个好友吗？",
-//     createTime: new Date("2025-07-07T14:00:00"),
-//     updateTime: new Date("2025-07-07T14:05:00"),
-//     applyStatus: 0,
-//     userVO: {
-//       id: 1001,
-//       nickname: "小明",
-//       avatar: "https://i.pravatar.cc/150?img=3"
-//     },
-//     groupVO: null,
-//   },
-//   {
-//     id: 2,
-//     fromUserId: 1002,
-//     toUserId: 2001,
-//     groupId: "G1942436901383626753",
-//     contactType: 1, // 群
-//     applyInfo: "请求加入 Netty 群",
-//     createTime: new Date("2025-07-07T15:10:00"),
-//     updateTime: new Date("2025-07-07T15:12:00"),
-//     applyStatus: 1,
-//     userVO: {
-//       id: 1002,
-//       nickname: "小红",
-//       avatar: "https://i.pravatar.cc/150?img=5"
-//     },
-//     groupVO: {
-//       id: "G1942436901383626753",
-//       groupName: "Netty 技术交流群",
-//       groupAvatar: "https://i.pravatar.cc/150?img=10"
-//     },
-//   },
-//   {
-//     id: 3,
-//     fromUserId: 1003,
-//     toUserId: 2001,
-//     groupId: null,
-//     contactType: 0,
-//     applyInfo: "加个好友，一起学习 React！",
-//     createTime: new Date("2025-07-08T09:30:00"),
-//     updateTime: new Date("2025-07-08T09:35:00"),
-//     applyStatus: 2,
-//     userVO: {
-//       id: 1003,
-//       nickname: "张三",
-//       avatar: "https://i.pravatar.cc/150?img=8"
-//     },
-//     groupVO: null,
-//   },
-// ];
-
-// interface Props {
-//   data: API.ContactApplyVO[];
-// }
-
-// const PAGE_SIZE = 5;
-
-// const ContactApplyList: React.FC<Props> = ({ data }) => {
-//   const [currentPage, setCurrentPage] = useState(1);
-
-//   const pagedData = data.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
-
-//   const renderStatusTag = (status: number) => {
-//     switch (status) {
-//       case 0: return <Tag color="blue">待处理</Tag>;
-//       case 1: return <Tag color="green">已接受</Tag>;
-//       case 2: return <Tag color="red">已拒绝</Tag>;
-//       case 3: return <Tag color="default">已拉黑</Tag>;
-//       default: return <Tag>未知</Tag>;
-//     }
-//   };
-
-//   return (
-//     <Card title="新的好友/群申请" bordered style={{ borderRadius: 12 }}>
-//       <List
-//         itemLayout="vertical"
-//         dataSource={pagedData}
-//         renderItem={(item) => {
-//           const isGroup = item.contactType === 1;
-//           const name = isGroup ? item.groupVO?.groupName : item.userVO?.nickname;
-//           const avatar = isGroup ? item.groupVO?.groupAvatar : item.userVO?.avatar;
-
-//           return (
-//             <List.Item style={{ padding: 12, border: '1px solid #eee', borderRadius: 8, marginBottom: 12 }}>
-//               {/* 上部分 */}
-//               <Space align="start">
-//                 <Avatar src={avatar} icon={isGroup ? <TeamOutlined /> : <UserOutlined />} />
-//                 <Space size="large">
-//                   <Text strong>{name ?? "未知用户"}</Text>
-//                   <Tag color={isGroup ? "purple" : "cyan"}>
-//                     {isGroup ? "群申请" : "好友申请"}
-//                   </Tag>
-//                 </Space>
-//               </Space>
-//               <Divider style={{ margin: "8px 0" }} />
-//               <Space direction="vertical" style={{ width: "100%" }} size={4}>
-//                 <Text>备注：{item.applyInfo || "无备注信息"}</Text>
-//                 <Space>
-//                   {renderStatusTag(item.applyStatus ?? 0)}
-//                   <Text type="secondary">
-//                     申请时间：{new Date(item.createTime).toLocaleString()}
-//                   </Text>
-//                 </Space>
-//               </Space>
-//             </List.Item>
-//           );
-//         }}
-//       />
-
-//       {/* 分页器 */}
-//       <div style={{ textAlign: "center", marginTop: 16 }}>
-//         <Pagination
-//           current={currentPage}
-//           pageSize={PAGE_SIZE}
-//           total={data.length}
-//           onChange={(page) => setCurrentPage(page)}
-//           showSizeChanger={false}
-//         />
-//       </div>
-//     </Card>
-//   );
-// };
+export default SessionsPage;

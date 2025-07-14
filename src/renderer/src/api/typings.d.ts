@@ -142,6 +142,7 @@ declare namespace API {
     messageType: number
     sendTime?: string
     fileUrl?: string
+    fileSize?: string
     fileName?: string
     fileType?: string
   }
@@ -163,8 +164,16 @@ declare namespace API {
   type ContactDelRequest = {
     /** 联系人ID(群或好友) */
     contactId: string
-    /** 申请状态（例如：0=拉黑，1=删除） */
+    /** 申请状态（例如：3=拉黑，2=删除） */
     applyStatus: number
+  }
+
+  type ContactInfo = {
+    chatSessionId?: string
+    contactId?: string
+    contactName?: string
+    memberCount?: number
+    contactType?: 'FRIEND' | 'GROUP'
   }
 
   type ContactQueryRequest = {
@@ -186,6 +195,13 @@ declare namespace API {
   type DeleteRequest = {
     /** 要删除的数据 ID，必须为正整数 */
     id: number
+  }
+
+  type FileInfoDTO = {
+    fileUrl?: string
+    fileName?: string
+    fileType?: string
+    fileSize?: string
   }
 
   type FriendItemDTO = {
@@ -316,26 +332,20 @@ declare namespace API {
     token?: string
   }
 
+  type MessageContent = {
+    text?: string
+    summary?: string
+    extraData?: Record<string, any>
+  }
+
   type MessageSendDTO = {
     messageId?: number
-    sessionId?: string
-    sendUserId?: string
-    sendUserName?: string
-    contactId?: string
-    contactName?: string
-    contactType?: number
-    messageContent?: string
-    lastMessage?: string
     messageType?: number
     sendTime?: number
-    sendStatus?: number
-    memberCount?: number
-    avatar?: string
-    fileUrl?: string
-    fileName?: string
-    fileType?: string
-    fileSize?: string
-    data?: Record<string, any>
+    sender?: UserSender
+    contact?: ContactInfo
+    content?: MessageContent
+    file?: FileInfoDTO
   }
 
   type OrderItem = {
@@ -399,6 +409,16 @@ declare namespace API {
     pages?: number
   }
 
+  type RevokeMsgDto = {
+    messageId: string
+    sessionId: string
+  }
+
+  type sendTypingStateParams = {
+    contactId: string
+    typing: boolean
+  }
+
   type uploadFileParams = {
     uploadFileRequest: UploadFileRequest
   }
@@ -420,6 +440,7 @@ declare namespace API {
     userSex?: number
     areaName?: string
     areaCode?: string
+    headLetter?: string
     editTime?: string
     createTime?: string
     updateTime?: string
@@ -481,6 +502,12 @@ declare namespace API {
     userEmail: string
     checkCodeKey: string
     checkCode: string
+  }
+
+  type UserSender = {
+    userId?: string
+    userName?: string
+    userAvatar?: string
   }
 
   type UserUpdateMyPasswordRequest = {

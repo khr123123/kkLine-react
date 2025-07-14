@@ -9,8 +9,8 @@ export const Table_DDL = [
     sendUserName    VARCHAR(50) DEFAULT NULL,
     sendTime        BIGINT NOT NULL,
     contactId       VARCHAR(255) NOT NULL,
-    contactType     TINYINT(1) NOT NULL,
     fileUrl         VARCHAR(1024) DEFAULT NULL,
+    fileSize        VARCHAR(1024) DEFAULT NULL,
     fileName        VARCHAR(255) DEFAULT NULL,
     fileType        VARCHAR(10) DEFAULT NULL,
     sendStatus      TINYINT(1) NOT NULL DEFAULT 0
@@ -22,7 +22,7 @@ export const Table_DDL = [
     contactId       VARCHAR(255) NOT NULL,
     sessionId       VARCHAR(255) NOT NULL,
     contactName     VARCHAR(50) DEFAULT NULL,
-    avatar          VARCHAR(1024) NULL,
+    contactAvatar   VARCHAR(1024) NULL,
     contactType     TINYINT,
     lastReceiveTime BIGINT,
     lastMessage     VARCHAR(500),

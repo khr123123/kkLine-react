@@ -4,6 +4,7 @@ import { join } from 'path';
 import icon from '../../resources/wechat.png?asset';
 import { Menu, nativeImage, Tray } from 'electron';
 import { closeWs, initWs } from './ws'
+import { queryAllSession } from '../db/dbService';
 
 let mainWindow: BrowserWindow;
 function createWindow(): void {
@@ -112,6 +113,11 @@ function registerIpcHandlers(mainWindow: BrowserWindow) {
   ipcMain.on('window-close-notifications', () => notificationWindow?.close())
   // 5. 校验是否是[新的通知]窗口 防止恶意路由跳转
   ipcMain.handle("check-is-notification-window", () => mainWindow !== null)
+
+  // 6. 初始化Session列表
+  ipcMain.handle('get-session-list', () => {
+    return queryAllSession(currentLoginUser.id)
+  })
 }
 
 function createTray(win: BrowserWindow) {
