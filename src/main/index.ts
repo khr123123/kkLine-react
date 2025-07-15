@@ -5,7 +5,9 @@ import icon from '../../resources/wechat.png?asset';
 import { Menu, nativeImage, Tray } from 'electron';
 import { closeWs, initWs } from './ws'
 import { clearApplyCount, clearNoreadCount, insertChatMessageRecordIgnore, queryAllSession, queryMessagesBySession, setSessionTop } from '../db/dbService';
-
+import path from 'path'
+const { exec } = require('child_process');
+const sendPath = path.join(__dirname, '../../resources/send.wav')
 let mainWindow: BrowserWindow;
 function createWindow(): void {
   // Create the browser window.
@@ -125,6 +127,7 @@ function registerIpcHandlers(mainWindow: BrowserWindow) {
   })
   // 7. 当前用户发送消息后 直接在本地后端保存即可
   ipcMain.on('user-send-message', (_, msgData) => {
+    exec(`powershell -c (New-Object Media.SoundPlayer '${sendPath}').PlaySync();`)
     insertChatMessageRecordIgnore({
       id: msgData.messageId,
       sessionId: msgData.contact?.chatSessionId,

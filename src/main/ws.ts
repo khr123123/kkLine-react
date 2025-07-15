@@ -2,6 +2,10 @@ import WebSocket from 'ws'
 import type { InitMessageDTO, MessageSendDTO } from './common/messageType'
 import { MessageType } from './common/messageType'
 import { accumulateApplyCount, findSessionByUserAndContact, insertChatMessageRecordIgnore, insertChatSessionUserIgnore, updateContactInfo, updateSessionLastMessage, updateSessionNoReadCount } from "../db/dbService"
+import path from 'path'
+const { exec } = require('child_process');
+const recivePath = path.join(__dirname, '../../resources/recive.wav')
+
 interface LoginUser {
     token: string
     id: string | number
@@ -352,6 +356,7 @@ export const createWs = (url: string) => {
                 }
                 // ===== 20–29 聊天相关 =====
                 case MessageType.CHAT: { // 20  
+                    exec(`powershell -c (New-Object Media.SoundPlayer '${recivePath}').PlaySync();`)
                     console.log('💬 聊天消息');
                     console.log('发送方:', msgData.sender);
                     console.log('接收方:', msgData.contact);
