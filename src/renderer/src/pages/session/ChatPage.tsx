@@ -1,6 +1,6 @@
 import { LinkOutlined, SmileOutlined, } from '@ant-design/icons'
-import { Bubble, Sender } from '@ant-design/x'
-import { Button, Flex, Popover, Space, Avatar, Typography, message, Modal, theme } from 'antd'
+import { Attachments, Bubble, Sender } from '@ant-design/x'
+import { Button, Flex, Popover, Space, Avatar, Typography, message, Modal, theme, Upload, UploadProps, GetProp } from 'antd'
 import React, { useEffect, useRef, useState } from 'react'
 import { CopyOutlined, DeleteOutlined, RedoOutlined, ShareAltOutlined } from '@ant-design/icons'
 import { Actions, ActionsProps } from '@ant-design/x'
@@ -14,6 +14,9 @@ import { getGroupInfoWithMembers } from '@renderer/api/groupApis'
 import { formatRelativeTime } from "../../utils/timeUtil"
 import { sendMsg } from '@renderer/api/chatApis'
 import { Snowflake } from '@renderer/utils/SnowflakeIdUtil'
+import type { RcFile, UploadFile, UploadChangeParam } from 'antd/es/upload/interface';
+
+let globalUploadId: any;
 const { Text } = Typography;
 const actionItems: ActionsProps['items'] = [
   { key: 'retry', label: 'Retry', icon: <RedoOutlined /> },
@@ -58,7 +61,6 @@ const ChatPage: React.FC = () => {
   const { sessionId } = useParams()
   const user = useUserStore((state) => state.user)
   const [value, setValue] = useState('')
-  const [open, setOpen] = useState(false)
   const [messages, setMessages] = useState<CustomBubbleProps[]>([])
 
   const [friendInfo, setFriendInfo] = useState<any>(null)
@@ -178,7 +180,95 @@ const ChatPage: React.FC = () => {
       fetchFriendInfoAndMessages()
     }
   }, [sessionId])
+  const beforeUpload = (file: RcFile) => {
+    const isLt10MB = file.size / 1024 / 1024 < 10;
+    if (!isLt10MB) {
+      message.error('图片必须小于 10MB！');
+      return false;
+    }
+    if (!sessionId || !user?.id) {
+      message.error('系统错误，请重新登录..');
+      return false;
+    }
+    // 这里你可以拿 fileInfo.uid, fileInfo.name, fileInfo.size 等属性
+    globalUploadId = Snowflake.nextId()
+    console.log(globalUploadId);
+    console.log(globalUploadId);
+    console.log(globalUploadId);
+    if (!sessionId || !user?.id) return;
+    const now = Date.now();
+    // 构造消息内容
+    const content = {
+      uid: globalUploadId,
+      name: file.name,
+      size: file.size,
+      status: 'uploading',
+      percent: 0,
+    };
+    const contactId = sessionId.startsWith('G')
+      ? sessionId
+      : getContactIdFromSession(sessionId, user.id.toString());
+    // 本地消息对象
+    const newMessages: CustomBubbleProps[] = [];
+    // 判断是否要插入时间节点（比如间隔超过 1 分钟 ）
+    if (now - lastMessageTimeRef.current > 1 * 60 * 1000) {
+      newMessages.push({
+        _key: `time-${now}`,
+        role: 'time',
+        content: formatRelativeTime(now),
+        style: { margin: '0 auto' }
+      });
+    }
+    newMessages.push({
+      _key: globalUploadId,
+      role: 'me',
+      avatar: { src: user?.userAvatar },
+      content,
+      variant: 'borderless',
+      messageRender: (item: any) => (
+        <Flex vertical gap="middle">
+          <Attachments.FileCard key={item.uid} item={item} />
+        </Flex>
+      )
+    },)
+    const newMsg = {
+      id: globalUploadId,
+      sessionId,
+      messageType: 21,
+      messageContent: `[${file.type}]`,
+      sendUserId: user.id,
+      sendUserName: user.userName,
+      sendTime: now,
+      contactId,
+      fileUrl: "",
+      fileSize: file.size,
+      fileName: file.name,
+      fileType: file.type,
+      sendStatus: 0,
+    };
+    setMessages(prev => [...prev, ...newMessages]);
+    window.electron.ipcRenderer.send('user-send-file-message', newMsg);
+    return true;
+  };
 
+
+  const getUploadData = (file: UploadFile) => {
+    // const originFile = file.originFileObj as RcFile | undefined;
+    // let bizType: 'picture' | 'file' | 'video' = 'file';
+    // if (originFile.type.startsWith('image/')) bizType = 'picture';
+    // else if (originFile.type.startsWith('video/')) bizType = 'video';
+    const contactId = sessionId?.startsWith('G')
+      ? sessionId
+      : getContactIdFromSession(sessionId!, user!.id!.toString());
+    console.log('sessionId:', sessionId);
+    console.log('user.id:', user?.id);
+    console.log('contactId:', contactId);
+    return {
+      messageId: globalUploadId,
+      biz: 'file',
+      contactId: contactId,
+    };
+  };
 
   const sendMessage = async () => {
     if (!value.trim()) return;
@@ -244,12 +334,33 @@ const ChatPage: React.FC = () => {
           content: msgInfo.messageContent,
         });
       } else {
-        newMessages.push({
-          _key: msgInfo.id,
-          role: 'friend',
-          content: msgInfo.messageContent,
-          avatar: { src: sessionId?.startsWith('G') ? memberMap.get(msgInfo.sendUserId) : friendInfo?.userAvatar }
-        });
+        if (msgInfo.messageType === 21) {
+          newMessages.push({
+            _key: msgInfo.id,
+            role: 'friend',
+            content: {
+              uid: msgInfo.id,
+              name: msgInfo.fileName,
+              size: msgInfo.fileSize,
+              status: 'uploading',
+              percent: 0,
+            },
+            avatar: { src: sessionId?.startsWith('G') ? memberMap.get(msgInfo.sendUserId) : friendInfo?.userAvatar },
+            variant: 'borderless',
+            messageRender: (item: any) => (
+              <Flex vertical gap="middle">
+                <Attachments.FileCard key={item.uid} item={item} />
+              </Flex>
+            )
+          });
+        } else {
+          newMessages.push({
+            _key: msgInfo.id,
+            role: 'friend',
+            content: msgInfo.messageContent,
+            avatar: { src: sessionId?.startsWith('G') ? memberMap.get(msgInfo.sendUserId) : friendInfo?.userAvatar }
+          });
+        }
       }
 
       lastMessageTimeRef.current = currentTimestamp;
@@ -262,6 +373,33 @@ const ChatPage: React.FC = () => {
       window.electron.ipcRenderer.removeAllListeners('receive-message');
     };
   }, [sessionId, user?.id, friendInfo, memberMap]);
+
+  useEffect(() => {
+    const handler = (_event: any, messageId: string, data: { percent: number; status: string; fileUrl?: string }) => {
+      console.log('receive-file-progress', messageId, data);
+      console.log('messages', messages);
+      setMessages(prev => {
+        console.log('current messages inside setMessages:', prev);
+        return prev.map(msg => {
+          if (msg._key === messageId && typeof msg.content === 'object') {
+            const updatedContent = {
+              ...msg.content,
+              percent: data.percent,
+              status: data.status,
+              fileUrl: data.fileUrl,
+            };
+            return { ...msg, content: updatedContent };
+          }
+          return msg;
+        });
+      });
+
+    };
+    window.electron.ipcRenderer.on('file-msg-progress', handler);
+    return () => {
+      window.electron.ipcRenderer.removeAllListeners('file-msg-progress');
+    };
+  }, []);
 
 
   return (
@@ -326,18 +464,27 @@ const ChatPage: React.FC = () => {
         <Sender
           prefix={
             <div style={{ position: 'relative', marginRight: 18 }}>
-              <Button
-                style={{ position: 'absolute', top: -30, right: -22, zIndex: 1 }}
-                type="text"
-                icon={<LinkOutlined style={{ fontSize: 18, color: '#666' }} />}
-                onClick={() => setOpen(!open)}
-              />
+              <Upload
+                name="file"
+                className="avatar-uploader"
+                showUploadList={false}
+                action="http://127.0.0.1:8080/api/chat/sendFileMessageWhitProgress"
+                headers={{ Authorization: user?.token! }}
+                beforeUpload={beforeUpload}
+                data={getUploadData}
+              >
+                <Button
+                  style={{ position: 'absolute', top: -10, right: -22, zIndex: 1 }}
+                  type="text"
+                  icon={<LinkOutlined style={{ fontSize: 18, color: '#666' }} />}
+                />
+              </Upload>
               <Popover
                 content={<EmojiPicker onEmojiClick={emoji => setValue(prev => prev + emoji.emoji)} searchDisabled skinTonesDisabled height={400} width={300} />}
                 trigger="click"
               >
                 <Button
-                  style={{ position: 'absolute', top: -68, right: -22, zIndex: 1 }}
+                  style={{ position: 'absolute', top: -45, right: -22, zIndex: 1 }}
                   type="text"
                   icon={<SmileOutlined style={{ fontSize: 18, color: '#d48806' }} />}
                 />

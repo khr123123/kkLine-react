@@ -1,8 +1,9 @@
 import WebSocket from 'ws'
 import type { InitMessageDTO, MessageSendDTO } from './common/messageType'
 import { MessageType } from './common/messageType'
-import { accumulateApplyCount, findSessionByUserAndContact, insertChatMessageRecordIgnore, insertChatSessionUserIgnore, updateContactInfo, updateSessionLastMessage, updateSessionNoReadCount } from "../db/dbService"
+import { accumulateApplyCount, findSessionByUserAndContact, insertChatMessageRecordIgnore, insertChatSessionUserIgnore, updateContactInfo, updateMessageFileUrlAndStatus, updateSessionLastMessage, updateSessionNoReadCount } from "../db/dbService"
 import path from 'path'
+import { BrowserWindow } from 'electron/main'
 const { exec } = require('child_process');
 const recivePath = path.join(__dirname, '../../resources/recive.wav')
 
@@ -407,12 +408,58 @@ export const createWs = (url: string) => {
                     break;
                 }
                 case MessageType.MEDIA_CHAT: { // 21  
+                    exec(`powershell -c (New-Object Media.SoundPlayer '${recivePath}').PlaySync();`)
                     console.log('🖼️ 媒体消息');
                     console.log('发送方:', msgData.sender);
                     console.log('接收方:', msgData.contact);
                     console.log('消息:', msgData.content?.text);
                     console.log('消息ID:', msgData.messageId);
                     console.log('消息类型:', msgData.messageType);
+                    const msgInfo = {
+                        id: msgData.messageId,
+                        sessionId: msgData.contact?.chatSessionId || '',
+                        messageType: msgData.messageType,
+                        messageContent: msgData.content?.text || '',
+                        sendUserId: msgData.sender?.userId,
+                        sendUserName: msgData.sender?.userName,
+                        sendTime: msgData.sendTime,
+                        contactId: msgData.contact?.contactId || '',
+                        fileUrl: msgData.file?.fileUrl || '',
+                        fileSize: msgData.file?.fileSize || '',
+                        fileName: msgData.file?.fileName || '',
+                        fileType: msgData.file?.fileType || '',
+                        sendStatus: 0,
+                    }
+                    // 先插入消息
+                    insertChatMessageRecordIgnore(msgInfo);
+                    // 更新 session（如果已存在则更新 lastMessage / lastReceiveTime，不新增）
+                    const sessionRow = findSessionByUserAndContact(userId, msgData.sender?.userId!);
+                    if (sessionRow) {
+                        console.log('sessionRow:', sessionRow);
+                        updateSessionLastMessage(
+                            userId,
+                            msgData.sender?.userId!,
+                            msgData.content?.text!,
+                            msgData.sendTime!
+                        );
+                        updateSessionNoReadCount(userId, msgData.sender?.userId!, sessionRow.noReadCount + 1);
+                    } else {
+                        console.log('not found sessionRow');
+                        // 如果没有记录，则插入一条新会话
+                        insertChatSessionUserIgnore({
+                            userId,
+                            contactId: msgData.sender?.userId!,
+                            sessionId: msgData.contact?.chatSessionId,
+                            contactName: msgData.sender?.userName,
+                            contactAvatar: msgData.sender?.userAvatar,
+                            contactType: msgData.contact?.contactType,
+                            lastTime: msgData.sendTime,
+                            lastMessage: msgData.content?.text,
+                        }, 1);
+                    }
+                    if (mainWindow?.webContents) {
+                        mainWindow.webContents.send('receive-message', msgInfo);
+                    }
                     break;
                 }
                 case MessageType.TYPING: { // 22  
@@ -448,9 +495,20 @@ export const createWs = (url: string) => {
                 case MessageType.FILE_TRANSMITTING: {// 31 END
                     // 处理文件上传进度
                     console.log('⬆️ 文件上传进度消息');
-                    if (mainWindow?.webContents) {
-                        console.log('上传进度数据发送到渲染进程 percent :', msgData.content?.extraData.percent, "%");
-                        mainWindow.webContents.send('upload-progress', msgData.content?.extraData);
+                    if (msgData.messageId) {
+                        console.log("messageID", msgData.messageId);
+                        if (msgData.content?.extraData?.fileUrl) {
+                            updateMessageFileUrlAndStatus(msgData.messageId, msgData.content.extraData.fileUrl, 1);
+                        }
+                        if (mainWindow?.webContents) {
+                            console.log('fileMsg上传进度数据发送到渲染进程 percent :', msgData.content?.extraData.percent, "%");
+                            mainWindow.webContents.send('file-msg-progress', msgData.messageId, msgData.content?.extraData);
+                        }
+                    } else {
+                        if (mainWindow?.webContents) {
+                            console.log('avatar上传进度数据发送到渲染进程 percent :', msgData.content?.extraData.percent, "%");
+                            mainWindow.webContents.send('upload-progress', msgData.content?.extraData);
+                        }
                     }
                     break;
                 }

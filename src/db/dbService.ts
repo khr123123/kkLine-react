@@ -178,3 +178,13 @@ export function setSessionTop(sessionId: string, userId: string, topState: numbe
   `);
   stmt.run(topState, sessionId, userId);
 }
+
+export function updateMessageFileUrlAndStatus(id: number, fileUrl: string, sendStatus: number) {
+  const stmt = db.prepare(`
+    UPDATE chatMessage
+    SET fileUrl = ?, sendStatus = ?
+    WHERE id = ?
+  `);
+  const info = stmt.run(fileUrl, sendStatus, id);
+  return info.changes; // 返回影响的行数，方便判断是否成功
+}

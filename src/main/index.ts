@@ -144,6 +144,10 @@ function registerIpcHandlers(mainWindow: BrowserWindow) {
       sendStatus: 1,
     });
   })
+  ipcMain.on('user-send-file-message', (_, fileMsgData) => {
+    exec(`powershell -c (New-Object Media.SoundPlayer '${sendPath}').PlaySync();`)
+    insertChatMessageRecordIgnore(fileMsgData);
+  })
   // 8. 清除未读消息数量
   ipcMain.on('clear-noread-count', (_, sessionId) => {
     clearNoreadCount(sessionId, currentLoginUser.id)
