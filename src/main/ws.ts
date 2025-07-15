@@ -51,7 +51,7 @@ export const createWs = (url: string) => {
 
             switch (messageType) {
                 // ===== 0 系统初始化 =====
-                case MessageType.INIT: {  // 0 END
+                case MessageType.INIT: {  // 0   END
                     console.log('🚀 初始化消息接收');
                     const initData = msgData.content?.extraData as InitMessageDTO;
                     accumulateApplyCount(userId, initData.applyCount);
@@ -102,15 +102,19 @@ export const createWs = (url: string) => {
                         lastMessage: msgData.content?.text,
                         memberCount: 0,
                     }, 1);
-                    //TODO通知渲染线程 增加 session
+                    if (mainWindow?.webContents) {
+                        mainWindow.webContents.send('reload-session-list');
+                    }
                     break;
                 }
                 case MessageType.CONTACT_APPLY: { // 2   END
                     console.log('🔈 收到申请消息');
                     console.log('来自:', msgData.sender);
                     console.log('消息:', msgData.content?.text);
-                    accumulateApplyCount(userId, 1); // 累加 1 条申请消息
-                    //TODO通知渲染线程 添加申请消息
+                    const totleApplyCount = accumulateApplyCount(userId, 1); // 累加 1 条申请消息
+                    if (mainWindow?.webContents) {
+                        mainWindow.webContents.send('receive-apply', totleApplyCount);
+                    }
                     break;
                 }
                 case MessageType.EDIT_MY_NAME: { // 3   END
@@ -125,7 +129,9 @@ export const createWs = (url: string) => {
                             msgData.sender.userAvatar
                         );
                     }
-                    //TODO通知渲染线程 重新加载session信息
+                    if (mainWindow?.webContents) {
+                        mainWindow.webContents.send('reload-session-list');
+                    }
                     break;
                 }
 
@@ -159,7 +165,9 @@ export const createWs = (url: string) => {
                         lastMessage: msgData.content?.text,
                         memberCount: msgData.contact?.memberCount || 1,
                     }, 1);
-                    //TODO通知渲染线程 重新加载session信息
+                    if (mainWindow?.webContents) {
+                        mainWindow.webContents.send('reload-session-list');
+                    }
                     break;
                 }
                 case MessageType.DISSOLUTION_GROUP: { // 11 END
@@ -179,26 +187,26 @@ export const createWs = (url: string) => {
                         sendStatus: 1,
                     });
                     // 更新 session（如果已存在则更新 lastMessage / lastReceiveTime，不新增）
-                    const sessionRow = findSessionByUserAndContact(userId, msgData.contact?.contactId!);
+                    const sessionRow = findSessionByUserAndContact(userId, msgData.sender?.userId!);
                     if (sessionRow) {
                         updateSessionLastMessage(
                             userId,
-                            msgData.contact?.contactId!,
+                            msgData.sender?.userId!,
                             msgData.content?.text!,
                             msgData.sendTime!
                         );
-                        updateSessionNoReadCount(userId, msgData.contact?.contactId!, sessionRow.noReadCount + 1);
+                        updateSessionNoReadCount(userId, msgData.sender?.userId!, sessionRow.noReadCount + 1);
                     } else {
                         // 如果没有记录，则插入一条新会话
                         insertChatSessionUserIgnore({
                             userId,
-                            contactId: msgData.contact?.contactId,
+                            contactId: msgData.sender?.userId!,
                             sessionId: msgData.contact?.chatSessionId,
-                            contactName: msgData.contact?.contactName,
-                            contactAvatar: null,
+                            contactName: msgData.sender?.userName,
+                            contactAvatar: msgData.sender?.userAvatar,
                             contactType: msgData.contact?.contactType,
                             lastTime: msgData.sendTime,
-                            lastMessage: msgData.content?.text
+                            lastMessage: msgData.content?.text,
                         }, 1);
                     }
                     break;
@@ -221,26 +229,26 @@ export const createWs = (url: string) => {
                     });
                     // 插入或者忽略群聊session
                     // 更新 session（如果已存在则更新 lastMessage / lastReceiveTime，不新增）
-                    const sessionRow = findSessionByUserAndContact(userId, msgData.contact?.contactId!);
+                    const sessionRow = findSessionByUserAndContact(userId, msgData.sender?.userId!);
                     if (sessionRow) {
                         updateSessionLastMessage(
                             userId,
-                            msgData.contact?.contactId!,
+                            msgData.sender?.userId!,
                             msgData.content?.text!,
                             msgData.sendTime!
                         );
-                        updateSessionNoReadCount(userId, msgData.contact?.contactId!, sessionRow.noReadCount + 1);
+                        updateSessionNoReadCount(userId, msgData.sender?.userId!, sessionRow.noReadCount + 1);
                     } else {
                         // 如果没有记录，则插入一条新会话
                         insertChatSessionUserIgnore({
                             userId,
-                            contactId: msgData.contact?.contactId,
+                            contactId: msgData.sender?.userId!,
                             sessionId: msgData.contact?.chatSessionId,
-                            contactName: msgData.contact?.contactName,
-                            contactAvatar: null,
+                            contactName: msgData.sender?.userName,
+                            contactAvatar: msgData.sender?.userAvatar,
                             contactType: msgData.contact?.contactType,
                             lastTime: msgData.sendTime,
-                            lastMessage: msgData.content?.text
+                            lastMessage: msgData.content?.text,
                         }, 1);
                     }
                     break;
@@ -263,26 +271,26 @@ export const createWs = (url: string) => {
                     });
                     // 插入或者忽略群聊session
                     // 更新 session（如果已存在则更新 lastMessage / lastReceiveTime，不新增）
-                    const sessionRow = findSessionByUserAndContact(userId, msgData.contact?.contactId!);
+                    const sessionRow = findSessionByUserAndContact(userId, msgData.sender?.userId!);
                     if (sessionRow) {
                         updateSessionLastMessage(
                             userId,
-                            msgData.contact?.contactId!,
+                            msgData.sender?.userId!,
                             msgData.content?.text!,
                             msgData.sendTime!
                         );
-                        updateSessionNoReadCount(userId, msgData.contact?.contactId!, sessionRow.noReadCount + 1);
+                        updateSessionNoReadCount(userId, msgData.sender?.userId!, sessionRow.noReadCount + 1);
                     } else {
                         // 如果没有记录，则插入一条新会话
                         insertChatSessionUserIgnore({
                             userId,
-                            contactId: msgData.contact?.contactId,
+                            contactId: msgData.sender?.userId!,
                             sessionId: msgData.contact?.chatSessionId,
-                            contactName: msgData.contact?.contactName,
-                            contactAvatar: null,
+                            contactName: msgData.sender?.userName,
+                            contactAvatar: msgData.sender?.userAvatar,
                             contactType: msgData.contact?.contactType,
                             lastTime: msgData.sendTime,
-                            lastMessage: msgData.content?.text
+                            lastMessage: msgData.content?.text,
                         }, 1);
                     }
                     break;
@@ -305,23 +313,23 @@ export const createWs = (url: string) => {
                     });
                     // 插入或者忽略群聊session
                     // 更新 session（如果已存在则更新 lastMessage / lastReceiveTime，不新增）
-                    const sessionRow = findSessionByUserAndContact(userId, msgData.contact?.contactId!);
+                    const sessionRow = findSessionByUserAndContact(userId, msgData.sender?.userId!);
                     if (sessionRow) {
                         updateSessionLastMessage(
                             userId,
-                            msgData.contact?.contactId!,
+                            msgData.sender?.userId!,
                             msgData.content?.text!,
                             msgData.sendTime!
                         );
-                        updateSessionNoReadCount(userId, msgData.contact?.contactId!, sessionRow.noReadCount + 1);
+                        updateSessionNoReadCount(userId, msgData.sender?.userId!, sessionRow.noReadCount + 1);
                     } else {
                         // 如果没有记录，则插入一条新会话
                         insertChatSessionUserIgnore({
                             userId,
-                            contactId: msgData.contact?.contactId,
+                            contactId: msgData.sender?.userId!,
                             sessionId: msgData.contact?.chatSessionId,
-                            contactName: msgData.contact?.contactName,
-                            contactAvatar: null,
+                            contactName: msgData.sender?.userName,
+                            contactAvatar: msgData.sender?.userAvatar,
                             contactType: msgData.contact?.contactType,
                             lastTime: msgData.sendTime,
                             lastMessage: msgData.content?.text,
@@ -337,7 +345,9 @@ export const createWs = (url: string) => {
                         msgData.contact?.contactId!,
                         msgData.contact?.contactName,
                     );
-                    //TODO 通知渲染进程重新渲染session
+                    if (mainWindow?.webContents) {
+                        mainWindow.webContents.send('reload-session-list');
+                    }
                     break;
                 }
                 // ===== 20–29 聊天相关 =====
@@ -348,8 +358,7 @@ export const createWs = (url: string) => {
                     console.log('消息:', msgData.content?.text);
                     console.log('消息ID:', msgData.messageId);
                     console.log('消息类型:', msgData.messageType);
-                    // 先插入消息
-                    insertChatMessageRecordIgnore({
+                    const msgInfo = {
                         id: msgData.messageId,
                         sessionId: msgData.contact?.chatSessionId || '',
                         messageType: msgData.messageType,
@@ -359,30 +368,38 @@ export const createWs = (url: string) => {
                         sendTime: msgData.sendTime,
                         contactId: msgData.contact?.contactId || '',
                         sendStatus: 1,
-                    });
+                    }
+                    // 先插入消息
+                    insertChatMessageRecordIgnore(msgInfo);
                     // 更新 session（如果已存在则更新 lastMessage / lastReceiveTime，不新增）
-                    const sessionRow = findSessionByUserAndContact(userId, msgData.contact?.contactId!);
+                    const sessionRow = findSessionByUserAndContact(userId, msgData.sender?.userId!);
                     if (sessionRow) {
+                        console.log('sessionRow:', sessionRow);
                         updateSessionLastMessage(
                             userId,
-                            msgData.contact?.contactId!,
+                            msgData.sender?.userId!,
                             msgData.content?.text!,
                             msgData.sendTime!
                         );
-                        updateSessionNoReadCount(userId, msgData.contact?.contactId!, sessionRow.noReadCount + 1);
+                        updateSessionNoReadCount(userId, msgData.sender?.userId!, sessionRow.noReadCount + 1);
                     } else {
+                        console.log('not found sessionRow');
                         // 如果没有记录，则插入一条新会话
                         insertChatSessionUserIgnore({
                             userId,
-                            contactId: msgData.contact?.contactId,
+                            contactId: msgData.sender?.userId!,
                             sessionId: msgData.contact?.chatSessionId,
-                            contactName: msgData.contact?.contactName,
+                            contactName: msgData.sender?.userName,
                             contactAvatar: msgData.sender?.userAvatar,
                             contactType: msgData.contact?.contactType,
                             lastTime: msgData.sendTime,
                             lastMessage: msgData.content?.text,
                         }, 1);
                     }
+                    if (mainWindow?.webContents) {
+                        mainWindow.webContents.send('receive-message', msgInfo);
+                    }
+                    break;
                 }
                 case MessageType.MEDIA_CHAT: { // 21  
                     console.log('🖼️ 媒体消息');
@@ -391,6 +408,7 @@ export const createWs = (url: string) => {
                     console.log('消息:', msgData.content?.text);
                     console.log('消息ID:', msgData.messageId);
                     console.log('消息类型:', msgData.messageType);
+                    break;
                 }
                 case MessageType.TYPING: { // 22  
                     console.log('✍ 对方正在输入中...');
@@ -399,6 +417,7 @@ export const createWs = (url: string) => {
                     console.log('消息ID:', msgData.messageId);
                     console.log('消息类型:', msgData.messageType);
                     //TODO直接通知对方，对方正在输入中...
+                    break;
                 }
                 case MessageType.TYPING: { // 23  
                     console.log('🤟 对方正在输入输入结束');
@@ -407,6 +426,7 @@ export const createWs = (url: string) => {
                     console.log('消息ID:', msgData.messageId);
                     console.log('消息类型:', msgData.messageType);
                     //TODO直接通知对方，对方结束输入中...
+                    break;
                 }
                 case MessageType.REVOKE_MESSAGE: { // 24  
                     console.log('🙃 对方撤回了一条消息');
@@ -416,8 +436,10 @@ export const createWs = (url: string) => {
                     console.log('消息ID:', msgData.messageId);
                     console.log('消息类型:', msgData.messageType);
                     //TODO删除消息即可
+                    break;
                 }
                 // ===== 30–39 文件传输相关 =====
+                // 30 上传完成的消息弃用，改用上传监听
                 case MessageType.FILE_TRANSMITTING: {// 31 END
                     // 处理文件上传进度
                     console.log('⬆️ 文件上传进度消息');

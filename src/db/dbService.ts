@@ -1,6 +1,6 @@
 ﻿// dbService.ts
 import db from './dbinit';
-export function accumulateApplyCount(userId: number | string, delta: number) {
+export function accumulateApplyCount(userId: number | string, delta: number): number {
   const selectStmt = db.prepare(`SELECT applyCount FROM applyCount WHERE userId = ?`);
   const row = selectStmt.get(userId);
 
@@ -14,7 +14,15 @@ export function accumulateApplyCount(userId: number | string, delta: number) {
     VALUES (?, ?)
   `);
   insertStmt.run(userId, newCount);
+
+  return newCount;
+} export function clearApplyCount(userId: number | string): void {
+  const stmt = db.prepare(`
+    UPDATE applyCount SET applyCount = 0 WHERE userId = ?
+  `);
+  stmt.run(userId);
 }
+
 
 export function insertChatMessageRecordIgnore(msg: any) {
   const stmt = db.prepare(`
@@ -152,4 +160,21 @@ export function queryMessagesBySession(sessionId: string) {
   `)
 
   return stmt.all(sessionId)
+}
+
+export function clearNoreadCount(sessionId: string, userId: string) {
+  const stmt = db.prepare(`
+    UPDATE chatSessionUser
+    SET noReadCount = 0
+    WHERE sessionId = ? AND userId = ?
+  `);
+  stmt.run(sessionId, userId);
+}
+export function setSessionTop(sessionId: string, userId: string, topState: number) {
+  const stmt = db.prepare(`
+    UPDATE chatSessionUser
+    SET topType = ?
+    WHERE sessionId = ? AND userId = ?
+  `);
+  stmt.run(topState, sessionId, userId);
 }

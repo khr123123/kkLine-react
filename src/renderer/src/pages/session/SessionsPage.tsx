@@ -52,10 +52,12 @@ const SessionsPage: React.FC = () => {
     setContacts((prev) => {
       const isCurrentlyTop = isTop(contact);
       if (isCurrentlyTop) {
+        window.electron.ipcRenderer.send("set-sessiont-top", contact.sessionId, 0)
         return prev.map((c) =>
           c.sessionId === contact.sessionId ? { ...c, topType: 0 } : c
         );
       } else {
+        window.electron.ipcRenderer.send("set-sessiont-top", contact.sessionId, 1)
         const filtered = prev.filter((c) => c.sessionId !== contact.sessionId);
         return [{ ...contact, topType: 1 }, ...filtered];
       }
@@ -84,16 +86,30 @@ const SessionsPage: React.FC = () => {
   });
   const menu = <Menu onClick={onMenuClick} items={getMenuItems(contextContact)} />;
   const [globalLoading, setGlobalLoading] = useState(true);
+  //要求的数量
   const [noReadApplyCount, setNoReadApplyCount] = useState<number>(0);
   const { token } = theme.useToken();
   const [ellipsis] = useState(true);
-  useEffect(() => {
+  const fatchSessionList = () => {
     window.electron.ipcRenderer.invoke('get-session-list').then((result: any) => {
       setContacts(result);
       setGlobalLoading(false);
     });
-  }, []);
-
+  }
+  useEffect(() => {
+    fatchSessionList()
+    window.electron.ipcRenderer.on('receive-apply', (_event: any, totleApplyCount: any) => setNoReadApplyCount(totleApplyCount))
+    window.electron.ipcRenderer.on('reload-session-list', () => fatchSessionList())
+    window.electron.ipcRenderer.on('receive-message', (_event: any, msgInfo: any) => {
+      const { sessionId, messageContent, sendTime } = msgInfo;
+      setContacts(prev => prev.map(contact => contact.sessionId === sessionId ? { ...contact, lastMessage: messageContent, lastReceiveTime: sendTime } : contact))
+    })
+    return () => {
+      window.electron.ipcRenderer.removeAllListeners('receive-apply')
+      window.electron.ipcRenderer.removeAllListeners('reload-session-list')
+      window.electron.ipcRenderer.removeAllListeners('receive-message')
+    }
+  }, [])
   return (
     <>
       <GlobalLoading loading={globalLoading} />
@@ -121,7 +137,10 @@ const SessionsPage: React.FC = () => {
             <MessageOutlined
               className="hover-icon"
               style={{ fontSize: 20 }}
-              onClick={() => window.electron.ipcRenderer.invoke('open-notification-window')}
+              onClick={() => {
+                window.electron.ipcRenderer.invoke('open-notification-window')
+                setNoReadApplyCount(0)
+              }}
             />
           </Badge>
         </div>
@@ -158,11 +177,19 @@ const SessionsPage: React.FC = () => {
                 onClick={() => {
                   setSelectedContact(item);
                   navigate(`/sessions/${item.sessionId}`);
+                  window.electron.ipcRenderer.send("clear-noread-count", item.sessionId)
+                  setContacts(prev =>
+                    prev.map(contact =>
+                      contact.sessionId === item.sessionId
+                        ? { ...contact, noReadCount: 0 }
+                        : contact
+                    )
+                  );
                 }}
               >
                 <List.Item.Meta
                   avatar={
-                    item.sessionId === 123456 ? (
+                    item.sessionId.toString().startsWith('AD') ? (
                       <Badge dot>
                         <Avatar shape="square" size={50} src={item.contactAvatar} />
                       </Badge>

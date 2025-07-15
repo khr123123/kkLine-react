@@ -220,6 +220,48 @@ const ChatPage: React.FC = () => {
       lastMessageTimeRef.current = now;
     }
   };
+  useEffect(() => {
+    const msgReciveListener = (_event: any, msgInfo: any) => {
+      if (msgInfo.sessionId !== sessionId) return;
+      const currentTimestamp = new Date(msgInfo.sendTime).getTime();
+      const timeDiff = currentTimestamp - lastMessageTimeRef.current;
+      const newMessages: CustomBubbleProps[] = [];
+      // 超过10分钟插入时间节点
+      if (timeDiff > 10 * 60 * 1000) {
+        newMessages.push({
+          _key: `time-${msgInfo.id}`,
+          role: 'time',
+          content: formatRelativeTime(currentTimestamp),
+          style: { margin: '0 auto' }
+        });
+      }
+
+      const sysMsgType = [3, 10, 11, 12, 13, 14, 15, 24];
+      if (sysMsgType.includes(msgInfo.messageType)) {
+        newMessages.push({
+          _key: msgInfo.id,
+          role: 'sys',
+          content: msgInfo.messageContent,
+        });
+      } else {
+        newMessages.push({
+          _key: msgInfo.id,
+          role: 'friend',
+          content: msgInfo.messageContent,
+          avatar: { src: sessionId?.startsWith('G') ? memberMap.get(msgInfo.sendUserId) : friendInfo?.userAvatar }
+        });
+      }
+
+      lastMessageTimeRef.current = currentTimestamp;
+      setMessages(prev => [...prev, ...newMessages]);
+    };
+
+    window.electron.ipcRenderer.on('receive-message', msgReciveListener);
+
+    return () => {
+      window.electron.ipcRenderer.removeAllListeners('receive-message');
+    };
+  }, [sessionId, user?.id, friendInfo, memberMap]);
 
 
   return (

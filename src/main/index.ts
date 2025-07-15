@@ -4,7 +4,7 @@ import { join } from 'path';
 import icon from '../../resources/wechat.png?asset';
 import { Menu, nativeImage, Tray } from 'electron';
 import { closeWs, initWs } from './ws'
-import { insertChatMessageRecordIgnore, queryAllSession, queryMessagesBySession } from '../db/dbService';
+import { clearApplyCount, clearNoreadCount, insertChatMessageRecordIgnore, queryAllSession, queryMessagesBySession, setSessionTop } from '../db/dbService';
 
 let mainWindow: BrowserWindow;
 function createWindow(): void {
@@ -108,6 +108,7 @@ function registerIpcHandlers(mainWindow: BrowserWindow) {
   // 3. 打开[新的通知]窗口
   ipcMain.handle('open-notification-window', () => {
     createNotificationWindow();
+    clearApplyCount(currentLoginUser.id);
   });
   // 4. 关闭[新的通知]窗口
   ipcMain.on('window-close-notifications', () => notificationWindow?.close())
@@ -140,6 +141,14 @@ function registerIpcHandlers(mainWindow: BrowserWindow) {
       sendStatus: 1,
     });
   })
+  // 8. 清除未读消息数量
+  ipcMain.on('clear-noread-count', (_, sessionId) => {
+    clearNoreadCount(sessionId, currentLoginUser.id)
+  });
+  // 9.会话置顶与取消置顶
+  ipcMain.on('set-sessiont-top', (_, sessionId, topState) => {
+    setSessionTop(sessionId, currentLoginUser.id, topState)
+  });
 }
 
 function createTray(win: BrowserWindow) {
