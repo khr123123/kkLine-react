@@ -1,5 +1,5 @@
-import { LinkOutlined, SmileOutlined, } from '@ant-design/icons'
-import { Attachments, Bubble, Sender } from '@ant-design/x'
+import { ExclamationCircleFilled, LinkOutlined, SmileOutlined, } from '@ant-design/icons'
+import { Attachments, Bubble, Prompts, Sender } from '@ant-design/x'
 import { Button, Flex, Popover, Space, Avatar, Typography, message, Modal, theme, Upload, UploadProps, GetProp, Progress } from 'antd'
 import React, { useEffect, useRef, useState } from 'react'
 import { CopyOutlined, DeleteOutlined, RedoOutlined, ShareAltOutlined } from '@ant-design/icons'
@@ -298,7 +298,6 @@ const ChatPage: React.FC = () => {
       const contactId = getContactIdFromSession(sessionId, user.id.toString());
       res = await sendMsg({ messageId: id, messageContent: value, contactId, messageType: 20 });
     }
-
     if (res.code === 0) {
       window.electron.ipcRenderer.send('user-send-message', res.data);
       const newMessages: CustomBubbleProps[] = [];
@@ -313,7 +312,7 @@ const ChatPage: React.FC = () => {
       }
       // 添加实际消息
       newMessages.push({
-        _key: Date.now(),
+        _key: id,
         role: 'me',
         avatar: { src: user?.userAvatar },
         content: value,
@@ -322,6 +321,23 @@ const ChatPage: React.FC = () => {
       setMessages(prev => [...prev, ...newMessages]);
       setValue('');
       lastMessageTimeRef.current = now;
+    }
+    if (res.code === 40101) {
+      const errorMsg = res.message
+      message.error(errorMsg)
+      setMessages(prev => [...prev, {
+        _key: Date.now(),
+        role: 'me',
+        content: [{
+          key: Date.now(),
+          icon: <ExclamationCircleFilled style={{ color: '#ee0909ff', fontSize: '20px' }} />,
+          description: value,
+        }],
+        onClick: () => message.error(errorMsg),
+        avatar: { src: user?.userAvatar },
+        variant: 'borderless',
+        messageRender: (items) => <Prompts vertical items={items as any} />,
+      }]);
     }
   };
   useEffect(() => {
