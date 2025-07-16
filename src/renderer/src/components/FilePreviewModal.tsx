@@ -25,7 +25,6 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({ open, onClose, file
 
     const isVideo = /\.(mp4|webm|ogg)$/i.test(fileName || '');
     const isAudio = /\.(mp3|wav|ogg)$/i.test(fileName || '');
-    const isImage = /\.(png|jpe?g|gif|bmp|webp|svg)$/i.test(fileName || '');
     const isMarkdown = /\.md$/i.test(fileName || '');
     const isPpt = /\.(ppt|pptx)$/i.test(fileName || '');
     const isTxt = /\.txt$/i.test(fileName || '');
@@ -90,8 +89,6 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({ open, onClose, file
                             您的浏览器不支持 audio 标签。
                         </audio>
                     </div>
-                ) : isImage ? (
-                    <img src={fileUrl} alt="预览" style={{ maxWidth: '100%', maxHeight: '80vh' }} />
                 ) : isMarkdown || isTxt ? (
                     loading ? (
                         <Spin />

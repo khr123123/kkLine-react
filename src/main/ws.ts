@@ -219,8 +219,6 @@ export const createWs = (url: string) => {
                 }
                 case MessageType.ADD_GROUP: { // 12   END
                     console.log('😀 收到有人进群通知');
-                    console.log('群组信息:', msgData.contact);
-                    console.log('消息:', msgData.content?.text);
                     // 先插入消息
                     insertChatMessageRecordIgnore({
                         id: msgData.messageId,
@@ -233,30 +231,31 @@ export const createWs = (url: string) => {
                         contactId: msgData.contact?.contactId || '',
                         sendStatus: 1,
                     });
-                    // 插入或者忽略群聊session
-                    // 更新 session（如果已存在则更新 lastMessage / lastReceiveTime，不新增）
-                    const sessionRow = findSessionByUserAndContact(userId, msgData.sender?.userId!);
+                    const sessionRow = findSessionByUserAndContact(userId, msgData.contact?.contactId!);
                     if (sessionRow) {
                         updateSessionLastMessage(
                             msgData.contact?.chatSessionId!,
                             msgData.content?.text!,
                             msgData.sendTime!
                         );
-                        updateSessionNoReadCount(userId, msgData.sender?.userId!, sessionRow.noReadCount + 1);
+                        updateSessionNoReadCount(userId, msgData.contact?.contactId!, sessionRow.noReadCount + 1);
                     } else {
                         // 如果没有记录，则插入一条新会话
                         insertChatSessionUserIgnore({
                             userId,
-                            contactId: msgData.sender?.userId!,
+                            contactId: msgData.contact?.contactId!,
                             sessionId: msgData.contact?.chatSessionId,
-                            contactName: msgData.sender?.userName,
-                            contactAvatar: msgData.sender?.userAvatar,
+                            contactName: msgData.contact?.contactName,
+                            contactAvatar: msgData.content?.extraData,
                             contactType: msgData.contact?.contactType,
                             lastTime: msgData.sendTime,
                             lastMessage: msgData.content?.text,
+                            memberCount: msgData.contact?.memberCount,
                         }, 1);
                     }
-                    //TODO change session info
+                    if (mainWindow?.webContents) {
+                        mainWindow.webContents.send('reload-session-list');
+                    }
                     break;
                 }
                 case MessageType.LEAVE_GROUP: { // 13  END
@@ -360,11 +359,7 @@ export const createWs = (url: string) => {
                 case MessageType.CHAT: { // 20  
                     exec(`powershell -c (New-Object Media.SoundPlayer '${recivePath}').PlaySync();`)
                     console.log('💬 聊天消息');
-                    console.log('发送方:', msgData.sender);
-                    console.log('接收方:', msgData.contact);
-                    console.log('消息:', msgData.content?.text);
-                    console.log('消息ID:', msgData.messageId);
-                    console.log('消息类型:', msgData.messageType);
+                    if (msgData.contact?.chatSessionId?.startsWith("G") && msgData.sender?.userId === userId) return
                     const msgInfo = {
                         id: msgData.messageId,
                         sessionId: msgData.contact?.chatSessionId || '',
@@ -379,28 +374,52 @@ export const createWs = (url: string) => {
                     // 先插入消息
                     insertChatMessageRecordIgnore(msgInfo);
                     // 更新 session（如果已存在则更新 lastMessage / lastReceiveTime，不新增）
-                    const sessionRow = findSessionByUserAndContact(userId, msgData.sender?.userId!);
-                    if (sessionRow) {
-                        console.log('sessionRow:', sessionRow);
-                        updateSessionLastMessage(
-                            msgData.contact?.chatSessionId!,
-                            msgData.content?.text!,
-                            msgData.sendTime!
-                        );
-                        updateSessionNoReadCount(userId, msgData.sender?.userId!, sessionRow.noReadCount + 1);
+                    if (msgData.contact?.chatSessionId?.startsWith("G")) {
+                        const sessionRow = findSessionByUserAndContact(userId, msgData.contact?.contactId!);
+                        if (sessionRow) {
+                            updateSessionLastMessage(
+                                msgData.contact?.chatSessionId!,
+                                msgData.content?.text!,
+                                msgData.sendTime!
+                            );
+                            updateSessionNoReadCount(userId, msgData.contact?.contactId!, sessionRow.noReadCount + 1);
+                        } else {
+                            // 如果没有记录，则插入一条新会话
+                            insertChatSessionUserIgnore({
+                                userId,
+                                contactId: msgData.contact?.contactId!,
+                                sessionId: msgData.contact?.chatSessionId,
+                                contactName: msgData.contact?.contactName,
+                                contactAvatar: msgData.content?.extraData,
+                                contactType: msgData.contact?.contactType,
+                                lastTime: msgData.sendTime,
+                                lastMessage: msgData.content?.text,
+                            }, 1);
+                        }
                     } else {
-                        console.log('not found sessionRow');
-                        // 如果没有记录，则插入一条新会话
-                        insertChatSessionUserIgnore({
-                            userId,
-                            contactId: msgData.sender?.userId!,
-                            sessionId: msgData.contact?.chatSessionId,
-                            contactName: msgData.sender?.userName,
-                            contactAvatar: msgData.sender?.userAvatar,
-                            contactType: msgData.contact?.contactType,
-                            lastTime: msgData.sendTime,
-                            lastMessage: msgData.content?.text,
-                        }, 1);
+                        const sessionRow = findSessionByUserAndContact(userId, msgData.sender?.userId!);
+                        if (sessionRow) {
+                            console.log('sessionRow:', sessionRow);
+                            updateSessionLastMessage(
+                                msgData.contact?.chatSessionId!,
+                                msgData.content?.text!,
+                                msgData.sendTime!
+                            );
+                            updateSessionNoReadCount(userId, msgData.sender?.userId!, sessionRow.noReadCount + 1);
+                        } else {
+                            console.log('not found sessionRow');
+                            // 如果没有记录，则插入一条新会话
+                            insertChatSessionUserIgnore({
+                                userId,
+                                contactId: msgData.sender?.userId!,
+                                sessionId: msgData.contact?.chatSessionId,
+                                contactName: msgData.sender?.userName,
+                                contactAvatar: msgData.sender?.userAvatar,
+                                contactType: msgData.contact?.contactType,
+                                lastTime: msgData.sendTime,
+                                lastMessage: msgData.content?.text,
+                            }, 1);
+                        }
                     }
                     if (mainWindow?.webContents) {
                         mainWindow.webContents.send('receive-message', msgInfo);
@@ -415,11 +434,7 @@ export const createWs = (url: string) => {
                 case MessageType.MEDIA_CHAT: { // 21  
                     exec(`powershell -c (New-Object Media.SoundPlayer '${recivePath}').PlaySync();`)
                     console.log('🖼️ 媒体消息');
-                    console.log('发送方:', msgData.sender);
-                    console.log('接收方:', msgData.contact);
-                    console.log('消息:', msgData.content?.text);
-                    console.log('消息ID:', msgData.messageId);
-                    console.log('消息类型:', msgData.messageType);
+                    if (msgData.contact?.chatSessionId?.startsWith("G") && msgData.sender?.userId === userId) return
                     const msgInfo = {
                         id: msgData.messageId,
                         sessionId: msgData.contact?.chatSessionId || '',
@@ -438,28 +453,52 @@ export const createWs = (url: string) => {
                     // 先插入消息
                     insertChatMessageRecordIgnore(msgInfo);
                     // 更新 session（如果已存在则更新 lastMessage / lastReceiveTime，不新增）
-                    const sessionRow = findSessionByUserAndContact(userId, msgData.sender?.userId!);
-                    if (sessionRow) {
-                        console.log('sessionRow:', sessionRow);
-                        updateSessionLastMessage(
-                            msgData.contact?.chatSessionId!,
-                            msgData.content?.text!,
-                            msgData.sendTime!
-                        );
-                        updateSessionNoReadCount(userId, msgData.sender?.userId!, sessionRow.noReadCount + 1);
+                    if (msgData.contact?.chatSessionId?.startsWith("G")) {
+                        const sessionRow = findSessionByUserAndContact(userId, msgData.contact?.contactId!);
+                        if (sessionRow) {
+                            updateSessionLastMessage(
+                                msgData.contact?.chatSessionId!,
+                                msgData.content?.text!,
+                                msgData.sendTime!
+                            );
+                            updateSessionNoReadCount(userId, msgData.contact?.contactId!, sessionRow.noReadCount + 1);
+                        } else {
+                            // 如果没有记录，则插入一条新会话
+                            insertChatSessionUserIgnore({
+                                userId,
+                                contactId: msgData.contact?.contactId!,
+                                sessionId: msgData.contact?.chatSessionId,
+                                contactName: msgData.contact?.contactName,
+                                contactAvatar: msgData.content?.extraData,
+                                contactType: msgData.contact?.contactType,
+                                lastTime: msgData.sendTime,
+                                lastMessage: msgData.content?.text,
+                            }, 1);
+                        }
                     } else {
-                        console.log('not found sessionRow');
-                        // 如果没有记录，则插入一条新会话
-                        insertChatSessionUserIgnore({
-                            userId,
-                            contactId: msgData.sender?.userId!,
-                            sessionId: msgData.contact?.chatSessionId,
-                            contactName: msgData.sender?.userName,
-                            contactAvatar: msgData.sender?.userAvatar,
-                            contactType: msgData.contact?.contactType,
-                            lastTime: msgData.sendTime,
-                            lastMessage: msgData.content?.text,
-                        }, 1);
+                        const sessionRow = findSessionByUserAndContact(userId, msgData.sender?.userId!);
+                        if (sessionRow) {
+                            console.log('sessionRow:', sessionRow);
+                            updateSessionLastMessage(
+                                msgData.contact?.chatSessionId!,
+                                msgData.content?.text!,
+                                msgData.sendTime!
+                            );
+                            updateSessionNoReadCount(userId, msgData.sender?.userId!, sessionRow.noReadCount + 1);
+                        } else {
+                            console.log('not found sessionRow');
+                            // 如果没有记录，则插入一条新会话
+                            insertChatSessionUserIgnore({
+                                userId,
+                                contactId: msgData.sender?.userId!,
+                                sessionId: msgData.contact?.chatSessionId,
+                                contactName: msgData.sender?.userName,
+                                contactAvatar: msgData.sender?.userAvatar,
+                                contactType: msgData.contact?.contactType,
+                                lastTime: msgData.sendTime,
+                                lastMessage: msgData.content?.text,
+                            }, 1);
+                        }
                     }
                     if (mainWindow?.webContents) {
                         mainWindow.webContents.send('receive-message', msgInfo);

@@ -472,9 +472,10 @@ const ChatPage: React.FC = () => {
                 placement: 'end', style: { maxWidth: '100%' }, variant: 'borderless', messageRender: (item) => (
                   <Flex style={{ position: 'relative', display: 'inline-block' }}>
                     <div style={{
-                      cursor: !item.percent ? 'pointer' : 'default',
+                      cursor: item.url ? 'pointer' : 'default',
                     }} onClick={() => {
-                      !item.percent ?
+                      item.url && !/\.(png|jpe?g|gif|bmp|webp|svg)$/i.test(item.name)
+                        ?
                         setFilePreview({ open: true, fileUrl: item.url, fileName: item.name }) :
                         void 0
                     }}>
@@ -503,9 +504,9 @@ const ChatPage: React.FC = () => {
                 placement: 'start', style: { maxWidth: '100%' }, variant: 'borderless', messageRender: (item) => (
                   <Flex style={{ position: 'relative', display: 'inline-block' }}>
                     <div style={{
-                      cursor: !item.percent ? 'pointer' : 'default',
+                      cursor: item.url ? 'pointer' : 'default',
                     }} onClick={() => {
-                      !item.percent ?
+                      item.url && !/\.(png|jpe?g|gif|bmp|webp|svg)$/i.test(item.name) ?
                         setFilePreview({ open: true, fileUrl: item.url, fileName: item.name }) :
                         void 0
                     }}>
