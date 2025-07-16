@@ -195,8 +195,7 @@ export const createWs = (url: string) => {
                     const sessionRow = findSessionByUserAndContact(userId, msgData.sender?.userId!);
                     if (sessionRow) {
                         updateSessionLastMessage(
-                            userId,
-                            msgData.sender?.userId!,
+                            msgData.contact?.chatSessionId!,
                             msgData.content?.text!,
                             msgData.sendTime!
                         );
@@ -237,8 +236,7 @@ export const createWs = (url: string) => {
                     const sessionRow = findSessionByUserAndContact(userId, msgData.sender?.userId!);
                     if (sessionRow) {
                         updateSessionLastMessage(
-                            userId,
-                            msgData.sender?.userId!,
+                            msgData.contact?.chatSessionId!,
                             msgData.content?.text!,
                             msgData.sendTime!
                         );
@@ -279,8 +277,7 @@ export const createWs = (url: string) => {
                     const sessionRow = findSessionByUserAndContact(userId, msgData.sender?.userId!);
                     if (sessionRow) {
                         updateSessionLastMessage(
-                            userId,
-                            msgData.sender?.userId!,
+                            msgData.contact?.chatSessionId!,
                             msgData.content?.text!,
                             msgData.sendTime!
                         );
@@ -321,8 +318,7 @@ export const createWs = (url: string) => {
                     const sessionRow = findSessionByUserAndContact(userId, msgData.sender?.userId!);
                     if (sessionRow) {
                         updateSessionLastMessage(
-                            userId,
-                            msgData.sender?.userId!,
+                            msgData.contact?.chatSessionId!,
                             msgData.content?.text!,
                             msgData.sendTime!
                         );
@@ -382,8 +378,7 @@ export const createWs = (url: string) => {
                     if (sessionRow) {
                         console.log('sessionRow:', sessionRow);
                         updateSessionLastMessage(
-                            userId,
-                            msgData.sender?.userId!,
+                            msgData.contact?.chatSessionId!,
                             msgData.content?.text!,
                             msgData.sendTime!
                         );
@@ -437,8 +432,7 @@ export const createWs = (url: string) => {
                     if (sessionRow) {
                         console.log('sessionRow:', sessionRow);
                         updateSessionLastMessage(
-                            userId,
-                            msgData.sender?.userId!,
+                            msgData.contact?.chatSessionId!,
                             msgData.content?.text!,
                             msgData.sendTime!
                         );
@@ -464,20 +458,16 @@ export const createWs = (url: string) => {
                 }
                 case MessageType.TYPING: { // 22  
                     console.log('✍ 对方正在输入中...');
-                    console.log('接收方:', msgData.contact);
-                    console.log('消息:', msgData.content?.text);
-                    console.log('消息ID:', msgData.messageId);
-                    console.log('消息类型:', msgData.messageType);
-                    //TODO直接通知对方，对方正在输入中...
+                    if (mainWindow?.webContents) {
+                        mainWindow.webContents.send('typing', msgData.contact?.chatSessionId, true);
+                    }
                     break;
                 }
-                case MessageType.TYPING: { // 23  
+                case MessageType.TYPING_END: { // 23  
                     console.log('🤟 对方正在输入输入结束');
-                    console.log('接收方:', msgData.contact);
-                    console.log('消息:', msgData.content?.text);
-                    console.log('消息ID:', msgData.messageId);
-                    console.log('消息类型:', msgData.messageType);
-                    //TODO直接通知对方，对方结束输入中...
+                    if (mainWindow?.webContents) {
+                        mainWindow.webContents.send('typing', msgData.contact?.chatSessionId, false);
+                    }
                     break;
                 }
                 case MessageType.REVOKE_MESSAGE: { // 24  

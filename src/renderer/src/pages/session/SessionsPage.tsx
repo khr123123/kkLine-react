@@ -8,7 +8,7 @@ import {
 import GlobalLoading from '@renderer/components/GlobalLoding';
 import type { MenuProps } from 'antd';
 import { Avatar, Badge, Dropdown, Input, List, Menu, theme, Typography } from 'antd';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { formatDate } from "../../utils/timeUtil"
 
@@ -110,6 +110,23 @@ const SessionsPage: React.FC = () => {
       window.electron.ipcRenderer.removeAllListeners('receive-message')
     }
   }, [])
+
+
+  const listRef = useRef<HTMLDivElement>(null);
+  const [hasScroll, setHasScroll] = useState(false);
+  useEffect(() => {
+    function checkScroll() {
+      if (listRef.current) {
+        const el = listRef.current;
+        setHasScroll(el.scrollHeight > el.clientHeight);
+      }
+    }
+    checkScroll();
+    window.addEventListener('resize', checkScroll);
+    return () => {
+      window.removeEventListener('resize', checkScroll);
+    };
+  }, [sortedContacts]);
   return (
     <>
       <GlobalLoading loading={globalLoading} />
@@ -123,7 +140,6 @@ const SessionsPage: React.FC = () => {
             display: 'flex',
             alignItems: 'center',
             padding: '0 10px',
-            paddingBottom: 10,
             zIndex: 10
           }}
         >
@@ -148,7 +164,8 @@ const SessionsPage: React.FC = () => {
           className="scrollableDiv"
           itemLayout="horizontal"
           dataSource={sortedContacts}
-          style={{ flexGrow: 1, overflowY: 'auto' }}
+          style={{ flexGrow: 1, overflowY: 'auto', marginTop: hasScroll ? 22 : 0, }}
+          ref={listRef}
           renderItem={(item) => (
             <Dropdown
               overlay={menu}

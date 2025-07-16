@@ -34,7 +34,10 @@
     "better-sqlite3": "^12.2.0",
     "electron-updater": "^6.3.9",
     "emoji-picker-react": "^4.12.3",
+    "react-file-viewer-ts": "^0.0.30",
     "react-infinite-scroll-component": "^6.1.0",
+    "react-markdown": "^10.1.0",
+    "react-pdf": "^10.0.1",
     "react-router-dom": "^7.6.3",
     "ws": "^8.18.3",
     "zustand": "^5.0.6"

@@ -125,17 +125,16 @@ export function findSessionByUserAndContact(userId: number | string, contactId: 
 
 // 更新最后消息和时间
 export function updateSessionLastMessage(
-  userId: number | string,
-  contactId: string,
+  sessionId: string,
   lastMessage: string,
   lastReceiveTime: number
 ) {
   const stmt = db.prepare(`
     UPDATE chatSessionUser
     SET lastMessage = ?, lastReceiveTime = ?
-    WHERE userId = ? AND contactId = ?
+    WHERE sessionId = ?
   `);
-  stmt.run(lastMessage, lastReceiveTime, userId, contactId);
+  stmt.run(lastMessage, lastReceiveTime, sessionId);
 }
 
 

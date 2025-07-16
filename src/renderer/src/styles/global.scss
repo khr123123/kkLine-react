@@ -45,7 +45,7 @@ body,
 
 
 .scrollableDiv {
-    height: "200px";
+    height: "200px" !important; 
     overflow-y: auto;
     scrollbar-gutter: stable;
     /* 保证预留滚动条空间，防止抖动 */
@@ -131,4 +131,8 @@ textarea::-webkit-scrollbar-track {
 .hover-icon:hover {
     color: #1890ff;
     /* Hover 变蓝 */
+}
+
+.ant-attachment-list-card-img-mask {
+    display: none !important;
 }
