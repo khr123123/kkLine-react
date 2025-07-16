@@ -129,24 +129,27 @@ const ChatPage: React.FC = () => {
         lastTimestamp = currentTimestamp;
       }
     }
-
     if (result.length > 0) {
       lastMessageTimeRef.current = result[result.length - 1].sendTime;
     }
-
     setMessages(messagesWithTime);
   };
 
   const fetchGroupInfoAndMessages = async () => {
     if (!sessionId || !user?.id) return
-    const groupRes = await getGroupInfoWithMembers({ id: sessionId })
-    const resData = groupRes.data as API.GroupVO
-    setGroupInfo(resData)
-    setMembers(resData.userVOList || [])
+    let resData: any
     const map = new Map<number, string>()
-    resData.userVOList?.forEach((m: any) => map.set(m.id, m.userAvatar))
-    setMemberMap(map)
+    const groupRes = await getGroupInfoWithMembers({ id: sessionId }) as API.BaseResponseGroupVO
     const result = await window.electron.ipcRenderer.invoke('get-message-list', sessionId)
+    if (groupRes.code === 0) {
+      resData = groupRes.data as API.GroupVO
+      setGroupInfo(resData)
+      setMembers(resData?.userVOList || [])
+      resData?.userVOList?.forEach((m: any) => map.set(m.id, m.userAvatar))
+      setMemberMap(map)
+    } else {
+      setGroupInfo({ groupName: result[0].contactId })
+    }
     const messagesWithTime: CustomBubbleProps[] = []
     let lastTimestamp = 0
     let lastTimeNodeContent: string = ""
@@ -330,14 +333,14 @@ const ChatPage: React.FC = () => {
         role: 'me',
         content: [{
           key: Date.now(),
-          icon: <ExclamationCircleFilled style={{ color: '#ee0909ff', fontSize: '20px' }} />,
+          icon: <ExclamationCircleFilled style={{ color: '#ee0909ff', fontSize: '20px' }} onClick={() => message.error(errorMsg)} />,
           description: value,
         }],
-        onClick: () => message.error(errorMsg),
         avatar: { src: user?.userAvatar },
         variant: 'borderless',
         messageRender: (items) => <Prompts vertical items={items as any} />,
       }]);
+      setValue('');
     }
   };
   useEffect(() => {

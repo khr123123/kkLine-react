@@ -179,7 +179,7 @@ export const createWs = (url: string) => {
                     console.log('被解散的群组信息:', msgData.contact);
                     console.log('消息:', msgData.content?.text);
                     // 插入消息
-                    insertChatMessageRecordIgnore({
+                    const msgInfo = {
                         id: msgData.messageId,
                         sessionId: msgData.contact?.chatSessionId,
                         messageType: msgData.messageType,
@@ -189,7 +189,8 @@ export const createWs = (url: string) => {
                         sendTime: msgData.sendTime,
                         contactId: msgData.contact?.contactId,
                         sendStatus: 1,
-                    });
+                    }
+                    insertChatMessageRecordIgnore(msgInfo);
                     // 更新 session（如果已存在则更新 lastMessage / lastReceiveTime，不新增）
                     const sessionRow = findSessionByUserAndContact(userId, msgData.sender?.userId!);
                     if (sessionRow) {
@@ -213,14 +214,20 @@ export const createWs = (url: string) => {
                         }, 1);
                     }
                     if (mainWindow?.webContents) {
-                        mainWindow.webContents.send('reload-session-list');
+                        mainWindow.webContents.send('receive-message', msgInfo);
+                        mainWindow.webContents.send('change-group-session-info', {
+                            chatSessionId: msgData.contact?.chatSessionId,
+                            lastTime: msgData.sendTime,
+                            lastMessage: msgData.content?.text,
+                            memberCount: 0,
+                        });
                     }
                     break;
                 }
                 case MessageType.ADD_GROUP: { // 12   END
                     console.log('😀 收到有人进群通知');
                     // 先插入消息
-                    insertChatMessageRecordIgnore({
+                    const msgInfo = {
                         id: msgData.messageId,
                         sessionId: msgData.contact?.chatSessionId || '',
                         messageType: msgData.messageType,
@@ -230,7 +237,8 @@ export const createWs = (url: string) => {
                         sendTime: msgData.sendTime,
                         contactId: msgData.contact?.contactId || '',
                         sendStatus: 1,
-                    });
+                    }
+                    insertChatMessageRecordIgnore(msgInfo);
                     const sessionRow = findSessionByUserAndContact(userId, msgData.contact?.contactId!);
                     if (sessionRow) {
                         updateSessionInfo(
@@ -255,16 +263,19 @@ export const createWs = (url: string) => {
                         }, 1);
                     }
                     if (mainWindow?.webContents) {
-                        mainWindow.webContents.send('reload-session-list');
+                        mainWindow.webContents.send('receive-message', msgInfo);
+                        mainWindow.webContents.send('change-group-session-info', {
+                            chatSessionId: msgData.contact?.chatSessionId,
+                            lastTime: msgData.sendTime,
+                            lastMessage: msgData.content?.text,
+                            memberCount: msgData.contact?.memberCount!
+                        });
                     }
                     break;
                 }
                 case MessageType.LEAVE_GROUP: { // 13  END
                     console.log('😒 收到有人退群通知');
-                    console.log('群组信息:', msgData.contact);
-                    console.log('消息:', msgData.content?.text);
-                    // 先插入消息
-                    insertChatMessageRecordIgnore({
+                    const msgInfo = {
                         id: msgData.messageId,
                         sessionId: msgData.contact?.chatSessionId || '',
                         messageType: msgData.messageType,
@@ -274,7 +285,9 @@ export const createWs = (url: string) => {
                         sendTime: msgData.sendTime,
                         contactId: msgData.contact?.contactId || '',
                         sendStatus: 1,
-                    });
+                    }
+                    // 先插入消息
+                    insertChatMessageRecordIgnore(msgInfo);
                     const sessionRow = findSessionByUserAndContact(userId, msgData.contact?.contactId!);
                     if (sessionRow) {
                         updateSessionInfo(
@@ -299,16 +312,19 @@ export const createWs = (url: string) => {
                         }, 1);
                     }
                     if (mainWindow?.webContents) {
-                        mainWindow.webContents.send('reload-session-list');
+                        mainWindow.webContents.send('receive-message', msgInfo);
+                        mainWindow.webContents.send('change-group-session-info', {
+                            chatSessionId: msgData.contact?.chatSessionId,
+                            lastTime: msgData.sendTime,
+                            lastMessage: msgData.content?.text,
+                            memberCount: msgData.contact?.memberCount!
+                        });
                     }
                     break;
                 }
                 case MessageType.REMOVE_GROUP: { // 14  TODO
                     console.log('😒 收到有人被踢出群的通知');
-                    console.log('群组信息:', msgData.contact);
-                    console.log('消息:', msgData.content?.text);
-                    // 先插入消息
-                    insertChatMessageRecordIgnore({
+                    const msgInfo = {
                         id: msgData.messageId,
                         sessionId: msgData.contact?.chatSessionId || '',
                         messageType: msgData.messageType,
@@ -318,7 +334,9 @@ export const createWs = (url: string) => {
                         sendTime: msgData.sendTime,
                         contactId: msgData.contact?.contactId || '',
                         sendStatus: 1,
-                    });
+                    }
+                    // 先插入消息
+                    insertChatMessageRecordIgnore(msgInfo);
                     const sessionRow = findSessionByUserAndContact(userId, msgData.contact?.contactId!);
                     if (sessionRow) {
                         updateSessionInfo(
@@ -343,7 +361,13 @@ export const createWs = (url: string) => {
                         }, 1);
                     }
                     if (mainWindow?.webContents) {
-                        mainWindow.webContents.send('reload-session-list');
+                        mainWindow.webContents.send('receive-message', msgInfo);
+                        mainWindow.webContents.send('change-group-session-info', {
+                            chatSessionId: msgData.contact?.chatSessionId,
+                            lastReceiveTime: msgData.sendTime,
+                            lastMessage: msgData.content?.text,
+                            memberCount: msgData.contact?.memberCount!
+                        });
                     }
                     break;
                 }

@@ -102,13 +102,17 @@ const SessionsPage: React.FC = () => {
     window.electron.ipcRenderer.on('reload-session-list', () => fatchSessionList())
     window.electron.ipcRenderer.on('change-session-info', (_event: any, msgInfo: any) => {
       const { chatSessionId, lastMessage, lastReceiveTime } = msgInfo;
-      console.log('formatDate 输入：', lastReceiveTime);
-      setContacts(prev => prev.map(contact => contact.sessionId === chatSessionId ? { ...contact, lastMessage: lastMessage, lastReceiveTime: lastReceiveTime } : contact))
+      setContacts(prev => prev.map(contact => contact.sessionId === chatSessionId ? { ...contact, lastMessage, lastReceiveTime } : contact))
+    })
+    window.electron.ipcRenderer.on('change-group-session-info', (_event: any, msgInfo: any) => {
+      const { chatSessionId, lastMessage, lastReceiveTime, memberCount } = msgInfo;
+      setContacts(prev => prev.map(contact => contact.sessionId === chatSessionId ? { ...contact, lastMessage, lastReceiveTime, memberCount } : contact))
     })
     return () => {
       window.electron.ipcRenderer.removeAllListeners('receive-apply')
       window.electron.ipcRenderer.removeAllListeners('reload-session-list')
       window.electron.ipcRenderer.removeAllListeners('change-session-info')
+      window.electron.ipcRenderer.removeAllListeners('change-group-session-info')
     }
   }, [])
 

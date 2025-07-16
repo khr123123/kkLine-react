@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
     InteractionOutlined,
     SearchOutlined,
@@ -28,7 +28,9 @@ const SearchPage: React.FC = () => {
     const [keyword, setKeyword] = useState('');
     const [result, setResult] = useState<API.ContactVO | null>(null);
     const [loading, setLoading] = useState(false);
-    const [popoverInput, setPopoverInput] = useState(''); // Popover 内输入框内容
+    const [popoverInput, setPopoverInput] = useState('');
+    const [hasApplied, setHasApplied] = useState(false);
+    const [openPopover, setOpenPopover] = useState(false);
 
     const user = useUserStore(state => state.user);
 
@@ -43,8 +45,10 @@ const SearchPage: React.FC = () => {
             const res = (await search({ id: trimmed })) as API.BaseResponseContactVO;
             if (res.data) {
                 setResult(res.data);
+                setHasApplied(false); // ✅ 重置申请状态
             } else {
                 setResult(null);
+                setHasApplied(false);
                 message.info('未找到对应的群组或用户');
             }
         } catch {
@@ -88,17 +92,19 @@ const SearchPage: React.FC = () => {
         };
     };
 
+    const displayInfo = useMemo(() => {
+        if (!result) return null;
+        return getDisplayInfo(result);
+    }, [result, user]);
+
     const contactApplyHandel = async (msg: string) => {
-        if (!result) return;
-        if (!result.contactId) return;
-        const res = await applyAdd({ contactId: result.contactId, applyMessage: msg }) as API.BaseResponseContactVO
+        if (!result || !result.contactId) return;
+        const res = await applyAdd({ contactId: result.contactId, applyMessage: msg }) as API.BaseResponseContactVO;
         if (res.code === 0) {
             message.success(`已发送申请${msg}给：${result.contactId}`);
             setPopoverInput('');
-            if (textButtonRef.current) {
-                textButtonRef.current.innerText = '已发送申请';
-                textButtonRef.current.disabled = true;
-            }
+            setHasApplied(true); // ✅ 设置状态为已申请
+            setOpenPopover(false);
         } else {
             message.error(`${res.message}`);
         }
@@ -128,8 +134,10 @@ const SearchPage: React.FC = () => {
         flexDirection: 'column',
         alignItems: 'flex-start',
     };
-    const [openPopover, setOpenPopover] = useState(false);
-    const textButtonRef = useRef<HTMLButtonElement>(null);
+
+    const finalButtonDisabled = displayInfo?.buttonDisabled || hasApplied;
+    const finalButtonText = hasApplied ? '已发送申请' : displayInfo?.buttonText;
+
     return (
         <div style={containerStyle}>
             <Title
@@ -171,7 +179,7 @@ const SearchPage: React.FC = () => {
                 </Button>
             </div>
 
-            {result ? (
+            {result && displayInfo ? (
                 <div style={resultAreaStyle}>
                     <Tag
                         icon={result.contactType === 1 ? <TeamOutlined /> : <UserOutlined />}
@@ -196,9 +204,9 @@ const SearchPage: React.FC = () => {
                         bodyStyle={{ padding: '24px' }}
                         title={
                             <Space style={{ padding: 12 }}>
-                                <Avatar size={56} src={getDisplayInfo(result).avatar} />
+                                <Avatar size={56} src={displayInfo.avatar} />
                                 <Text strong style={{ fontSize: 18 }}>
-                                    {getDisplayInfo(result).name}
+                                    {displayInfo.name}
                                 </Text>
                             </Space>
                         }
@@ -218,28 +226,24 @@ const SearchPage: React.FC = () => {
                                         />
                                         <Button
                                             icon={<InteractionOutlined />}
-                                            onClick={() => {
-                                                contactApplyHandel(popoverInput)
-                                                setOpenPopover(false)
-                                            }}
+                                            onClick={() => contactApplyHandel(popoverInput)}
                                         />
                                     </Space>
                                 }
                             >
                                 <Button
-                                    ref={textButtonRef}
-                                    type={getDisplayInfo(result).buttonType}
-                                    disabled={getDisplayInfo(result).buttonDisabled}
+                                    type={displayInfo.buttonType}
+                                    disabled={finalButtonDisabled}
                                     style={{ borderRadius: 8, minWidth: 100 }}
                                     onClick={() => setOpenPopover(true)}
                                 >
-                                    {getDisplayInfo(result).buttonText}
+                                    {finalButtonText}
                                 </Button>
                             </Popover>
                         }
                     >
                         <Text style={{ fontSize: 14, lineHeight: 1.6, color: '#444' }}>
-                            {getDisplayInfo(result).desc}
+                            {displayInfo.desc}
                         </Text>
                     </Card>
                 </div>
