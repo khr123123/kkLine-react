@@ -136,6 +136,19 @@ export function updateSessionLastMessage(
   `);
   stmt.run(lastMessage, lastReceiveTime, sessionId);
 }
+export function updateSessionInfo(
+  sessionId: string,
+  lastMessage: string,
+  lastReceiveTime: number,
+  memberCount: number
+) {
+  const stmt = db.prepare(`
+    UPDATE chatSessionUser
+    SET lastMessage = ?, lastReceiveTime = ?, memberCount = ?
+    WHERE sessionId = ?
+  `);
+  stmt.run(lastMessage, lastReceiveTime, memberCount, sessionId);
+}
 
 
 export function queryAllSession(userId: number | string) {

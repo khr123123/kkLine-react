@@ -596,9 +596,15 @@ const ChatPage: React.FC = () => {
             onChange={(v) => setValue(v)}
             onSubmit={sendMessage}
             autoSize={{ minRows: 3, maxRows: 3 }}
-            onFocus={async () => await sendTypingState({ contactId: getContactIdFromSession(sessionId!, user!.id!.toString()), typing: true })} // 聚焦事件 正在输入..
-            onBlur={async () => await sendTypingState({ contactId: getContactIdFromSession(sessionId!, user!.id!.toString()), typing: false }) // 失焦事件 输入结束..
-            }
+            onFocus={async () => {
+              if (sessionId?.startsWith('G')) return
+              await sendTypingState({ contactId: getContactIdFromSession(sessionId!, user!.id!.toString()), typing: true })
+            }} // 聚焦事件 正在输入..
+            onBlur={async () => {
+              if (sessionId?.startsWith('G')) return;
+              await sendTypingState({ contactId: getContactIdFromSession(sessionId!, user!.id!.toString()), typing: false })
+              // 失焦事件 输入结束..
+            }}
           />
         </div>
       </div>

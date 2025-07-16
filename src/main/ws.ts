@@ -1,10 +1,8 @@
 import WebSocket from 'ws'
 import type { InitMessageDTO, MessageSendDTO } from './common/messageType'
 import { MessageType } from './common/messageType'
-import { accumulateApplyCount, findSessionByUserAndContact, insertChatMessageRecordIgnore, insertChatSessionUserIgnore, updateContactInfo, updateMessageFileUrlAndStatus, updateSessionLastMessage, updateSessionNoReadCount } from "../db/dbService"
+import { accumulateApplyCount, findSessionByUserAndContact, insertChatMessageRecordIgnore, insertChatSessionUserIgnore, updateContactInfo, updateMessageFileUrlAndStatus, updateSessionInfo, updateSessionLastMessage, updateSessionNoReadCount } from "../db/dbService"
 import path from 'path'
-import { BrowserWindow } from 'electron/main'
-import { session } from 'electron'
 const { exec } = require('child_process');
 const recivePath = path.join(__dirname, '../../resources/recive.wav')
 
@@ -214,7 +212,9 @@ export const createWs = (url: string) => {
                             lastMessage: msgData.content?.text,
                         }, 1);
                     }
-                    //TODO change session info
+                    if (mainWindow?.webContents) {
+                        mainWindow.webContents.send('reload-session-list');
+                    }
                     break;
                 }
                 case MessageType.ADD_GROUP: { // 12   END
@@ -233,10 +233,11 @@ export const createWs = (url: string) => {
                     });
                     const sessionRow = findSessionByUserAndContact(userId, msgData.contact?.contactId!);
                     if (sessionRow) {
-                        updateSessionLastMessage(
+                        updateSessionInfo(
                             msgData.contact?.chatSessionId!,
                             msgData.content?.text!,
-                            msgData.sendTime!
+                            msgData.sendTime!,
+                            msgData.contact?.memberCount!,
                         );
                         updateSessionNoReadCount(userId, msgData.contact?.contactId!, sessionRow.noReadCount + 1);
                     } else {
@@ -274,30 +275,32 @@ export const createWs = (url: string) => {
                         contactId: msgData.contact?.contactId || '',
                         sendStatus: 1,
                     });
-                    // 插入或者忽略群聊session
-                    // 更新 session（如果已存在则更新 lastMessage / lastReceiveTime，不新增）
-                    const sessionRow = findSessionByUserAndContact(userId, msgData.sender?.userId!);
+                    const sessionRow = findSessionByUserAndContact(userId, msgData.contact?.contactId!);
                     if (sessionRow) {
-                        updateSessionLastMessage(
+                        updateSessionInfo(
                             msgData.contact?.chatSessionId!,
                             msgData.content?.text!,
-                            msgData.sendTime!
+                            msgData.sendTime!,
+                            msgData.contact?.memberCount!,
                         );
-                        updateSessionNoReadCount(userId, msgData.sender?.userId!, sessionRow.noReadCount + 1);
+                        updateSessionNoReadCount(userId, msgData.contact?.contactId!, sessionRow.noReadCount + 1);
                     } else {
                         // 如果没有记录，则插入一条新会话
                         insertChatSessionUserIgnore({
                             userId,
-                            contactId: msgData.sender?.userId!,
+                            contactId: msgData.contact?.contactId!,
                             sessionId: msgData.contact?.chatSessionId,
-                            contactName: msgData.sender?.userName,
-                            contactAvatar: msgData.sender?.userAvatar,
+                            contactName: msgData.contact?.contactName,
+                            contactAvatar: msgData.content?.extraData,
                             contactType: msgData.contact?.contactType,
                             lastTime: msgData.sendTime,
                             lastMessage: msgData.content?.text,
+                            memberCount: msgData.contact?.memberCount,
                         }, 1);
                     }
-                    //TODO change session info
+                    if (mainWindow?.webContents) {
+                        mainWindow.webContents.send('reload-session-list');
+                    }
                     break;
                 }
                 case MessageType.REMOVE_GROUP: { // 14  TODO
@@ -316,30 +319,32 @@ export const createWs = (url: string) => {
                         contactId: msgData.contact?.contactId || '',
                         sendStatus: 1,
                     });
-                    // 插入或者忽略群聊session
-                    // 更新 session（如果已存在则更新 lastMessage / lastReceiveTime，不新增）
-                    const sessionRow = findSessionByUserAndContact(userId, msgData.sender?.userId!);
+                    const sessionRow = findSessionByUserAndContact(userId, msgData.contact?.contactId!);
                     if (sessionRow) {
-                        updateSessionLastMessage(
+                        updateSessionInfo(
                             msgData.contact?.chatSessionId!,
                             msgData.content?.text!,
-                            msgData.sendTime!
+                            msgData.sendTime!,
+                            msgData.contact?.memberCount!,
                         );
-                        updateSessionNoReadCount(userId, msgData.sender?.userId!, sessionRow.noReadCount + 1);
+                        updateSessionNoReadCount(userId, msgData.contact?.contactId!, sessionRow.noReadCount + 1);
                     } else {
                         // 如果没有记录，则插入一条新会话
                         insertChatSessionUserIgnore({
                             userId,
-                            contactId: msgData.sender?.userId!,
+                            contactId: msgData.contact?.contactId!,
                             sessionId: msgData.contact?.chatSessionId,
-                            contactName: msgData.sender?.userName,
-                            contactAvatar: msgData.sender?.userAvatar,
+                            contactName: msgData.contact?.contactName,
+                            contactAvatar: msgData.content?.extraData,
                             contactType: msgData.contact?.contactType,
                             lastTime: msgData.sendTime,
                             lastMessage: msgData.content?.text,
+                            memberCount: msgData.contact?.memberCount,
                         }, 1);
                     }
-                    //TODO change session info
+                    if (mainWindow?.webContents) {
+                        mainWindow.webContents.send('reload-session-list');
+                    }
                     break;
                 }
                 case MessageType.GROUP_NAME_UPDATE: { // 15  END
