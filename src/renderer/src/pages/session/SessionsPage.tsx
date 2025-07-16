@@ -100,14 +100,15 @@ const SessionsPage: React.FC = () => {
     fatchSessionList()
     window.electron.ipcRenderer.on('receive-apply', (_event: any, totleApplyCount: any) => setNoReadApplyCount(totleApplyCount))
     window.electron.ipcRenderer.on('reload-session-list', () => fatchSessionList())
-    window.electron.ipcRenderer.on('receive-message', (_event: any, msgInfo: any) => {
-      const { sessionId, messageContent, sendTime } = msgInfo;
-      setContacts(prev => prev.map(contact => contact.sessionId === sessionId ? { ...contact, lastMessage: messageContent, lastReceiveTime: sendTime } : contact))
+    window.electron.ipcRenderer.on('change-session-info', (_event: any, msgInfo: any) => {
+      const { chatSessionId, lastMessage, lastReceiveTime } = msgInfo;
+      console.log('formatDate 输入：', lastReceiveTime);
+      setContacts(prev => prev.map(contact => contact.sessionId === chatSessionId ? { ...contact, lastMessage: lastMessage, lastReceiveTime: lastReceiveTime } : contact))
     })
     return () => {
       window.electron.ipcRenderer.removeAllListeners('receive-apply')
       window.electron.ipcRenderer.removeAllListeners('reload-session-list')
-      window.electron.ipcRenderer.removeAllListeners('receive-message')
+      window.electron.ipcRenderer.removeAllListeners('change-session-info')
     }
   }, [])
 

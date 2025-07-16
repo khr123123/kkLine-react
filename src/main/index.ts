@@ -143,10 +143,21 @@ function registerIpcHandlers(mainWindow: BrowserWindow) {
       fileType: msgData.file?.fileType,
       sendStatus: 1,
     });
+    mainWindow.webContents.send('change-session-info', {
+      chatSessionId: msgData.contact?.chatSessionId!,
+      lastMessage: msgData.content?.text!,
+      lastReceiveTime: msgData.sendTime!
+    });
+
   })
   ipcMain.on('user-send-file-message', (_, fileMsgData) => {
     exec(`powershell -c (New-Object Media.SoundPlayer '${sendPath}').PlaySync();`)
     insertChatMessageRecordIgnore(fileMsgData);
+    mainWindow.webContents.send('change-session-info', {
+      chatSessionId: fileMsgData.sessionId!,
+      lastMessage: fileMsgData.messageContent!,
+      lastReceiveTime: fileMsgData.sendTime!
+    });
   })
   // 8. 清除未读消息数量
   ipcMain.on('clear-noread-count', (_, sessionId) => {

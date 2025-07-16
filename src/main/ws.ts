@@ -4,6 +4,7 @@ import { MessageType } from './common/messageType'
 import { accumulateApplyCount, findSessionByUserAndContact, insertChatMessageRecordIgnore, insertChatSessionUserIgnore, updateContactInfo, updateMessageFileUrlAndStatus, updateSessionLastMessage, updateSessionNoReadCount } from "../db/dbService"
 import path from 'path'
 import { BrowserWindow } from 'electron/main'
+import { session } from 'electron'
 const { exec } = require('child_process');
 const recivePath = path.join(__dirname, '../../resources/recive.wav')
 
@@ -213,6 +214,7 @@ export const createWs = (url: string) => {
                             lastMessage: msgData.content?.text,
                         }, 1);
                     }
+                    //TODO change session info
                     break;
                 }
                 case MessageType.ADD_GROUP: { // 12   END
@@ -254,6 +256,7 @@ export const createWs = (url: string) => {
                             lastMessage: msgData.content?.text,
                         }, 1);
                     }
+                    //TODO change session info
                     break;
                 }
                 case MessageType.LEAVE_GROUP: { // 13  END
@@ -295,6 +298,7 @@ export const createWs = (url: string) => {
                             lastMessage: msgData.content?.text,
                         }, 1);
                     }
+                    //TODO change session info
                     break;
                 }
                 case MessageType.REMOVE_GROUP: { // 14  TODO
@@ -336,6 +340,7 @@ export const createWs = (url: string) => {
                             lastMessage: msgData.content?.text,
                         }, 1);
                     }
+                    //TODO change session info
                     break;
                 }
                 case MessageType.GROUP_NAME_UPDATE: { // 15  END
@@ -399,6 +404,11 @@ export const createWs = (url: string) => {
                     }
                     if (mainWindow?.webContents) {
                         mainWindow.webContents.send('receive-message', msgInfo);
+                        mainWindow.webContents.send('change-session-info', {
+                            chatSessionId: msgData.contact?.chatSessionId!,
+                            lastMessage: msgData.content?.text!,
+                            lastReceiveTime: msgData.sendTime!
+                        });
                     }
                     break;
                 }
@@ -453,17 +463,22 @@ export const createWs = (url: string) => {
                     }
                     if (mainWindow?.webContents) {
                         mainWindow.webContents.send('receive-message', msgInfo);
+                        mainWindow.webContents.send('change-session-info', {
+                            chatSessionId: msgData.contact?.chatSessionId!,
+                            lastMessage: msgData.content?.text!,
+                            lastReceiveTime: msgData.sendTime!
+                        });
                     }
                     break;
                 }
-                case MessageType.TYPING: { // 22  
+                case MessageType.TYPING: { // 22  END ✅
                     console.log('✍ 对方正在输入中...');
                     if (mainWindow?.webContents) {
                         mainWindow.webContents.send('typing', msgData.contact?.chatSessionId, true);
                     }
                     break;
                 }
-                case MessageType.TYPING_END: { // 23  
+                case MessageType.TYPING_END: { // 23  END ✅
                     console.log('🤟 对方正在输入输入结束');
                     if (mainWindow?.webContents) {
                         mainWindow.webContents.send('typing', msgData.contact?.chatSessionId, false);
@@ -481,8 +496,8 @@ export const createWs = (url: string) => {
                     break;
                 }
                 // ===== 30–39 文件传输相关 =====
-                // 30 上传完成的消息弃用，改用上传监听
-                case MessageType.FILE_TRANSMITTING: {// 31 END
+                // 30号上传完成的消息 弃用，改用上传监听
+                case MessageType.FILE_TRANSMITTING: {// 31 END ✅
                     // 处理文件上传进度
                     console.log('⬆️ 文件上传进度消息');
                     if (msgData.messageId) {
@@ -502,7 +517,6 @@ export const createWs = (url: string) => {
                     }
                     break;
                 }
-
                 default:
                     // 处理其它类型消息
                     console.warn('⚠️ 未处理的消息类型:', messageType);

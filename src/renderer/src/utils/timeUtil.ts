@@ -8,21 +8,24 @@ dayjs.locale('zh-cn')
  * @param time 时间字符串或时间戳
  */
 export const formatDate = (timestamp: number | string): string => {
-    const timestampTime = dayjs(timestamp)
+    const ts = Number(timestamp);
+    const realTs = ts.toString().length === 10 ? ts * 1000 : ts;
+    const timestampTime = dayjs(realTs);
+
     const days =
         Number.parseInt(dayjs().format('YYYYMMDD')) -
-        Number.parseInt(timestampTime.format('YYYYMMDD'))
+        Number.parseInt(timestampTime.format('YYYYMMDD'));
 
     if (days === 0) {
-        return timestampTime.format('HH:mm')
+        return timestampTime.format('HH:mm');
     } else if (days === 1) {
-        return '昨日'
+        return '昨日';
     } else if (days >= 2 && days < 7) {
-        return timestampTime.format('dddd') // 星期几（中文）
+        return timestampTime.format('dddd'); // 星期几
     } else {
-        return timestampTime.format('YY/MM/DD')
+        return timestampTime.format('YY/MM/DD');
     }
-}
+};
 
 /**
  * 格式化聊天列表的 时间为日常表达

@@ -78,8 +78,8 @@ const ChatPage: React.FC = () => {
 
   const fetchFriendInfoAndMessages = async () => {
     if (!sessionId || !user?.id) return
-    const contactId = Number(getContactIdFromSession(sessionId, user.id.toString()))
-    const userRes = await getUserVoById({ id: contactId })
+    const contactId = getContactIdFromSession(sessionId, user.id.toString())
+    const userRes = await getUserVoById({ id: contactId as unknown as number })
     const resData = userRes.data as API.UserVO
     setFriendInfo(userRes.data)
     const result = await window.electron.ipcRenderer.invoke('get-message-list', sessionId)
@@ -211,7 +211,7 @@ const ChatPage: React.FC = () => {
   const beforeUpload = (file: RcFile) => {
     const isLt10MB = file.size / 1024 / 1024 < 10;
     if (!isLt10MB) {
-      message.error('图片必须小于 10MB！');
+      message.error('文件必须小于 10MB！');
       return false;
     }
     if (!sessionId || !user?.id) {
@@ -220,9 +220,6 @@ const ChatPage: React.FC = () => {
     }
     // 这里你可以拿 fileInfo.uid, fileInfo.name, fileInfo.size 等属性
     globalUploadId = Snowflake.nextId()
-    console.log(globalUploadId);
-    console.log(globalUploadId);
-    console.log(globalUploadId);
     if (!sessionId || !user?.id) return;
     const now = Date.now();
     // 构造消息内容
@@ -276,19 +273,15 @@ const ChatPage: React.FC = () => {
 
 
   const getUploadData = (file: UploadFile) => {
-    // const originFile = file.originFileObj as RcFile | undefined;
-    // let bizType: 'picture' | 'file' | 'video' = 'file';
-    // if (originFile.type.startsWith('image/')) bizType = 'picture';
-    // else if (originFile.type.startsWith('video/')) bizType = 'video';
+    let bizType: 'picture' | 'file' | 'video' = 'file';
+    if (file.type?.startsWith('image/')) bizType = 'picture';
+    if (file.type?.startsWith('video/')) bizType = 'video';
     const contactId = sessionId?.startsWith('G')
       ? sessionId
       : getContactIdFromSession(sessionId!, user!.id!.toString());
-    console.log('sessionId:', sessionId);
-    console.log('user.id:', user?.id);
-    console.log('contactId:', contactId);
     return {
       messageId: globalUploadId,
-      biz: 'file',
+      biz: bizType,
       contactId: contactId,
     };
   };
@@ -296,11 +289,9 @@ const ChatPage: React.FC = () => {
   const sendMessage = async () => {
     if (!value.trim()) return;
     if (!sessionId || !user?.id) return;
-
     const id = Snowflake.nextId();
     let res: any;
     const now = Date.now(); // 当前时间戳
-
     if (sessionId.startsWith('G')) {
       res = await sendMsg({ messageId: id, messageContent: value, contactId: sessionId, messageType: 20 });
     } else {
