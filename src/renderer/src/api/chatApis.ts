@@ -3,7 +3,7 @@
 import request from '@renderer/http/request'
 
 /** 删除消息 POST /chat/deleteMsg */
-export async function delectMsg(body: API.RevokeMsgDto, options?: { [key: string]: any }) {
+export async function deleteMsg(body: API.RevokeMsgDto, options?: { [key: string]: any }) {
   return request<API.BaseResponseBoolean>('/chat/deleteMsg', {
     method: 'POST',
     headers: {
@@ -26,7 +26,7 @@ export async function revokeMsg(body: API.RevokeMsgDto, options?: { [key: string
   })
 }
 
-/** 发送带文件的消息 POST /chat/sendFileMessage */
+/** 发送带文件的消息(已弃用，改用上传并且监听上传过程的回调) POST /chat/sendFileMessage */
 export async function sendFileMessage(
   body: {
     chatSendFileRequest?: API.ChatSendFileRequest
@@ -34,6 +34,23 @@ export async function sendFileMessage(
   options?: { [key: string]: any }
 ) {
   return request<API.BaseResponseMessageSendDTO>('/chat/sendFileMessage', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    data: body,
+    ...(options || {})
+  })
+}
+
+/** 发送带文件的消息，并且监听回调 POST /chat/sendFileMessageWhitProgress */
+export async function sendFileMessageWhitProgress(
+  body: {
+    chatSendFileRequest?: API.ChatSendFileRequest
+  },
+  options?: { [key: string]: any }
+) {
+  return request<API.BaseResponseMessageSendDTO>('/chat/sendFileMessageWhitProgress', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'

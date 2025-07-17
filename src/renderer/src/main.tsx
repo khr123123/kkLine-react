@@ -4,6 +4,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
 import './styles/global.scss';
+import "./styles/bubble.css"
 
 message.config({
   maxCount: 3,

@@ -131,7 +131,6 @@ declare namespace API {
   type ChatSendFileRequest = {
     messageId?: number
     contactId: string
-    sendTime?: string
     biz?: string
   }
 

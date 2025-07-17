@@ -1,0 +1,14 @@
+﻿.ant-bubble-content:hover+.ant-bubble-footer .ant-bubble-footer,
+.ant-bubble-content:hover~.ant-bubble-footer,
+[class*='ant-bubble']:hover>.ant-bubble-footer {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
+
+.ant-bubble-footer {
+    margin-bottom: -16px !important;
+    margin-top: 10px !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transition: opacity 0.4s ease !important;
+}

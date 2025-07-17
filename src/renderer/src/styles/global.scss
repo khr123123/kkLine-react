@@ -136,3 +136,9 @@ textarea::-webkit-scrollbar-track {
 .ant-attachment-list-card-img-mask {
     display: none !important;
 }
+
+:global(.ant-bubble-content):hover+ :global(.ant-bubble-footer) .bubbleFooter,
+:global(.ant-bubble-content):hover~.bubbleFooter,
+:global([class*='ant-bubble']):hover>.bubbleFooter {
+    opacity: 1 !important;
+}

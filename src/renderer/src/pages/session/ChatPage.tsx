@@ -1,6 +1,6 @@
 import { CloseCircleOutlined, DislikeOutlined, ExclamationCircleFilled, LikeOutlined, LinkOutlined, ReloadOutlined, RollbackOutlined, SmileOutlined, } from '@ant-design/icons'
 import { Attachments, Bubble, Prompts, Sender } from '@ant-design/x'
-import { Button, Flex, Popover, Space, Avatar, Typography, message, Modal, theme, Upload, Progress } from 'antd'
+import { Button, Flex, Popover, Space, Avatar, Typography, message, Modal, theme, Upload, Progress, Popconfirm } from 'antd'
 import React, { useEffect, useRef, useState } from 'react'
 import { CopyOutlined, DeleteOutlined, RedoOutlined, ShareAltOutlined } from '@ant-design/icons'
 import { Actions, ActionsProps } from '@ant-design/x'
@@ -12,7 +12,7 @@ import { useUserStore } from '@renderer/store/useUserStore'
 import { getUserVoById } from '@renderer/api/userApis'
 import { getGroupInfoWithMembers } from '@renderer/api/groupApis'
 import { formatRelativeTime } from "../../utils/timeUtil"
-import { revokeMsg, sendMsg, sendTypingState } from '@renderer/api/chatApis'
+import { deleteMsg, revokeMsg, sendMsg, sendTypingState } from '@renderer/api/chatApis'
 import { Snowflake } from '@renderer/utils/SnowflakeIdUtil'
 import type { RcFile, UploadFile } from 'antd/es/upload/interface';
 import FilePreviewModal from '@renderer/components/FilePreviewModal'
@@ -96,7 +96,7 @@ const ChatPage: React.FC = () => {
           })
         }
       }
-      const sysMsgType = [24];
+      const sysMsgType = [1, 24];
       if (sysMsgType.includes(item.messageType)) {
         messagesWithTime.push({
           _key: item.id,
@@ -516,7 +516,14 @@ const ChatPage: React.FC = () => {
   // 删除消息
   const handleDeleteMessage = async (messageId: string) => {
     if (!sessionId || !sessionId) return
-    await revokeMsg({ messageId, sessionId })
+    const res = await deleteMsg({ messageId, sessionId }) as unknown as API.BaseResponseBoolean;
+    if (res.code === 0) {
+      message.success('消息删除成功!');
+      window.electron.ipcRenderer.send('user-delete-message', messageId);
+      setMessages((prevMessages) => prevMessages.filter((m) => m._key !== messageId));
+    } else {
+      message.error(res.message);
+    }
   };
   return (
     <>
@@ -548,10 +555,28 @@ const ChatPage: React.FC = () => {
                   return (
                     <Flex style={{ marginTop: -10 }}>
                       <Button type="text" size="small" title="复制">
-                        <Text copyable={{ text: content as string, tooltips: false }} />
+                        <Text copyable={{ text: (content as { txt: string }).txt, tooltips: false }} />
                       </Button>
-                      <Button type="text" size="small" icon={<RollbackOutlined style={{ color: "gray" }} />} title="撤回" onClick={() => handleRevokeMessage((content as { uid: string }).uid)} />
-                      <Button type="text" size="small" icon={<CloseCircleOutlined style={{ color: "gray" }} />} title="关闭" onClick={() => message.success(JSON.stringify(content))} />
+                      <Popconfirm
+                        placement="rightBottom"
+                        title={`即将撤回消息 [${(content as { txt: string }).txt}]`}
+                        description="确认撤回吗？"
+                        onConfirm={() => handleRevokeMessage((content as { uid: string }).uid)}
+                        okText="确认"
+                        cancelText="取消"
+                      >
+                        <Button type="text" size="small" icon={<RollbackOutlined style={{ color: "gray" }} />} title="撤回" />
+                      </Popconfirm>
+                      <Popconfirm
+                        placement="rightBottom"
+                        title={`即将删除消息 [${(content as { txt: string }).txt}]`}
+                        description="删除后不存在与本地记录"
+                        onConfirm={() => handleDeleteMessage((content as { uid: string }).uid)}
+                        okText="确认"
+                        cancelText="取消"
+                      >
+                        <Button type="text" size="small" icon={<CloseCircleOutlined style={{ color: "gray" }} />} title="删除" />
+                      </Popconfirm>
                     </Flex>
                   )
                 },
@@ -589,8 +614,29 @@ const ChatPage: React.FC = () => {
                 footer: (content: BubbleContentType) => {
                   return (
                     <Flex style={{ marginTop: -10 }}>
-                      <Button type="text" size="small" icon={<RollbackOutlined style={{ color: "gray" }} />} title="撤回" onClick={() => message.success(JSON.stringify(content))} />
-                      <Button type="text" size="small" icon={<CloseCircleOutlined style={{ color: "gray" }} />} title="关闭" onClick={() => message.success(JSON.stringify(content))} />
+                      <Button type="text" size="small" title="复制文件地址">
+                        <Text copyable={{ text: (content as { url: string }).url, tooltips: false }} />
+                      </Button>
+                      <Popconfirm
+                        placement="rightBottom"
+                        title={`即将撤回文件 [${(content as { name: string }).name}]`}
+                        description="确认撤回吗？"
+                        onConfirm={() => handleRevokeMessage((content as { uid: string }).uid)}
+                        okText="确认"
+                        cancelText="取消"
+                      >
+                        <Button type="text" size="small" icon={<RollbackOutlined style={{ color: "gray" }} />} title="撤回" />
+                      </Popconfirm>
+                      <Popconfirm
+                        placement="rightBottom"
+                        title={`即将删除文件 [${(content as { name: string }).name}]`}
+                        description="删除后不存在与本地记录"
+                        onConfirm={() => handleDeleteMessage((content as { uid: string }).uid)}
+                        okText="确认"
+                        cancelText="取消"
+                      >
+                        <Button type="text" size="small" icon={<CloseCircleOutlined style={{ color: "gray" }} />} title="删除" />
+                      </Popconfirm>
                     </Flex>
                   )
                 },

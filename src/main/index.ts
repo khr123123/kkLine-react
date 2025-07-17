@@ -4,7 +4,7 @@ import { join } from 'path';
 import icon from '../../resources/wechat.png?asset';
 import { Menu, nativeImage, Tray } from 'electron';
 import { closeWs, initWs } from './ws'
-import { clearApplyCount, clearNoreadCount, insertChatMessageRecordIgnore, queryAllSession, queryMessagesBySession, revokeMessageById, setSessionTop, updateSessionLastMessage } from '../db/dbService';
+import { clearApplyCount, clearNoreadCount, insertChatMessageRecordIgnore, queryAllSession, queryMessagesBySession, removeMessageById, revokeMessageById, setSessionTop, updateSessionLastMessage } from '../db/dbService';
 import path from 'path'
 const { exec } = require('child_process');
 const sendPath = path.join(__dirname, '../../resources/send.wav')
@@ -123,8 +123,9 @@ function registerIpcHandlers(mainWindow: BrowserWindow) {
   })
   // 6. 初始化Msg列表
   ipcMain.handle('get-message-list', (_, sessionId) => {
-    return queryMessagesBySession(sessionId)
-  })
+    return queryMessagesBySession(sessionId);
+  });
+
   // 7. 当前用户发送消息后 直接在本地后端保存即可
   ipcMain.on('user-send-message', (_, msgData) => {
     exec(`powershell -c (New-Object Media.SoundPlayer '${sendPath}').PlaySync();`)
@@ -168,6 +169,9 @@ function registerIpcHandlers(mainWindow: BrowserWindow) {
       lastMessage: newMsgContent,
       lastReceiveTime: now
     });
+  })
+  ipcMain.on('user-delete-message', (_, messageId) => {
+    removeMessageById(messageId)
   })
   // 8. 清除未读消息数量
   ipcMain.on('clear-noread-count', (_, sessionId) => {

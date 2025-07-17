@@ -162,7 +162,7 @@ export function queryAllSession(userId: number | string) {
 export function queryMessagesBySession(sessionId: string) {
   const stmt = db.prepare(`
     SELECT
-      id, sessionId, messageType, messageContent,
+       id || '' AS id, sessionId, messageType, messageContent,
       sendUserId, sendUserName, sendTime,
       contactId, fileUrl, fileName, fileType, fileSize,
       sendStatus
@@ -213,4 +213,11 @@ export function revokeMessageById(messageId: string, msgContent: string, sendTim
   `);
 
   stmt.run(msgContent, sendTime, messageId);
+}
+export function removeMessageById(messageId: string) {
+  const stmt = db.prepare(`
+    DELETE FROM chatMessage
+    WHERE id = ?
+  `);
+  stmt.run(messageId);
 }

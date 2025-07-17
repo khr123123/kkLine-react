@@ -1,4 +1,4 @@
-import { LoadingOutlined, LogoutOutlined, PlusOutlined } from '@ant-design/icons';
+import { CompressOutlined, LoadingOutlined, LogoutOutlined, MoonOutlined, PlusOutlined, SunOutlined } from '@ant-design/icons';
 import { userLogout } from '@renderer/api/userApis';
 import { useUserStore } from '@renderer/store/useUserStore';
 import {
@@ -198,9 +198,24 @@ const SettingPage: React.FC = () => {
                                         value={themeMode}
                                         onChange={(value: 'light' | 'dark' | "compact") => setThemeMode(value)}
                                     >
-                                        <Option value="light">浅色模式</Option>
-                                        <Option value="dark">深色模式</Option>
-                                        <Option value="compact">紧凑模式</Option>
+                                        <Option value="light">
+                                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                                                <SunOutlined style={{ fontSize: 16 }} />
+                                                浅色模式
+                                            </span>
+                                        </Option>
+                                        <Option value="dark">
+                                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                                                <MoonOutlined style={{ fontSize: 16 }} />
+                                                深色模式
+                                            </span>
+                                        </Option>
+                                        <Option value="compact">
+                                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                                                <CompressOutlined style={{ fontSize: 16 }} />
+                                                紧凑模式
+                                            </span>
+                                        </Option>
                                     </Select>
                                 </Form.Item>
                             </Col>
