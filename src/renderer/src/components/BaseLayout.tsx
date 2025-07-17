@@ -30,19 +30,41 @@ const BaseLayout: React.FC = () => {
   const location = useLocation()
   const user = useUserStore((state) => state.user)
 
-  useEffect(() => {
-    if (selectedMenuKey === 'myGithub') {
-      window.open('https://github.com/khr123123')
-      return
+  const handleMenuClick = (key: string) => {
+    if (key === 'myGithub') {
+      window.open('https://github.com/khr123123');
+      return;
     }
-    navigate(selectedMenuKey)
-  }, [selectedMenuKey, navigate])
+    setSelectedMenuKey(key);
+    if (!location.pathname.startsWith(`/${key}`)) {
+      navigate(`/${key}`);
+    }
+  };
+
 
   useEffect(() => {
     if (location.pathname.startsWith('/')) {
       window.electron.ipcRenderer.send('resize-window', { width: 880, height: 620 })
     }
   }, [])
+
+  useEffect(() => {
+    const path = location.pathname;
+    const firstSegment = path.split('/')[1]; // 比如 /sessions/xxx => sessions
+    const validKeys = [
+      'sessions',
+      'friends',
+      'groups',
+      'search',
+      'openai',
+      'youtube',
+      'setting',
+    ];
+    if (validKeys.includes(firstSegment)) {
+      setSelectedMenuKey(firstSegment);
+    }
+  }, [location.pathname]);
+
 
   const matches = useMatches()
   const matched = matches.find(
@@ -74,7 +96,7 @@ const BaseLayout: React.FC = () => {
           theme="light"
           mode="inline"
           selectedKeys={[selectedMenuKey]}
-          onClick={({ key }) => setSelectedMenuKey(key)}
+          onClick={({ key }) => handleMenuClick(key)}
           className="icon-only-menu no-drag"
           items={[
             { key: 'sessions', icon: <CommentOutlined style={{ fontSize: 24 }} /> },

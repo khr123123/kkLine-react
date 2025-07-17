@@ -26,7 +26,7 @@ import { delGroup, editGroup, getGroupInfoWithMembers } from "@renderer/api/grou
 import { useGlobalReloadStore } from "@renderer/store/useGlobalReloadStore";
 import GroupForm from "@renderer/components/GroupForm";
 import { useUserStore } from "@renderer/store/useUserStore";
-import { delContact } from "@renderer/api/contactApis";
+import { checkRelation, delContact } from "@renderer/api/contactApis";
 const { Title, Text, Paragraph } = Typography;
 
 interface GroupData {
@@ -283,8 +283,17 @@ const GroupInfo: React.FC = () => {
                             type="primary"
                             size="large"
                             icon={<WechatOutlined style={{ fontSize: 26 }} />}
-                            onClick={() => {
-                                message.success(`发消息`);
+                            onClick={async () => {
+                                if (!groupId) return
+                                const res = await checkRelation({ contactId: groupId }) as API.BaseResponseChatSessionVO
+                                if (res.code !== 0) {
+                                    message.error(res.message)
+                                    return
+                                }
+                                const chatSession = res.data
+                                window.electron.ipcRenderer.invoke('user-goto-session', chatSession).then((sessionId) => {
+                                    navigate('/sessions/' + sessionId)
+                                });
                             }}
                         >
                             发消息

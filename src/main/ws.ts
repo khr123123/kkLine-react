@@ -261,6 +261,9 @@ export const createWs = (url: string) => {
                             lastMessage: msgData.content?.text,
                             memberCount: msgData.contact?.memberCount,
                         }, 1);
+                        if (mainWindow?.webContents) {
+                            mainWindow.webContents.send('reload-session-list');
+                        }
                     }
                     if (mainWindow?.webContents) {
                         mainWindow.webContents.send('receive-message', msgInfo);

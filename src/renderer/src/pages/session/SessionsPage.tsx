@@ -10,13 +10,13 @@ import GlobalLoading from '@renderer/components/GlobalLoding';
 import type { MenuProps } from 'antd';
 import { Avatar, Badge, Dropdown, Input, List, Menu, Modal, theme, Typography } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { formatDate } from "../../utils/timeUtil"
 
 const { Text } = Typography;
 
 interface Contact {
-  sessionId: number;
+  sessionId: string;
   contactName: string;
   contactAvatar: string;
   lastMessage: string;
@@ -49,6 +49,18 @@ const SessionsPage: React.FC = () => {
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [contextContact, setContextContact] = useState<Contact | null>(null);
   const navigate = useNavigate();
+  const location = useLocation();
+  useEffect(() => {
+    if (!contacts || contacts.length === 0) return;
+    const match = location.pathname.match(/^\/sessions\/([^/]+)$/);
+    if (match) {
+      const sessionId = match[1];
+      const contact = contacts.find(c => c.sessionId === sessionId);
+      if (contact) {
+        setSelectedContact(contact);
+      }
+    }
+  }, [contacts, location.pathname]);
   //置顶处理器 0：取消置顶 1：置顶
   const handleTop = (contact: Contact) => {
     setContacts((prev) => {
@@ -95,7 +107,7 @@ const SessionsPage: React.FC = () => {
   const sortedContacts = [...contacts].sort((a, b) => {
     if (a.topType === 1 && b.topType !== 1) return -1;
     if (a.topType !== 1 && b.topType === 1) return 1;
-    return a.sessionId - b.sessionId;
+    return a.sessionId.localeCompare(b.sessionId);
   });
   const menu = <Menu onClick={onMenuClick} items={getMenuItems(contextContact)} />;
   const [globalLoading, setGlobalLoading] = useState(true);
@@ -210,7 +222,6 @@ const SessionsPage: React.FC = () => {
                   maxHeight: '74px',
                 }}
                 onClick={() => {
-                  setSelectedContact(item);
                   navigate(`/sessions/${item.sessionId}`);
                   window.electron.ipcRenderer.send("clear-noread-count", item.sessionId)
                   setContacts(prev =>
