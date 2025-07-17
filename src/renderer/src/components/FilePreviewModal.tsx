@@ -49,14 +49,21 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({ open, onClose, file
         }
     }, [fileUrl, fileName, isMarkdown, isTxt, open]);
 
-    const handleDownload = () => {
-        const link = document.createElement('a');
-        link.href = fileUrl;
-        link.download = fileName;
-        link.target = '_blank';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+    const handleDownload = (url: string) => {
+        const suffix = url.slice(url.lastIndexOf('.'));
+        const filename = Date.now() + suffix;
+        fetch(url)
+            .then((response) => response.blob())
+            .then((blob) => {
+                const blobUrl = URL.createObjectURL(new Blob([blob]));
+                const link = document.createElement('a');
+                link.href = blobUrl;
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                URL.revokeObjectURL(blobUrl);
+                link.remove();
+            });
     };
 
     return (
@@ -71,7 +78,7 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({ open, onClose, file
             style={{ marginTop: -160 }}
         >
             <div style={{ position: 'absolute', top: 12, right: 60, zIndex: 10, }}>
-                <Button style={{ fontSize: 16 }} type="primary" icon={<DownloadOutlined />} onClick={handleDownload}>
+                <Button style={{ fontSize: 16 }} type="primary" icon={<DownloadOutlined />} onClick={() => handleDownload(fileUrl)}>
                     下载
                 </Button>
             </div>

@@ -1,4 +1,4 @@
-import { CloseCircleOutlined, DislikeOutlined, ExclamationCircleFilled, LikeOutlined, LinkOutlined, ReloadOutlined, RollbackOutlined, SmileOutlined, } from '@ant-design/icons'
+import { CloseCircleOutlined, DislikeOutlined, DownloadOutlined, ExclamationCircleFilled, LeftOutlined, LikeOutlined, LinkOutlined, ReloadOutlined, RightOutlined, RollbackOutlined, RotateLeftOutlined, RotateRightOutlined, SmileOutlined, SwapOutlined, UndoOutlined, ZoomInOutlined, ZoomOutOutlined, } from '@ant-design/icons'
 import { Attachments, Bubble, Prompts, Sender } from '@ant-design/x'
 import { Button, Flex, Popover, Space, Avatar, Typography, message, Modal, theme, Upload, Progress, Popconfirm } from 'antd'
 import React, { useEffect, useRef, useState } from 'react'
@@ -525,6 +525,23 @@ const ChatPage: React.FC = () => {
       message.error(res.message);
     }
   };
+  //图片下载
+  const onDownload = (url: string) => {
+    const suffix = url.slice(url.lastIndexOf('.'));
+    const filename = Date.now() + suffix;
+    fetch(url)
+      .then((response) => response.blob())
+      .then((blob) => {
+        const blobUrl = URL.createObjectURL(new Blob([blob]));
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        URL.revokeObjectURL(blobUrl);
+        link.remove();
+      });
+  };
   return (
     <>
       <div style={{ display: 'flex', flexDirection: 'column', height: '95vh', width: '100%' }}>
@@ -592,7 +609,36 @@ const ChatPage: React.FC = () => {
                         setFilePreview({ open: true, fileUrl: item.url, fileName: item.name }) :
                         void 0
                     }}>
-                      <Attachments.FileCard key={item.uid} item={item} />
+                      <Attachments.FileCard key={item.uid} item={item} imageProps={{
+                        preview: {
+                          toolbarRender: (
+                            _,
+                            {
+                              transform: { scale },
+                              actions: {
+                                onFlipY,
+                                onFlipX,
+                                onRotateLeft,
+                                onRotateRight,
+                                onZoomOut,
+                                onZoomIn,
+                                onReset,
+                              },
+                            },
+                          ) => (
+                            <Space size={18} style={{ fontSize: 24 }} className="toolbar-wrapper">
+                              <DownloadOutlined onClick={() => onDownload(item.url)} />
+                              <SwapOutlined rotate={90} onClick={onFlipY} />
+                              <SwapOutlined onClick={onFlipX} />
+                              <RotateLeftOutlined onClick={onRotateLeft} />
+                              <RotateRightOutlined onClick={onRotateRight} />
+                              <ZoomOutOutlined disabled={scale === 1} onClick={onZoomOut} />
+                              <ZoomInOutlined disabled={scale === 50} onClick={onZoomIn} />
+                              <UndoOutlined onClick={onReset} />
+                            </Space>
+                          ),
+                        }
+                      }} />
                       {item.percent > 0 && item.percent < 100 && (
                         <Progress
                           type="circle"
@@ -652,7 +698,36 @@ const ChatPage: React.FC = () => {
                         setFilePreview({ open: true, fileUrl: item.url, fileName: item.name }) :
                         void 0
                     }}>
-                      <Attachments.FileCard key={item.uid} item={item} />
+                      <Attachments.FileCard key={item.uid} item={item} imageProps={{
+                        preview: {
+                          toolbarRender: (
+                            _,
+                            {
+                              transform: { scale },
+                              actions: {
+                                onFlipY,
+                                onFlipX,
+                                onRotateLeft,
+                                onRotateRight,
+                                onZoomOut,
+                                onZoomIn,
+                                onReset,
+                              },
+                            },
+                          ) => (
+                            <Space size={18} style={{ fontSize: 24 }} className="toolbar-wrapper">
+                              <DownloadOutlined onClick={() => onDownload(item.url)} />
+                              <SwapOutlined rotate={90} onClick={onFlipY} />
+                              <SwapOutlined onClick={onFlipX} />
+                              <RotateLeftOutlined onClick={onRotateLeft} />
+                              <RotateRightOutlined onClick={onRotateRight} />
+                              <ZoomOutOutlined disabled={scale === 1} onClick={onZoomOut} />
+                              <ZoomInOutlined disabled={scale === 50} onClick={onZoomIn} />
+                              <UndoOutlined onClick={onReset} />
+                            </Space>
+                          ),
+                        }
+                      }} />
                       {item.percent > 0 && item.percent < 100 && (
                         <Progress
                           type="circle"
