@@ -26,6 +26,12 @@ declare namespace API {
     message?: string
   }
 
+  type BaseResponseChatSessionVO = {
+    code?: number
+    data?: ChatSessionVO
+    message?: string
+  }
+
   type BaseResponseContactVO = {
     code?: number
     data?: ContactVO
@@ -143,6 +149,22 @@ declare namespace API {
     fileSize?: string
     fileName?: string
     fileType?: string
+  }
+
+  type ChatSessionVO = {
+    userId?: number
+    lastMessage?: string
+    lastTime?: number
+    contactId?: string
+    sessionId?: string
+    contactName?: string
+    contactType?: number
+    memberCount?: number
+    contactAvatar?: string
+  }
+
+  type checkRelationParams = {
+    contactId: string
   }
 
   type ContactApplyVO = {

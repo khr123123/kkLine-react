@@ -68,7 +68,7 @@ export function insertChatSessionUserIgnore(session: any, noReadCount?: number) 
     session.contactType ?? 0,
     session.lastTime ?? null,
     session.lastMessage || null,
-    noReadCount || null,              // noReadCount 默认0
+    noReadCount || 0,              // noReadCount 默认0
     session.memberCount ?? 0,
     0               // topType 默认0
   );
@@ -220,4 +220,39 @@ export function removeMessageById(messageId: string) {
     WHERE id = ?
   `);
   stmt.run(messageId);
+}
+
+/**
+ * 删除某个用户的某个会话
+ * @param sessionId 聊天会话 ID
+ * @param userId 当前登录用户 ID
+ */
+export function removeChatSessionUser(sessionId: string, userId: string) {
+  const stmt = db.prepare(`
+    DELETE FROM chatSessionUser
+    WHERE sessionId = ? AND userId = ?
+  `);
+  stmt.run(sessionId, userId);
+}
+
+/**
+ * 删除该会话的所有消息
+ * @param sessionId 聊天会话 ID
+ */
+export function removeMessageBySessionId(sessionId: string) {
+  const stmt = db.prepare(`
+    DELETE FROM chatMessage
+    WHERE sessionId = ?
+  `);
+  stmt.run(sessionId);
+}
+
+export function hasChatSessionUser(sessionId: string, userId: string): boolean {
+  const stmt = db.prepare(`
+    SELECT 1 FROM chatSessionUser
+    WHERE sessionId = ? AND userId = ?
+    LIMIT 1
+  `);
+  const row = stmt.get(sessionId, userId);
+  return !!row;
 }

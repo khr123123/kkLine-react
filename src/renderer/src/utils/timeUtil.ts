@@ -8,6 +8,7 @@ dayjs.locale('zh-cn')
  * @param time 时间字符串或时间戳
  */
 export const formatDate = (timestamp: number | string): string => {
+    if (!timestamp) return ""
     const ts = Number(timestamp);
     const realTs = ts.toString().length === 10 ? ts * 1000 : ts;
     const timestampTime = dayjs(realTs);
@@ -33,6 +34,7 @@ export const formatDate = (timestamp: number | string): string => {
  * @returns {string} 如“刚刚”，“5分钟前”，“昨天”，“3天前”等
  */
 export const formatRelativeTime = (time: string | number): string => {
+    if (!time) return ""
     const now = dayjs()
     const msgTime = dayjs(time)
 

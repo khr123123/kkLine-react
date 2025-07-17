@@ -3,7 +3,6 @@ import type { InitMessageDTO, MessageSendDTO } from './common/messageType'
 import { MessageType } from './common/messageType'
 import { accumulateApplyCount, findSessionByUserAndContact, insertChatMessageRecordIgnore, insertChatSessionUserIgnore, revokeMessageById, updateContactInfo, updateMessageFileUrlAndStatus, updateSessionInfo, updateSessionLastMessage, updateSessionNoReadCount } from "../db/dbService"
 import path from 'path'
-import { message } from 'antd'
 const { exec } = require('child_process');
 const recivePath = path.join(__dirname, '../../resources/recive.wav')
 
@@ -425,6 +424,9 @@ export const createWs = (url: string) => {
                                 lastTime: msgData.sendTime,
                                 lastMessage: msgData.content?.text,
                             }, 1);
+                            if (mainWindow?.webContents) {
+                                mainWindow.webContents.send('reload-session-list');
+                            }
                         }
                     } else {
                         const sessionRow = findSessionByUserAndContact(userId, msgData.sender?.userId!);
@@ -449,6 +451,9 @@ export const createWs = (url: string) => {
                                 lastTime: msgData.sendTime,
                                 lastMessage: msgData.content?.text,
                             }, 1);
+                            if (mainWindow?.webContents) {
+                                mainWindow.webContents.send('reload-session-list');
+                            }
                         }
                     }
                     if (mainWindow?.webContents) {
@@ -504,6 +509,9 @@ export const createWs = (url: string) => {
                                 lastTime: msgData.sendTime,
                                 lastMessage: msgData.content?.text,
                             }, 1);
+                            if (mainWindow?.webContents) {
+                                mainWindow.webContents.send('reload-session-list');
+                            }
                         }
                     } else {
                         const sessionRow = findSessionByUserAndContact(userId, msgData.sender?.userId!);
@@ -528,6 +536,9 @@ export const createWs = (url: string) => {
                                 lastTime: msgData.sendTime,
                                 lastMessage: msgData.content?.text,
                             }, 1);
+                            if (mainWindow?.webContents) {
+                                mainWindow.webContents.send('reload-session-list');
+                            }
                         }
                     }
                     if (mainWindow?.webContents) {

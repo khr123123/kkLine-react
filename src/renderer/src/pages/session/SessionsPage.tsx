@@ -1,5 +1,6 @@
 import {
   DeleteOutlined,
+  ExclamationCircleOutlined,
   MessageOutlined,
   PushpinOutlined,
   VerticalAlignBottomOutlined,
@@ -7,7 +8,7 @@ import {
 } from '@ant-design/icons';
 import GlobalLoading from '@renderer/components/GlobalLoding';
 import type { MenuProps } from 'antd';
-import { Avatar, Badge, Dropdown, Input, List, Menu, theme, Typography } from 'antd';
+import { Avatar, Badge, Dropdown, Input, List, Menu, Modal, theme, Typography } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { formatDate } from "../../utils/timeUtil"
@@ -48,6 +49,7 @@ const SessionsPage: React.FC = () => {
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [contextContact, setContextContact] = useState<Contact | null>(null);
   const navigate = useNavigate();
+  //置顶处理器 0：取消置顶 1：置顶
   const handleTop = (contact: Contact) => {
     setContacts((prev) => {
       const isCurrentlyTop = isTop(contact);
@@ -64,10 +66,21 @@ const SessionsPage: React.FC = () => {
     });
   };
   const handleDelete = (contact: Contact) => {
-    setContacts((prev) => prev.filter((c) => c.sessionId !== contact.sessionId));
-    if (selectedContact?.sessionId === contact.sessionId) {
-      setSelectedContact(null);
-    }
+    Modal.confirm({
+      title: '警告',
+      icon: <ExclamationCircleOutlined />,
+      content: '删除会话后，聊天记录也将一并删除！',
+      okText: '确定',
+      cancelText: '取消',
+      onOk() {
+        window.electron.ipcRenderer.send('user-delete-contact', contact.sessionId)
+        setContacts((prev) => prev.filter((c) => c.sessionId !== contact.sessionId));
+        if (selectedContact?.sessionId === contact.sessionId) {
+          setSelectedContact(null);
+          navigate(`/sessions`);
+        }
+      }
+    });
   };
   const onMenuClick: MenuProps['onClick'] = ({ key }) => {
     if (!contextContact) return;
@@ -86,7 +99,7 @@ const SessionsPage: React.FC = () => {
   });
   const menu = <Menu onClick={onMenuClick} items={getMenuItems(contextContact)} />;
   const [globalLoading, setGlobalLoading] = useState(true);
-  //要求的数量
+  //邀请的数量
   const [noReadApplyCount, setNoReadApplyCount] = useState<number>(0);
   const { token } = theme.useToken();
   const [ellipsis] = useState(true);

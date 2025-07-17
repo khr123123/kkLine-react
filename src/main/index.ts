@@ -4,7 +4,7 @@ import { join } from 'path';
 import icon from '../../resources/wechat.png?asset';
 import { Menu, nativeImage, Tray } from 'electron';
 import { closeWs, initWs } from './ws'
-import { clearApplyCount, clearNoreadCount, insertChatMessageRecordIgnore, queryAllSession, queryMessagesBySession, removeMessageById, revokeMessageById, setSessionTop, updateSessionLastMessage } from '../db/dbService';
+import { clearApplyCount, clearNoreadCount, hasChatSessionUser, insertChatMessageRecordIgnore, insertChatSessionUserIgnore, queryAllSession, queryMessagesBySession, removeChatSessionUser, removeMessageById, removeMessageBySessionId, revokeMessageById, setSessionTop, updateSessionLastMessage } from '../db/dbService';
 import path from 'path'
 const { exec } = require('child_process');
 const sendPath = path.join(__dirname, '../../resources/send.wav')
@@ -180,6 +180,21 @@ function registerIpcHandlers(mainWindow: BrowserWindow) {
   // 9.会话置顶与取消置顶
   ipcMain.on('set-sessiont-top', (_, sessionId, topState) => {
     setSessionTop(sessionId, currentLoginUser.id, topState)
+  });
+  //10.会话的删除
+  ipcMain.on('user-delete-contact', (_, sessionId) => {
+    removeChatSessionUser(sessionId, currentLoginUser.id)
+    removeMessageBySessionId(sessionId)
+  });
+  //11.用户从朋友列表点击了聊天
+  ipcMain.handle('user-goto-session', (_, chatSession) => {
+    const sessionId = chatSession.sessionId;
+    const userId = currentLoginUser.id;
+    const exists = hasChatSessionUser(sessionId, userId);
+    if (!exists) {
+      insertChatSessionUserIgnore(chatSession)
+    }
+    return chatSession.sessionId
   });
 }
 

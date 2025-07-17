@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import {
     Card,
     Avatar,
@@ -22,6 +22,7 @@ import {
 import dayjs from "dayjs";
 import { createStyles } from "antd-style";
 import { getUserVoById } from "@renderer/api/userApis";
+import { checkRelation } from "@renderer/api/contactApis";
 const { Title, Text, Paragraph } = Typography;
 
 interface UserProfile {
@@ -65,6 +66,7 @@ const FriendInfo: React.FC = () => {
     const [user, setUser] = useState<UserProfile | null>(null);
     const [loading, setLoading] = useState(true);
     const { styles } = useStyle();
+    const navigate = useNavigate();
 
     useEffect(() => {
         if (!friendId) return;
@@ -72,8 +74,8 @@ const FriendInfo: React.FC = () => {
         const fetchUser = async () => {
             setLoading(true);
             try {
-                const res = await getUserVoById({ id: friendId });
-                setUser(res.data);
+                const res = await getUserVoById({ id: friendId as unknown as number }) as unknown as API.BaseResponseUserVO
+                setUser(res.data as UserProfile);
             } catch (err) {
                 console.error("用户获取失败", err);
             } finally {
@@ -156,8 +158,17 @@ const FriendInfo: React.FC = () => {
                         type="primary"
                         size="large"
                         icon={<WechatOutlined style={{ fontSize: 26 }} />}
-                        onClick={() => {
-                            message.success(`发消息`);
+                        onClick={async () => {
+                            if (!friendId) return
+                            const res = await checkRelation({ contactId: friendId }) as API.BaseResponseChatSessionVO
+                            if (res.code !== 0) {
+                                message.error(res.message)
+                                return
+                            }
+                            const chatSession = res.data
+                            window.electron.ipcRenderer.invoke('user-goto-session', chatSession).then((sessionId) => {
+                                navigate('/sessions/' + sessionId)
+                            });
                         }}
                     >
                         发消息
