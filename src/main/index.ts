@@ -4,7 +4,7 @@ import { join } from 'path';
 import icon from '../../resources/wechat.png?asset';
 import { Menu, nativeImage, Tray } from 'electron';
 import { closeWs, initWs } from './ws'
-import { clearApplyCount, clearNoreadCount, insertChatMessageRecordIgnore, queryAllSession, queryMessagesBySession, setSessionTop } from '../db/dbService';
+import { clearApplyCount, clearNoreadCount, insertChatMessageRecordIgnore, queryAllSession, queryMessagesBySession, revokeMessageById, setSessionTop, updateSessionLastMessage } from '../db/dbService';
 import path from 'path'
 const { exec } = require('child_process');
 const sendPath = path.join(__dirname, '../../resources/send.wav')
@@ -148,7 +148,6 @@ function registerIpcHandlers(mainWindow: BrowserWindow) {
       lastMessage: msgData.content?.text!,
       lastReceiveTime: msgData.sendTime!
     });
-
   })
   ipcMain.on('user-send-file-message', (_, fileMsgData) => {
     exec(`powershell -c (New-Object Media.SoundPlayer '${sendPath}').PlaySync();`)
@@ -157,6 +156,17 @@ function registerIpcHandlers(mainWindow: BrowserWindow) {
       chatSessionId: fileMsgData.sessionId!,
       lastMessage: fileMsgData.messageContent!,
       lastReceiveTime: fileMsgData.sendTime!
+    });
+  })
+  ipcMain.on('user-revoke-message', (_, messageId, sessionId) => {
+    const newMsgContent = currentLoginUser.userName + "撤回了一条消息"
+    const now = Date.now();
+    revokeMessageById(messageId, newMsgContent, now)
+    updateSessionLastMessage(sessionId, newMsgContent, now)
+    mainWindow.webContents.send('change-session-info', {
+      chatSessionId: sessionId,
+      lastMessage: newMsgContent,
+      lastReceiveTime: now
     });
   })
   // 8. 清除未读消息数量

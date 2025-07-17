@@ -1,6 +1,6 @@
-import { ExclamationCircleFilled, LinkOutlined, SmileOutlined, } from '@ant-design/icons'
+import { CloseCircleOutlined, DislikeOutlined, ExclamationCircleFilled, LikeOutlined, LinkOutlined, ReloadOutlined, RollbackOutlined, SmileOutlined, } from '@ant-design/icons'
 import { Attachments, Bubble, Prompts, Sender } from '@ant-design/x'
-import { Button, Flex, Popover, Space, Avatar, Typography, message, Modal, theme, Upload, UploadProps, GetProp, Progress } from 'antd'
+import { Button, Flex, Popover, Space, Avatar, Typography, message, Modal, theme, Upload, Progress } from 'antd'
 import React, { useEffect, useRef, useState } from 'react'
 import { CopyOutlined, DeleteOutlined, RedoOutlined, ShareAltOutlined } from '@ant-design/icons'
 import { Actions, ActionsProps } from '@ant-design/x'
@@ -12,7 +12,7 @@ import { useUserStore } from '@renderer/store/useUserStore'
 import { getUserVoById } from '@renderer/api/userApis'
 import { getGroupInfoWithMembers } from '@renderer/api/groupApis'
 import { formatRelativeTime } from "../../utils/timeUtil"
-import { sendMsg, sendTypingState } from '@renderer/api/chatApis'
+import { revokeMsg, sendMsg, sendTypingState } from '@renderer/api/chatApis'
 import { Snowflake } from '@renderer/utils/SnowflakeIdUtil'
 import type { RcFile, UploadFile } from 'antd/es/upload/interface';
 import FilePreviewModal from '@renderer/components/FilePreviewModal'
@@ -57,7 +57,6 @@ const actionItems: ActionsProps['items'] = [
 interface CustomBubbleProps extends Omit<BubbleProps, 'content'> {
   content?: BubbleContentType;
 }
-
 const ChatPage: React.FC = () => {
   const { sessionId } = useParams()
   const user = useUserStore((state) => state.user)
@@ -75,7 +74,6 @@ const ChatPage: React.FC = () => {
     if (sessionId.endsWith(myId)) return sessionId.slice(0, sessionId.length - myId.length)
     return ''
   }
-
   const fetchFriendInfoAndMessages = async () => {
     if (!sessionId || !user?.id) return
     const contactId = getContactIdFromSession(sessionId, user.id.toString())
@@ -115,7 +113,10 @@ const ChatPage: React.FC = () => {
             size: Number(item.fileSize) || 0,
             url: item.fileUrl,
           }
-          : item.messageContent;
+          : {
+            uid: item.id,
+            txt: item.messageContent
+          };
         messagesWithTime.push({
           _key: item.id,
           role: isFile
@@ -124,7 +125,7 @@ const ChatPage: React.FC = () => {
           content,
           avatar: item.sendUserId === user?.id
             ? { src: user?.userAvatar }
-            : { src: resData.userAvatar },
+            : { src: resData.userAvatar }
         });
         lastTimestamp = currentTimestamp;
       }
@@ -184,7 +185,10 @@ const ChatPage: React.FC = () => {
             size: Number(item.fileSize) || 0,
             url: item.fileUrl,
           }
-          : item.messageContent;
+          : {
+            uid: item.id,
+            txt: item.messageContent
+          };
         messagesWithTime.push({
           _key: item.id,
           role: isFile
@@ -201,7 +205,6 @@ const ChatPage: React.FC = () => {
     lastMessageTimeRef.current = result[result.length - 1].sendTime
     setMessages(messagesWithTime)
   }
-
 
   useEffect(() => {
     if (!sessionId) return
@@ -274,7 +277,6 @@ const ChatPage: React.FC = () => {
     return true;
   };
 
-
   const getUploadData = (file: UploadFile) => {
     let bizType: 'picture' | 'file' | 'video' = 'file';
     if (file.type?.startsWith('image/')) bizType = 'picture';
@@ -288,7 +290,6 @@ const ChatPage: React.FC = () => {
       contactId: contactId,
     };
   };
-
   const sendMessage = async () => {
     if (!value.trim()) return;
     if (!sessionId || !user?.id) return;
@@ -318,9 +319,11 @@ const ChatPage: React.FC = () => {
         _key: id,
         role: 'me',
         avatar: { src: user?.userAvatar },
-        content: value,
+        content: {
+          uid: id,
+          txt: value
+        }
       });
-
       setMessages(prev => [...prev, ...newMessages]);
       setValue('');
       lastMessageTimeRef.current = now;
@@ -384,7 +387,10 @@ const ChatPage: React.FC = () => {
           newMessages.push({
             _key: msgInfo.id,
             role: 'friend',
-            content: msgInfo.messageContent,
+            content: {
+              uid: msgInfo.id,
+              txt: msgInfo.messageContent
+            },
             avatar: { src: sessionId?.startsWith('G') ? memberMap.get(msgInfo.sendUserId) : friendInfo?.userAvatar }
           });
         }
@@ -430,7 +436,6 @@ const ChatPage: React.FC = () => {
     fileName: '',
   });
 
-
   useEffect(() => {
     const handleTyping = (_event: any, currentSessionId: string, isTyping: boolean) => {
       if (sessionId !== currentSessionId || sessionId?.startsWith('G')) return;
@@ -463,6 +468,56 @@ const ChatPage: React.FC = () => {
     });
   }, [messages]);
 
+  // 撤回消息
+  const handleRevokeMessage = async (messageId: string) => {
+    if (!sessionId || !sessionId) return
+    const res = await revokeMsg({ messageId, sessionId }) as unknown as API.BaseResponseBoolean;
+    if (res.code === 0) {
+      message.success('消息撤回成功!');
+      window.electron.ipcRenderer.send('user-revoke-message', messageId, sessionId);
+      setMessages((prevMessages) => {
+        const target = prevMessages.find((m) => m._key === messageId);
+        if (!target) return prevMessages;
+        const updated = {
+          ...target,
+          role: 'sys',
+          content: user?.userName + ' 撤回了一条消息',
+          avatar: undefined
+        };
+        const filtered = prevMessages.filter((m) => m._key !== messageId);
+        return [...filtered, updated];
+      });
+    } else {
+      message.error(res.message);
+    }
+  };
+
+  useEffect(() => {
+    window.electron.ipcRenderer.on('somebody-revoke-msg', (_, data) => {
+      const { messageId, messageContent } = data;
+      setMessages((prevMessages) => {
+        const target = prevMessages.find((m) => m._key === messageId);
+        if (!target) return prevMessages;
+        const updated = {
+          ...target,
+          role: 'sys',
+          content: messageContent,
+          avatar: undefined
+        };
+        const filtered = prevMessages.filter((m) => m._key !== messageId);
+        return [...filtered, updated]; // 放到最后一个
+      });
+    });
+    return () => {
+      window.electron.ipcRenderer.removeAllListeners('somebody-revoke-msg');
+    };
+  }, []);
+
+  // 删除消息
+  const handleDeleteMessage = async (messageId: string) => {
+    if (!sessionId || !sessionId) return
+    await revokeMsg({ messageId, sessionId })
+  };
   return (
     <>
       <div style={{ display: 'flex', flexDirection: 'column', height: '95vh', width: '100%' }}>
@@ -486,7 +541,21 @@ const ChatPage: React.FC = () => {
             autoScroll
             className="scrollableDiv"
             roles={{
-              me: { placement: 'end', style: { maxWidth: '100%' }, },
+              me: {
+                placement: 'end', style: { maxWidth: '100%' },
+                messageRender: (content) => <div>{content.txt}</div>,
+                footer: (content: BubbleContentType) => {
+                  return (
+                    <Flex style={{ marginTop: -10 }}>
+                      <Button type="text" size="small" title="复制">
+                        <Text copyable={{ text: content as string, tooltips: false }} />
+                      </Button>
+                      <Button type="text" size="small" icon={<RollbackOutlined style={{ color: "gray" }} />} title="撤回" onClick={() => handleRevokeMessage((content as { uid: string }).uid)} />
+                      <Button type="text" size="small" icon={<CloseCircleOutlined style={{ color: "gray" }} />} title="关闭" onClick={() => message.success(JSON.stringify(content))} />
+                    </Flex>
+                  )
+                },
+              },
               meFile: {
                 placement: 'end', style: { maxWidth: '100%' }, variant: 'borderless', messageRender: (item) => (
                   <Flex style={{ position: 'relative', display: 'inline-block' }}>
@@ -517,8 +586,16 @@ const ChatPage: React.FC = () => {
                     </div>
                   </Flex>
                 ),
+                footer: (content: BubbleContentType) => {
+                  return (
+                    <Flex style={{ marginTop: -10 }}>
+                      <Button type="text" size="small" icon={<RollbackOutlined style={{ color: "gray" }} />} title="撤回" onClick={() => message.success(JSON.stringify(content))} />
+                      <Button type="text" size="small" icon={<CloseCircleOutlined style={{ color: "gray" }} />} title="关闭" onClick={() => message.success(JSON.stringify(content))} />
+                    </Flex>
+                  )
+                },
               },
-              friend: { placement: 'start', style: { maxWidth: '100%' } },
+              friend: { placement: 'start', style: { maxWidth: '100%' }, messageRender: (content) => <div>{content.txt}</div>, },
               friendFile: {
                 placement: 'start', style: { maxWidth: '100%' }, variant: 'borderless', messageRender: (item) => (
                   <Flex style={{ position: 'relative', display: 'inline-block' }}>

@@ -1,8 +1,9 @@
 import WebSocket from 'ws'
 import type { InitMessageDTO, MessageSendDTO } from './common/messageType'
 import { MessageType } from './common/messageType'
-import { accumulateApplyCount, findSessionByUserAndContact, insertChatMessageRecordIgnore, insertChatSessionUserIgnore, updateContactInfo, updateMessageFileUrlAndStatus, updateSessionInfo, updateSessionLastMessage, updateSessionNoReadCount } from "../db/dbService"
+import { accumulateApplyCount, findSessionByUserAndContact, insertChatMessageRecordIgnore, insertChatSessionUserIgnore, revokeMessageById, updateContactInfo, updateMessageFileUrlAndStatus, updateSessionInfo, updateSessionLastMessage, updateSessionNoReadCount } from "../db/dbService"
 import path from 'path'
+import { message } from 'antd'
 const { exec } = require('child_process');
 const recivePath = path.join(__dirname, '../../resources/recive.wav')
 
@@ -555,12 +556,21 @@ export const createWs = (url: string) => {
                 }
                 case MessageType.REVOKE_MESSAGE: { // 24  
                     console.log('🙃 对方撤回了一条消息');
-                    console.log('发送方:', msgData.sender);
-                    console.log('接收方:', msgData.contact);
-                    console.log('消息:', msgData.content?.text);
-                    console.log('消息ID:', msgData.messageId);
-                    console.log('消息类型:', msgData.messageType);
-                    //TODO删除消息即可
+                    const newMsgContent = msgData.content?.text
+                    const now = msgData.sendTime;
+                    revokeMessageById(msgData.messageId?.toString()!, newMsgContent!, now!)
+                    updateSessionLastMessage(msgData.contact?.chatSessionId!, newMsgContent!, now!)
+                    if (mainWindow?.webContents) {
+                        mainWindow.webContents.send('somebody-revoke-msg', {
+                            messageId: msgData.messageId,
+                            messageContent: newMsgContent,
+                        });
+                        mainWindow.webContents.send('change-session-info', {
+                            chatSessionId: msgData.contact?.chatSessionId,
+                            lastMessage: newMsgContent,
+                            lastReceiveTime: now
+                        });
+                    }
                     break;
                 }
                 // ===== 30–39 文件传输相关 =====

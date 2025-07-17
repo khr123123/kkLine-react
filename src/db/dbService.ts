@@ -200,3 +200,17 @@ export function updateMessageFileUrlAndStatus(id: number, fileUrl: string, sendS
   const info = stmt.run(fileUrl, sendStatus, id);
   return info.changes; // 返回影响的行数，方便判断是否成功
 }
+
+
+export function revokeMessageById(messageId: string, msgContent: string, sendTime: number) {
+  const stmt = db.prepare(`
+    UPDATE chatMessage
+    SET
+      messageType = 24,
+      messageContent = ?,
+      sendTime = ?
+    WHERE id = ?
+  `);
+
+  stmt.run(msgContent, sendTime, messageId);
+}
