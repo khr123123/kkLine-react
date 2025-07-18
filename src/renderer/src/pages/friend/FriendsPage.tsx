@@ -1,10 +1,11 @@
 import { RedoOutlined } from '@ant-design/icons';
 import { Conversations, type ConversationsProps } from '@ant-design/x';
 import { loadAllFriend } from '@renderer/api/contactApis';
+import { useGlobalReloadStore } from '@renderer/store/useGlobalReloadStore';
 import { Avatar, Divider, type GetProp, Input, Spin } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const MAX_LETTER_SEGMENT = 3;
 
@@ -18,11 +19,11 @@ const FriendsPage: React.FC = () => {
     const navigate = useNavigate();
     // 用 ref 保存所有好友，避免重复追加相同数据
     const allDataRef = useRef<GetProp<ConversationsProps, 'items'>>([]);
-
+    const location = useLocation()
+    const reloadCount = useGlobalReloadStore(state => state.reloadMap['friendList'] || 0)
     const loadData = async (segment: number) => {
         if (loadingRef.current || segment > MAX_LETTER_SEGMENT) return;
         loadingRef.current = true;
-
         try {
             const res = await loadAllFriend({ letterSegment: segment });
             const newData = (res.data as API.FriendItemDTO[]).map(friend => ({
@@ -33,7 +34,7 @@ const FriendsPage: React.FC = () => {
             }));
 
             // 用 ref 来保存合并数据，防止闭包旧数据问题
-            allDataRef.current = [...allDataRef.current, ...newData];
+            allDataRef.current = [...allDataRef.current, ...newData] as any
             // 合并数据
             // 按 group (首字母) 和 label (用户名) 排序
             allDataRef.current.sort((a, b) => {
@@ -46,23 +47,19 @@ const FriendsPage: React.FC = () => {
 
                 if (isAHash && !isBHash) return 1;
                 if (!isAHash && isBHash) return -1;
-
+                const labelA = typeof a.label === 'string' ? a.label : String(a.label ?? '');
+                const labelB = typeof b.label === 'string' ? b.label : String(b.label ?? '');
                 if (groupA === groupB) {
-                    return (a.label || '').localeCompare(b.label || '');
+                    return labelA.localeCompare(labelB);
                 }
-
                 return groupA.localeCompare(groupB);
             });
-
-
             // 更新状态
             setData([...allDataRef.current]);
             setCurrentSegment(segment + 1);
             setHasMore(segment < MAX_LETTER_SEGMENT);
-
             // 等待DOM渲染，确保 scrollHeight 更新
             await new Promise((resolve) => setTimeout(resolve, 100));
-
             if (scrollableDivRef.current) {
                 const scrollHeight = scrollableDivRef.current.scrollHeight;
                 const clientHeight = scrollableDivRef.current.clientHeight;
@@ -84,6 +81,13 @@ const FriendsPage: React.FC = () => {
     useEffect(() => {
         loadData(1);
     }, []);
+
+    useEffect(() => {
+        allDataRef.current = [];
+        setData([]);
+        loadData(1);
+    }, [reloadCount]);
+
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
@@ -128,7 +132,7 @@ const FriendsPage: React.FC = () => {
                 >
                     <Conversations
                         items={data}
-                        defaultActiveKey={data.length > 0 ? data[0].key : undefined}
+                        defaultActiveKey={location.pathname.split('/')[2] ?? undefined}
                         groupable
                         onActiveChange={(key) => navigate(`/friends/${key}`)}
                     />

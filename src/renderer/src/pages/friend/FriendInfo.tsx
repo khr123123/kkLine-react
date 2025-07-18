@@ -12,17 +12,24 @@ import {
     Descriptions,
     ConfigProvider,
     message,
+    Dropdown,
+    Menu,
+    Popconfirm,
 } from "antd";
 import {
     ManOutlined,
     WomanOutlined,
     QuestionOutlined,
     WechatOutlined,
+    DownOutlined,
+    StopOutlined,
+    CloseSquareOutlined,
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { createStyles } from "antd-style";
 import { getUserVoById } from "@renderer/api/userApis";
-import { checkRelation } from "@renderer/api/contactApis";
+import { checkRelation, delContact } from "@renderer/api/contactApis";
+import { useGlobalReloadStore } from "@renderer/store/useGlobalReloadStore";
 const { Title, Text, Paragraph } = Typography;
 
 interface UserProfile {
@@ -67,6 +74,7 @@ const FriendInfo: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const { styles } = useStyle();
     const navigate = useNavigate();
+    const triggerReload = useGlobalReloadStore(state => state.triggerReload)
 
     useEffect(() => {
         if (!friendId) return;
@@ -108,7 +116,52 @@ const FriendInfo: React.FC = () => {
                 return <Tag icon={<QuestionOutlined />} color="default">未知</Tag>;
         }
     };
-
+    const menu = (
+        <Menu>
+            <Menu.Item key="1">
+                <Popconfirm
+                    title="确认删除该好友？"
+                    description="删除后无法恢复，是否继续？"
+                    okText="确认"
+                    cancelText="取消"
+                    onConfirm={async () => {
+                        if (!friendId) return
+                        const res = await delContact({ contactId: friendId, applyStatus: 2 }) as unknown as API.BaseResponseBoolean
+                        if (res.code === 0) {
+                            message.success('删除成功')
+                            navigate('/friends')
+                            triggerReload("friendList")
+                        }
+                    }}
+                >
+                    <Space>
+                        <CloseSquareOutlined /><span>删除</span>
+                    </Space>
+                </Popconfirm>
+            </Menu.Item>
+            <Menu.Item key="2">
+                <Popconfirm
+                    title="确认将该好友拉黑？"
+                    description="拉黑后将不再接收该用户消息，是否继续？"
+                    okText="确认"
+                    cancelText="取消"
+                    onConfirm={async () => {
+                        if (!friendId) return
+                        const res = await delContact({ contactId: friendId, applyStatus: 3 }) as unknown as API.BaseResponseBoolean
+                        if (res.code === 0) {
+                            message.success('拉黑成功')
+                            navigate('/friends')
+                            triggerReload("friendList")
+                        }
+                    }}
+                >
+                    <Space>
+                        <StopOutlined /><span>拉黑</span>
+                    </Space>
+                </Popconfirm>
+            </Menu.Item>
+        </Menu>
+    );
     return (
         <Card style={{ width: "calc(100% - 40px)", borderRadius: 16, margin: "0 auto", marginTop: 26 }}>
             {/* 头像居中 */}
@@ -116,6 +169,15 @@ const FriendInfo: React.FC = () => {
                 <Avatar size={84} src={user.userAvatar} >
                     {!user.userAvatar && user.userName.charAt(0)}
                 </Avatar>
+            </div>
+            <div style={{ position: "absolute", top: 20, right: 20 }}>
+                <Dropdown overlay={menu} trigger={['click']}>
+                    <a onClick={(e) => e.preventDefault()}>
+                        <Space>
+                            操作菜单 <DownOutlined />
+                        </Space>
+                    </a>
+                </Dropdown>
             </div>
             {/* 昵称 + 性别标签 */}
             <div style={{ textAlign: "center", }}>
