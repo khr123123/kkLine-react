@@ -66,7 +66,7 @@ const ChatPage: React.FC = () => {
   const [friendInfo, setFriendInfo] = useState<any>(null)
   const [groupInfo, setGroupInfo] = useState<any>(null)
   const [members, setMembers] = useState<any[]>([])
-  const [memberMap, setMemberMap] = useState<Map<number, string>>(new Map())
+  const [memberMap, setMemberMap] = useState<Map<number, { name: string, avatar: string }>>(new Map())
   const { token } = theme.useToken()
   const lastMessageTimeRef = useRef<number>(0);
   const getContactIdFromSession = (sessionId: string, myId: string): string => {
@@ -125,7 +125,7 @@ const ChatPage: React.FC = () => {
           content,
           avatar: item.sendUserId === user?.id
             ? { src: user?.userAvatar }
-            : { src: resData.userAvatar }
+            : { src: resData.userAvatar },
         });
         lastTimestamp = currentTimestamp;
       }
@@ -139,15 +139,18 @@ const ChatPage: React.FC = () => {
   const fetchGroupInfoAndMessages = async () => {
     if (!sessionId || !user?.id) return
     let resData: any
-    const map = new Map<number, string>()
+    //ID和 名称与头像映射
+    let memberMap = new Map<number, { name: string, avatar: string }>()
     const groupRes = await getGroupInfoWithMembers({ id: sessionId }) as API.BaseResponseGroupVO
     const result = await window.electron.ipcRenderer.invoke('get-message-list', sessionId)
     if (groupRes.code === 0) {
       resData = groupRes.data as API.GroupVO
       setGroupInfo(resData)
       setMembers(resData?.userVOList || [])
-      resData?.userVOList?.forEach((m: any) => map.set(m.id, m.userAvatar))
-      setMemberMap(map)
+      resData?.userVOList?.forEach((m: any) => {
+        memberMap.set(m.id, { name: m.userName, avatar: m.userAvatar });
+      });
+      setMemberMap(memberMap)
     } else {
       setGroupInfo({ groupName: result[0].contactId })
     }
@@ -197,7 +200,8 @@ const ChatPage: React.FC = () => {
           content,
           avatar: item.sendUserId === user?.id
             ? { src: user?.userAvatar }
-            : { src: map.get(item.sendUserId) }
+            : { src: memberMap.get(item.sendUserId)?.avatar },
+          header: <span style={{ fontSize: '13px', color: "#888" }}>{item.sendUserName}</span>
         });
         lastTimestamp = currentTimestamp
       }
@@ -205,7 +209,7 @@ const ChatPage: React.FC = () => {
     lastMessageTimeRef.current = result[result.length - 1].sendTime
     setMessages(messagesWithTime)
   }
-
+  const isGroup = sessionId?.startsWith('G')
   useEffect(() => {
     if (!sessionId) return
     if (sessionId.startsWith('G')) {
@@ -256,6 +260,7 @@ const ChatPage: React.FC = () => {
       avatar: { src: user?.userAvatar },
       content,
       variant: 'borderless',
+      header: isGroup && <span style={{ fontSize: '13px', color: "#888" }}>{user.userName}</span>
     },)
     const newMsg = {
       id: globalUploadId,
@@ -322,7 +327,8 @@ const ChatPage: React.FC = () => {
         content: {
           uid: id,
           txt: value
-        }
+        },
+        header: isGroup && <span style={{ fontSize: '13px', color: "#888" }}>{user.userName}</span>
       });
       setMessages(prev => [...prev, ...newMessages]);
       setValue('');
@@ -381,7 +387,8 @@ const ChatPage: React.FC = () => {
               status: 'uploading',
               percent: 0,
             },
-            avatar: { src: sessionId?.startsWith('G') ? memberMap.get(msgInfo.sendUserId) : friendInfo?.userAvatar },
+            avatar: { src: isGroup ? memberMap.get(msgInfo.sendUserId)?.avatar : friendInfo?.userAvatar },
+            header: isGroup && <span style={{ fontSize: '13px', color: "#888" }}>{msgInfo.sendUserName}</span>
           });
         } else {
           newMessages.push({
@@ -391,7 +398,8 @@ const ChatPage: React.FC = () => {
               uid: msgInfo.id,
               txt: msgInfo.messageContent
             },
-            avatar: { src: sessionId?.startsWith('G') ? memberMap.get(msgInfo.sendUserId) : friendInfo?.userAvatar }
+            avatar: { src: isGroup ? memberMap.get(msgInfo.sendUserId)?.avatar : friendInfo?.userAvatar },
+            header: isGroup && <span style={{ fontSize: '13px', color: "#888" }}>{msgInfo.sendUserName}</span>
           });
         }
       }
@@ -502,7 +510,8 @@ const ChatPage: React.FC = () => {
           ...target,
           role: 'sys',
           content: messageContent,
-          avatar: undefined
+          avatar: undefined,
+          header: undefined,
         };
         const filtered = prevMessages.filter((m) => m._key !== messageId);
         return [...filtered, updated]; // 放到最后一个
@@ -687,7 +696,10 @@ const ChatPage: React.FC = () => {
                   )
                 },
               },
-              friend: { placement: 'start', style: { maxWidth: '100%' }, messageRender: (content) => <div>{content.txt}</div>, },
+              friend: {
+                placement: 'start', style: { maxWidth: '100%' },
+                messageRender: (content) => <div>{content.txt}</div>,
+              },
               friendFile: {
                 placement: 'start', style: { maxWidth: '100%' }, variant: 'borderless', messageRender: (item) => (
                   <Flex style={{ position: 'relative', display: 'inline-block' }}>
