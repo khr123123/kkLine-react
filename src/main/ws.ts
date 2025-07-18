@@ -375,12 +375,12 @@ export const createWs = (url: string) => {
                     break;
                 }
                 case MessageType.GROUP_NAME_UPDATE: { // 15  END
-                    console.log('📝 群名称更新消息,新群名字:', msgData.contact?.contactName);
-                    console.log('更新后的群组信息:', msgData.contact);
+                    console.log("📝 群名称更新消息");
                     updateContactInfo(
                         userId,
                         msgData.contact?.contactId!,
                         msgData.contact?.contactName,
+                        msgData.content?.extraData
                     );
                     if (mainWindow?.webContents) {
                         mainWindow.webContents.send('reload-session-list');

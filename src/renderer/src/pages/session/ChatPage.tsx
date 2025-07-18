@@ -1,8 +1,8 @@
-import { CloseCircleOutlined, DownloadOutlined, ExclamationCircleFilled, LinkOutlined, RollbackOutlined, RotateLeftOutlined, RotateRightOutlined, SmileOutlined, SwapOutlined, UndoOutlined, ZoomInOutlined, ZoomOutOutlined, } from '@ant-design/icons'
+import { CloseCircleOutlined, DownloadOutlined, ExclamationCircleFilled, IdcardOutlined, LinkOutlined, RollbackOutlined, RotateLeftOutlined, RotateRightOutlined, SmileOutlined, SolutionOutlined, SwapOutlined, UndoOutlined, ZoomInOutlined, ZoomOutOutlined, } from '@ant-design/icons'
 import { Attachments, Bubble, Prompts, Sender } from '@ant-design/x'
-import { Button, Flex, Popover, Space, Avatar, Typography, message, Modal, theme, Upload, Progress, Popconfirm } from 'antd'
-import React, { useEffect, useRef, useState } from 'react'
-import { CopyOutlined, DeleteOutlined, RedoOutlined, ShareAltOutlined } from '@ant-design/icons'
+import { Button, Flex, Popover, Space, Avatar, Typography, message, theme, Upload, Progress, Popconfirm, Drawer, Divider, Tag } from 'antd'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
+import { ShareAltOutlined } from '@ant-design/icons'
 import { Actions, ActionsProps } from '@ant-design/x'
 import { useParams } from 'react-router-dom'
 import type { BubbleProps } from '@ant-design/x'
@@ -16,49 +16,20 @@ import { deleteMsg, revokeMsg, sendMsg, sendTypingState } from '@renderer/api/ch
 import { Snowflake } from '@renderer/utils/SnowflakeIdUtil'
 import type { RcFile, UploadFile } from 'antd/es/upload/interface';
 import FilePreviewModal from '@renderer/components/FilePreviewModal'
+import Title from 'antd/es/typography/Title'
+import dayjs from 'dayjs'
+import Paragraph from 'antd/lib/typography/Paragraph'
+import AntMembersGrid from '@renderer/components/AntMembersGrid'
 
 let globalUploadId: any;
 const { Text } = Typography;
-const actionItems: ActionsProps['items'] = [
-  { key: 'retry', label: 'Retry', icon: <RedoOutlined /> },
-  { key: 'copy', label: 'Copy', icon: <CopyOutlined /> },
-  {
-    key: 'more',
-    children: [
-      {
-        key: 'share',
-        label: 'Share',
-        icon: <ShareAltOutlined />,
-        children: [
-          { key: 'qq', label: 'QQ' },
-          { key: 'wechat', label: 'WeChat' },
-        ],
-      },
-      { key: 'import', label: 'Import' },
-      {
-        key: 'delete',
-        label: 'Delete',
-        icon: <DeleteOutlined />,
-        onItemClick: () => {
-          Modal.confirm({
-            title: 'Are you sure want to delete?',
-            content: 'Some descriptions',
-            onOk() { message.success('Delete successfully') },
-            onCancel() { message.info('Cancel') },
-          })
-        },
-        danger: true,
-      },
-    ],
-  },
-  { key: 'clear', label: 'Clear', icon: <DeleteOutlined /> },
-]
 
 interface CustomBubbleProps extends Omit<BubbleProps, 'content'> {
   content?: BubbleContentType;
 }
 const ChatPage: React.FC = () => {
   const { sessionId } = useParams()
+  const isGroup = sessionId?.startsWith("G")
   const user = useUserStore((state) => state.user)
   const [value, setValue] = useState('')
   const [messages, setMessages] = useState<CustomBubbleProps[]>([])
@@ -69,6 +40,112 @@ const ChatPage: React.FC = () => {
   const [memberMap, setMemberMap] = useState<Map<number, { name: string, avatar: string }>>(new Map())
   const { token } = theme.useToken()
   const lastMessageTimeRef = useRef<number>(0);
+
+  const actionItems: ActionsProps['items'] = isGroup ? [
+    { key: 'share', icon: <ShareAltOutlined title='分享群组' /> }, { key: 'groupInfo', icon: <SolutionOutlined title='群组详情' />, onItemClick: () => setGroupInfoDrawerVisible(true) }
+  ] : [{ key: 'share', icon: <ShareAltOutlined title='分享好友' /> }, { key: 'groupInfo', icon: <IdcardOutlined title="好友信息" />, onItemClick: () => setFriendInfoDrawerVisible(true) }
+  ]
+  const [friendInfoDrawerVisible, setFriendInfoDrawerVisible] = useState(false)
+  const [groupInfoDrawerVisible, setGroupInfoDrawerVisible] = useState(false)
+
+  const friendInfoDrawer = () => {
+    if (!friendInfo) return null
+    return <Drawer
+      title="用户详情"
+      onClose={() => setFriendInfoDrawerVisible(false)}
+      open={friendInfoDrawerVisible}
+      width={200}
+      maskStyle={{ backgroundColor: "rgba(0, 0, 0, 0.1)" }}
+    >
+      <Space direction="vertical" size="middle" style={{ width: "100%" }}>
+        <Space align="center" size="large" style={{ width: "100%" }}>
+          <Avatar
+            size={64}
+            src={friendInfo.userAvatar}
+            alt="头像"
+            style={{ borderRadius: 8 }}
+          />
+          <Space direction="vertical" size={4} style={{ flex: 1 }}>
+            <Text strong style={{ fontSize: 18 }}>{friendInfo.userName}</Text>
+            <Text type="secondary">ID: {friendInfo.id}</Text>
+          </Space>
+        </Space>
+        <Divider size="small" style={{ margin: 0 }} />
+        <Space direction="vertical" size={12} style={{ width: "100%" }}>
+          <Text><Text strong>账号：</Text>{friendInfo.userAccount || "-"}</Text>
+          <Text><Text strong>性别：</Text>{friendInfo.userSex === 0 ? "女" : "男"}</Text>
+          <Text><Text strong>邮箱：</Text>{friendInfo.userEmail || "-"}</Text>
+          <Text><Text strong>地区：</Text>{friendInfo.areaName || "-"}</Text>
+          <Text><Text strong>区号：</Text>{friendInfo.areaCode || "-"}</Text>
+        </Space>
+        <Divider size="small" style={{ margin: 0 }} />
+        <div>
+          <Text strong>个人简介：</Text>
+          <div style={{ marginTop: 6, whiteSpace: "pre-wrap", color: "#666", minHeight: 40 }}>
+            {friendInfo.userProfile || "无简介"}
+          </div>
+        </div>
+      </Space>
+    </Drawer>
+  }
+  const groupInfoDrawer = () => {
+    if (!groupInfo || !members) return null
+    return <Drawer
+      title="群组详情"
+      onClose={() => setGroupInfoDrawerVisible(false)}
+      open={groupInfoDrawerVisible}
+      width={310}
+      maskStyle={{ backgroundColor: "rgba(0, 0, 0, 0.1)" }}
+    >
+      <Space direction="vertical" size="middle" style={{ width: "100%" }}>
+        <Space align="center" size="large" style={{ width: "100%" }}>
+          <Avatar
+            size={64}
+            src={groupInfo.groupAvatar}
+            alt="头像"
+            style={{ borderRadius: 8 }}
+          />
+          <Space direction="vertical" size={4} style={{ flex: 1 }}>
+            <Flex vertical justify="center">
+              <Space size="small" align="center">
+                <Title level={4} style={{ margin: 0 }}>{groupInfo.groupName}</Title>
+                {
+                  groupInfo.joinType === 0
+                    ? <Tag color="green">直接加入</Tag>
+                    : <Tag color="orange">管理员同意</Tag>
+                }
+              </Space>
+              <Text type="secondary" style={{ fontSize: 14 }}>
+                ID: {groupInfo.id}<br />创建时间：{dayjs(groupInfo.createTime).format("YYYY年MM月DD日")}
+              </Text>
+            </Flex>
+          </Space>
+        </Space>
+        <Divider size="small" style={{ margin: 0 }} />
+        <div style={{ marginBottom: 16 }}>
+          <Text strong>
+            群成员（{members.length}人）
+          </Text>
+          <div style={{ height: 18 }}></div>
+          <AntMembersGrid members={members.map((item) => {
+            if (item.id === groupInfo.groupOwner) item.isOwner = true;
+            return item;
+          })} />
+        </div>
+        <Divider size="small" style={{ margin: 0 }} />
+        <div>
+          {groupInfo.groupNotice && (
+            <>
+              <Text strong>群公告</Text>
+              <Paragraph style={{ marginTop: 8 }} ellipsis={{ rows: 2, expandable: true, symbol: "更多" }}>
+                {groupInfo.groupNotice}
+              </Paragraph>
+            </>
+          )}
+        </div>
+      </Space>
+    </Drawer>
+  }
   const getContactIdFromSession = (sessionId: string, myId: string): string => {
     if (sessionId.startsWith(myId)) return sessionId.slice(myId.length)
     if (sessionId.endsWith(myId)) return sessionId.slice(0, sessionId.length - myId.length)
@@ -209,7 +286,7 @@ const ChatPage: React.FC = () => {
     lastMessageTimeRef.current = result[result.length - 1].sendTime
     setMessages(messagesWithTime)
   }
-  const isGroup = sessionId?.startsWith('G')
+
   useEffect(() => {
     if (!sessionId) return
     if (sessionId.startsWith('G')) {
@@ -286,7 +363,7 @@ const ChatPage: React.FC = () => {
     let bizType: 'picture' | 'file' | 'video' = 'file';
     if (file.type?.startsWith('image/')) bizType = 'picture';
     if (file.type?.startsWith('video/')) bizType = 'video';
-    const contactId = sessionId?.startsWith('G')
+    const contactId = isGroup
       ? sessionId
       : getContactIdFromSession(sessionId!, user!.id!.toString());
     return {
@@ -446,7 +523,7 @@ const ChatPage: React.FC = () => {
 
   useEffect(() => {
     const handleTyping = (_event: any, currentSessionId: string, isTyping: boolean) => {
-      if (sessionId !== currentSessionId || sessionId?.startsWith('G')) return;
+      if (sessionId !== currentSessionId || isGroup) return;
       setMessages(prev => {
         const filtered = prev.filter(msg => msg.id !== 'typing');
         if (isTyping) {
@@ -467,13 +544,10 @@ const ChatPage: React.FC = () => {
     };
   }, [sessionId, friendInfo]);
 
-  useEffect(() => {
-    setMessages(prev => {
-      const normalMessages = prev.filter(msg => msg.id !== 'typing');
-      const typingMessages = prev.filter(msg => msg.id === 'typing');
-      if (typingMessages.length === 0) return prev;
-      return [...normalMessages, ...typingMessages];
-    });
+  const safeMessages = useMemo(() => {
+    const normal = messages.filter(msg => msg.id !== 'typing');
+    const typing = messages.filter(msg => msg.id === 'typing');
+    return [...normal, ...typing];
   }, [messages]);
 
   // 撤回消息
@@ -555,18 +629,21 @@ const ChatPage: React.FC = () => {
     <>
       <div style={{ display: 'flex', flexDirection: 'column', height: '95vh', width: '100%' }}>
         <Space style={{ padding: '0 16px', marginBottom: 8 }}>
-          {sessionId?.startsWith('G') ? (
-            <Text strong style={{ flex: 1, fontSize: 20 }} >
-              {groupInfo?.groupName}
-              <Text type="secondary" style={{ fontSize: 16 }}>（{members.length}）</Text>
-            </Text>
+          {isGroup ? (
+            <Flex align="center" gap={8}>
+              <Avatar src={groupInfo?.groupAvatar} />
+              <Text strong style={{ flex: 1, fontSize: 20 }} >
+                {groupInfo?.groupName}
+                <Text type="secondary" style={{ fontSize: 16 }}>（{members.length}）</Text>
+              </Text>
+            </Flex>
           ) : (
             <Flex align="center" gap={8}>
               <Avatar src={friendInfo?.userAvatar} />
               <Text strong style={{ fontSize: 18 }}>{friendInfo?.userName}</Text>
             </Flex>
           )}
-          <Actions items={actionItems} onClick={({ keyPath }) => message.success(`You clicked ${keyPath.join(',')}`)} />
+          <Actions items={actionItems} />
         </Space>
 
         <Flex vertical gap="small" style={{ flex: 1, overflowY: 'auto' }}>
@@ -785,7 +862,7 @@ const ChatPage: React.FC = () => {
                 },
               }
             }}
-            items={messages}
+            items={safeMessages}
             style={{ padding: 16, paddingTop: 10, paddingInline: 18, borderRadius: 8 }}
           />
         </Flex>
@@ -826,11 +903,11 @@ const ChatPage: React.FC = () => {
             onSubmit={sendMessage}
             autoSize={{ minRows: 3, maxRows: 3 }}
             onFocus={async () => {
-              if (sessionId?.startsWith('G')) return
+              if (isGroup) return
               await sendTypingState({ contactId: getContactIdFromSession(sessionId!, user!.id!.toString()), typing: true })
             }} // 聚焦事件 正在输入..
             onBlur={async () => {
-              if (sessionId?.startsWith('G')) return;
+              if (isGroup) return;
               await sendTypingState({ contactId: getContactIdFromSession(sessionId!, user!.id!.toString()), typing: false })
               // 失焦事件 输入结束..
             }}
@@ -843,7 +920,8 @@ const ChatPage: React.FC = () => {
         fileUrl={filePreview.fileUrl}
         fileName={filePreview.fileName}
       />
-
+      {friendInfoDrawer()}
+      {groupInfoDrawer()}
     </>
   )
 }
