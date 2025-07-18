@@ -12,14 +12,13 @@ import {
     Row,
     Select,
     Switch,
-    Typography,
     Upload,
 } from 'antd';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useThemeStore } from '../store/useThemeStore'; // 根据你的实际路径调整
+import AnimatedTitle from '@renderer/animation/AnimatedTitle';
 
-const { Title } = Typography;
 const { Option } = Select;
 
 interface SettingFormValues {
@@ -94,7 +93,7 @@ const SettingPage: React.FC = () => {
     };
     return (
         <Card style={{ width: 'calc(100% - 20px)', margin: '14px auto' }}>
-            <Title level={3}>设置中心</Title>
+            <AnimatedTitle text='设置中心' />
             <Form<SettingFormValues>
                 form={form}
                 layout="vertical"
