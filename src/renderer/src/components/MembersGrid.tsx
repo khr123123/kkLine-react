@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { Avatar, Drawer, Space, Tooltip, message, Typography, Divider, Button, ConfigProvider } from "antd";
+import { Avatar, Drawer, Space, Tooltip, message, Typography, Divider, Button, ConfigProvider, Popover } from "antd";
 import { RestOutlined, UserOutlined } from "@ant-design/icons";
 import { useParams } from "react-router-dom";
 import { createStyles } from "antd-style";
@@ -83,6 +83,51 @@ const MembersGrid: React.FC<{ members: GroupMember[] }> = ({ members }) => {
             message.error('踢人失败' + e);
         }
     };
+    const more = (
+        <div
+            className="scrollableDiv"
+            style={{
+                maxWidth: 380,
+                maxHeight: 220, // ✅ 固定高度
+                overflowY: 'auto', // ✅ 超出滚动
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: 12,
+                padding: 8,
+                justifyContent: 'flex-start',
+            }}
+        >
+            {members.slice(maxShowCount - 1).map((member) => (
+                <div
+                    key={member.id}
+                    style={{
+                        width: 64,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        textAlign: 'center',
+                    }}
+                    onClick={() => setSelectedMember(member)}
+                >
+                    <Avatar
+                        size={32}
+                        src={member.userAvatar}
+                        icon={<UserOutlined />}
+                        style={{ backgroundColor: '#ccc', marginBottom: 4, cursor: 'pointer' }}
+                    >
+                        {!member.userAvatar && member.userName?.charAt(0).toUpperCase()}
+                    </Avatar>
+                    <Text
+                        style={{ fontSize: 12, width: '100%' }}
+                        ellipsis={{ tooltip: member.userName }}
+                    >
+                        {member.userName}
+                    </Text>
+                </div>
+            ))}
+        </div>
+    );
+
 
     return (
         <>
@@ -143,18 +188,15 @@ const MembersGrid: React.FC<{ members: GroupMember[] }> = ({ members }) => {
                     ))}
 
                 {showMore && (
-                    <div
-                        style={{ textAlign: "center", cursor: "pointer", userSelect: "none", height: AVATAR_SIZE }}
-                        onClick={() => {
-                            message.info(`共${members.length}名成员，展示更多成员...`);
-                        }}
-                    >
-                        <Avatar
-                            size={AVATAR_SIZE}
-                            style={{ backgroundColor: "#999", color: "#fff", fontWeight: "bold" }}
-                        >
-                            +{members.length - (maxShowCount - 1)}
-                        </Avatar>
+                    <div style={{ textAlign: "center", cursor: "pointer", userSelect: "none", height: AVATAR_SIZE }}>
+                        <Popover content={more} trigger="hover" placement="topRight">
+                            <Avatar
+                                size={AVATAR_SIZE}
+                                style={{ backgroundColor: "#999", color: "#fff", fontWeight: "bold" }}
+                            >
+                                +{members.length - (maxShowCount - 1)}
+                            </Avatar>
+                        </Popover>
                     </div>
                 )}
             </div >
