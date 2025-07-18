@@ -85,13 +85,13 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({ open, onClose, file
 
             <div style={{ height: '80vh', overflowY: 'auto' }}>
                 {isVideo ? (
-                    <video controls width="100%" style={{ maxHeight: '80vh' }}>
+                    <video key={fileUrl} controls width="100%" style={{ maxHeight: '80vh' }}>
                         <source src={fileUrl} type={`video/${ext}`} />
                         您的浏览器不支持 video 标签。
                     </video>
                 ) : isAudio ? (
                     <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <audio controls style={{ width: '100%', maxWidth: '600px' }}>
+                        <audio key={fileUrl} controls style={{ width: '100%', maxWidth: '600px' }}>
                             <source src={fileUrl} type={`audio/${ext}`} />
                             您的浏览器不支持 audio 标签。
                         </audio>
