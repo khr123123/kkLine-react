@@ -439,6 +439,13 @@ declare namespace API {
     typing: boolean
   }
 
+  type ShareContactDto = {
+    /** 要分享的联系人ID */
+    contactId: string
+    /** 被分享的好友ID或群ID列表 */
+    shareIds: string[]
+  }
+
   type uploadFileParams = {
     uploadFileRequest: UploadFileRequest
   }

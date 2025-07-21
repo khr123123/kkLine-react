@@ -1,4 +1,3 @@
-import React, { useMemo, useState } from 'react';
 import {
     InteractionOutlined,
     SearchOutlined,
@@ -6,6 +5,9 @@ import {
     UserOutlined,
     WechatOutlined
 } from '@ant-design/icons';
+import { search } from '@renderer/api/contactApis';
+import { applyAdd } from '@renderer/api/contactApplyApis';
+import { useUserStore } from '@renderer/store/useUserStore';
 import {
     Avatar,
     Button,
@@ -18,9 +20,7 @@ import {
     Tag,
     Typography
 } from 'antd';
-import { search } from '@renderer/api/contactApis';
-import { useUserStore } from '@renderer/store/useUserStore';
-import { applyAdd } from '@renderer/api/contactApplyApis';
+import React, { useEffect, useMemo, useState } from 'react';
 
 const { Title, Text } = Typography;
 
@@ -138,6 +138,36 @@ const SearchPage: React.FC = () => {
     const finalButtonDisabled = displayInfo?.buttonDisabled || hasApplied;
     const finalButtonText = hasApplied ? '已发送申请' : displayInfo?.buttonText;
 
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const searchId = params.get('searchId');
+        if (searchId) {
+            setKeyword(searchId);
+            const trimmed = searchId.trim();
+            if (trimmed) {
+                // 调用搜索
+                (async () => {
+                    setLoading(true);
+                    try {
+                        const res = (await search({ id: trimmed })) as API.BaseResponseContactVO;
+                        if (res.data) {
+                            setResult(res.data);
+                            setHasApplied(false); // 重置申请状态
+                        } else {
+                            setResult(null);
+                            setHasApplied(false);
+                            message.info('未找到对应的群组或用户');
+                        }
+                    } catch {
+                        message.error('搜索失败，请重试');
+                        setResult(null);
+                    } finally {
+                        setLoading(false);
+                    }
+                })();
+            }
+        }
+    }, []);
     return (
         <div style={containerStyle}>
             <Title

@@ -22,9 +22,9 @@ const PicUploader: React.FC<AvatarUploaderProps> = ({ token, initialUrl, onSucce
       message.error('只能上传 JPG/PNG 格式的图片！')
       return false
     }
-    const isLt5MB = file.size / 1024 / 1024 < 5
+    const isLt5MB = file.size / 1024 / 1024 < 2
     if (!isLt5MB) {
-      message.error('图片必须小于 5MB！')
+      message.error('图片必须小于 2MB！')
       return false
     }
     setLoading(true)
@@ -60,6 +60,11 @@ const PicUploader: React.FC<AvatarUploaderProps> = ({ token, initialUrl, onSucce
       headers={{ Authorization: token }}
       beforeUpload={beforeUpload}
       data={{ biz: 'picture' }}
+      onChange={(info) => {
+        if (info.file.response?.code === 40000) {
+          message.error(` 上传失败,${info.file.response.message}`)
+        }
+      }}
     >
       {imageUrl ? (
         <Avatar src={imageUrl} size={100} alt="avatar" shape="square" />

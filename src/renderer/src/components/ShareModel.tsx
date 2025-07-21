@@ -58,47 +58,65 @@ const ShareModal: React.FC<ShareModalProps> = ({
   // 当前 Tab key：'friends' | 'groups'
   const [activeTab, setActiveTab] = useState<'friends' | 'groups'>('friends')
 
-  // 加载好友（分页）
+  // 所有数据缓存，避免闭包问题
+  const allFriendsRef = useRef<FriendItem[]>([])
+
   const loadFriends = async (segment: number) => {
     if (friendLoadingRef.current || segment > MAX_LETTER_SEGMENT) return
     friendLoadingRef.current = true
+
     try {
       const res = await loadAllFriend({ letterSegment: segment })
-      let data = (res.data as API.FriendItemDTO[]).map(friend => ({
+      const data = (res.data as API.FriendItemDTO[]).map(friend => ({
         id: friend.id,
         userName: friend.userName,
         userAvatar: friend.userAvatar,
         headLetter: friend.headLetter,
       }))
-
-      setFriendList((prev: any) => {
-        const newList = [...prev, ...data]
-        newList.sort((a, b) => {
-          const aH = (a.headLetter || '').toUpperCase()
-          const bH = (b.headLetter || '').toUpperCase()
-          const isAH = aH === '#'
-          const isBH = bH === '#'
-          if (isAH && !isBH) return 1
-          if (!isAH && isBH) return -1
-          if (aH === bH) {
-            const aName = a.userName || ''
-            const bName = b.userName || ''
-            return aName.localeCompare(bName)
-          }
-          return aH.localeCompare(bH)
-        })
-        return newList
+      // 合并数据前去重
+      const existingIds = new Set(allFriendsRef.current.map(item => item.id))
+      const uniqueNewData = data.filter(item => !existingIds.has(item.id?.toString()!))
+      allFriendsRef.current = [...allFriendsRef.current, ...uniqueNewData] as any
+      // 排序（按首字母 -> 名称）
+      allFriendsRef.current.sort((a, b) => {
+        const aH = (a.headLetter || '').toUpperCase()
+        const bH = (b.headLetter || '').toUpperCase()
+        const isAH = aH === '#'
+        const isBH = bH === '#'
+        if (isAH && !isBH) return 1
+        if (!isAH && isBH) return -1
+        if (aH === bH) {
+          return (a.userName || '').localeCompare(b.userName || '')
+        }
+        return aH.localeCompare(bH)
       })
 
+      setFriendList([...allFriendsRef.current])
+
+      // 更新分页状态
       friendSegmentRef.current = segment + 1
       friendHasMoreRef.current = segment < MAX_LETTER_SEGMENT && data.length > 0
+
+      // 等待DOM渲染完成
+      await new Promise(resolve => setTimeout(resolve, 100))
+
+      // 如果内容没铺满且还能加载，继续加载
+      const scrollDiv = friendScrollRef.current
+      if (
+        scrollDiv &&
+        scrollDiv.scrollHeight <= scrollDiv.clientHeight &&
+        friendSegmentRef.current <= MAX_LETTER_SEGMENT
+      ) {
+        friendLoadingRef.current = false // 提前释放锁，避免阻塞递归
+        await loadFriends(friendSegmentRef.current)
+        return
+      }
     } catch (error) {
       console.error('加载好友失败', error)
     } finally {
       friendLoadingRef.current = false
     }
   }
-
   // 加载群组（一次性加载，不分页）
   const loadGroups = async () => {
     if (groupLoadingRef.current) return
@@ -191,6 +209,7 @@ const ShareModal: React.FC<ShareModalProps> = ({
           id="share-scroll-friends"
           ref={friendScrollRef}
           style={{ maxHeight: 300, overflow: 'auto' }}
+          className='scrollableDiv'
         >
           <InfiniteScroll
             dataLength={friendList.length}
@@ -233,7 +252,6 @@ const ShareModal: React.FC<ShareModalProps> = ({
           ref={groupScrollRef}
           style={{ maxHeight: 300, overflow: 'auto' }}
         >
-          {/* 群组不分页，直接用 List */}
           <List
             dataSource={groupList}
             renderItem={item => (
@@ -272,6 +290,7 @@ const ShareModal: React.FC<ShareModalProps> = ({
       <Tabs
         activeKey={activeTab}
         onChange={key => setActiveTab(key as 'friends' | 'groups')}
+        defaultActiveKey='friends'
         centered
         items={[
           { label: '好友', key: 'friends' },

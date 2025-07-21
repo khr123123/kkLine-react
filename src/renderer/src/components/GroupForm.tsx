@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import { Form, Input, Button, Radio, } from 'antd';
-import PicUploader from './PicUploader';
 import { useUserStore } from '@renderer/store/useUserStore';
+import { Button, Form, Input, Radio, } from 'antd';
+import React, { useEffect, useState } from 'react';
+import PicUploader from './PicUploader';
 
 export type GroupFormProps = {
     initialValues?: Partial<API.GroupCreateRequest>;

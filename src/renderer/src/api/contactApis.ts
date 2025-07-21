@@ -60,3 +60,15 @@ export async function search(body: API.ContactQueryRequest, options?: { [key: st
     ...(options || {})
   })
 }
+
+/** 分享好友或群组 POST /contact/shareContact */
+export async function shareContact(body: API.ShareContactDto, options?: { [key: string]: any }) {
+  return request<API.BaseResponseBoolean>('/contact/shareContact', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    data: body,
+    ...(options || {})
+  })
+}

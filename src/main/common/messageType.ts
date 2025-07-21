@@ -34,7 +34,10 @@ export enum MessageType {
 
     // ===== 40–49 系统类 =====
     FORCE_OFF_LINE = 40,     // 强制下线
-    ADVERTISEMENT = 41       // 广告消息
+    ADVERTISEMENT = 41,     // 广告消息
+
+    // ===== 50–51 互动类 =====
+    SHARE_CONTACT = 50
 }
 export enum ContactType {
     USER = 0,

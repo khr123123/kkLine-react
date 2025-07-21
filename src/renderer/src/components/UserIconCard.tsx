@@ -1,8 +1,8 @@
 import { UserOutlined } from '@ant-design/icons';
+import { updateMyUser } from '@renderer/api/userApis';
+import { useUserStore } from '@renderer/store/useUserStore';
 import { Avatar, Popover, Typography, message } from 'antd';
 import React, { useState } from 'react';
-import { useUserStore } from '@renderer/store/useUserStore';
-import { updateMyUser } from '@renderer/api/userApis';
 import PicUploader from './PicUploader';
 const { Text, Title } = Typography;
 interface UserIconCardProps {

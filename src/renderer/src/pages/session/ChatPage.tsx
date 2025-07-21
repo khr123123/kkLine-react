@@ -19,10 +19,12 @@ import type { BubbleProps } from '@ant-design/x'
 import { Actions, ActionsProps, Attachments, Bubble, Prompts, Sender } from '@ant-design/x'
 import { BubbleContentType } from '@ant-design/x/es/bubble/interface'
 import { deleteMsg, revokeMsg, sendMsg, sendTypingState } from '@renderer/api/chatApis'
+import { shareContact } from '@renderer/api/contactApis'
 import { getGroupInfoWithMembers } from '@renderer/api/groupApis'
 import { getUserVoById } from '@renderer/api/userApis'
 import AntMembersGrid from '@renderer/components/AntMembersGrid'
 import FilePreviewModal from '@renderer/components/FilePreviewModal'
+import ShareInfoCard from '@renderer/components/ShareInfoCard'
 import ShareModal from '@renderer/components/ShareModel'
 import { useUserStore } from '@renderer/store/useUserStore'
 import { Snowflake } from '@renderer/utils/SnowflakeIdUtil'
@@ -247,11 +249,20 @@ const ChatPage: React.FC = () => {
         }
       }
       const sysMsgType = [1, 24]
+      const shareMsgType = [50]
       if (sysMsgType.includes(item.messageType)) {
         messagesWithTime.push({
           _key: item.id,
           role: 'sys',
           content: item.messageContent
+        })
+      } else if (shareMsgType.includes(item.messageType)) {
+        messagesWithTime.push({
+          _key: item.id,
+          role: 'share',
+          content: { ...JSON.parse(item.messageContent) },
+          placement: item.sendUserId === user?.id ? 'end' : 'start',
+          avatar: item.sendUserId === user?.id ? { src: user?.userAvatar } : { src: resData.userAvatar },
         })
       } else {
         // 判断是否是文件消息（根据 fileUrl 判断）
@@ -324,12 +335,24 @@ const ChatPage: React.FC = () => {
         }
       }
       const sysMsgType = [3, 10, 11, 12, 13, 14, 15, 24]
+      const shareMsgType = [50]
       if (sysMsgType.includes(item.messageType)) {
         // sys 角色的系统消息
         messagesWithTime.push({
           _key: item.id,
           role: 'sys',
           content: item.messageContent
+        })
+      } else if (shareMsgType.includes(item.messageType)) {
+        messagesWithTime.push({
+          _key: item.id,
+          role: 'share',
+          content: { ...JSON.parse(item.messageContent) },
+          placement: item.sendUserId === user?.id ? 'end' : 'start',
+          avatar: item.sendUserId === user?.id
+            ? { src: user?.userAvatar }
+            : { src: memberMap.get(item.sendUserId)?.avatar },
+          header: <span style={{ fontSize: '13px', color: '#888' }}>{item.sendUserName}</span>
         })
       } else {
         // 判断是否是文件消息（根据 fileUrl 判断）
@@ -542,11 +565,25 @@ const ChatPage: React.FC = () => {
       }
 
       const sysMsgType = [3, 10, 11, 12, 13, 14, 15, 24]
+      const shareMsgType = [50]
       if (sysMsgType.includes(msgInfo.messageType)) {
         newMessages.push({
           _key: msgInfo.id,
           role: 'sys',
           content: msgInfo.messageContent
+        })
+      } else if (shareMsgType.includes(msgInfo.messageType)) {
+        newMessages.push({
+          _key: msgInfo.id,
+          role: 'share',
+          content: { ...JSON.parse(msgInfo.messageContent) },
+          placement: msgInfo.sendUserId === user?.id ? 'end' : 'start',
+          avatar: {
+            src: msgInfo.sendUserId === user?.id ? user?.userAvatar : isGroup ? memberMap.get(msgInfo.sendUserId)?.avatar : friendInfo?.userAvatar
+          },
+          header: isGroup && (
+            <span style={{ fontSize: '13px', color: '#888' }}>{msgInfo.sendUserName}</span>
+          )
         })
       } else {
         if (msgInfo.messageType === 21) {
@@ -1023,6 +1060,13 @@ const ChatPage: React.FC = () => {
                     marginBottom: -6
                   }
                 }
+              },
+              share: {
+                style: { maxWidth: '100%' },
+                variant: 'borderless',
+                messageRender: (content) => {
+                  return <ShareInfoCard item={content} />
+                }
               }
             }}
             items={safeMessages}
@@ -1105,9 +1149,13 @@ const ChatPage: React.FC = () => {
         visible={shareVisible}
         onClose={() => setShareVisible(false)}
         targetInfo={isGroup ? groupInfo : friendInfo}
-        onShare={(selectedIds) => {
-          message.success(selectedIds.toString())
-          message.success(isGroup ? groupInfo.id : friendInfo.id)
+        onShare={async (selectedIds) => {
+          const res = await shareContact({ contactId: isGroup ? groupInfo.id : friendInfo.id, shareIds: selectedIds }) as unknown as API.BaseResponseBoolean
+          if (res.code === 0) {
+            message.success('分享成功')
+          } else {
+            message.error("分享失败," + res.message)
+          }
         }}
       />}
     </>

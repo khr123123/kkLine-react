@@ -1,8 +1,8 @@
+import path from 'path'
 import WebSocket from 'ws'
+import { accumulateApplyCount, findSessionByUserAndContact, insertChatMessageRecordIgnore, insertChatSessionUserIgnore, revokeMessageById, updateContactInfo, updateMessageFileUrlAndStatus, updateSessionInfo, updateSessionLastMessage, updateSessionNoReadCount } from "../db/dbService"
 import type { InitMessageDTO, MessageSendDTO } from './common/messageType'
 import { MessageType } from './common/messageType'
-import { accumulateApplyCount, findSessionByUserAndContact, insertChatMessageRecordIgnore, insertChatSessionUserIgnore, revokeMessageById, updateContactInfo, updateMessageFileUrlAndStatus, updateSessionInfo, updateSessionLastMessage, updateSessionNoReadCount } from "../db/dbService"
-import path from 'path'
 const { exec } = require('child_process');
 const recivePath = path.join(__dirname, '../../resources/recive.wav')
 
@@ -606,6 +606,122 @@ export const createWs = (url: string) => {
                             console.log('avatar上传进度数据发送到渲染进程 percent :', msgData.content?.extraData.percent, "%");
                             mainWindow.webContents.send('upload-progress', msgData.content?.extraData);
                         }
+                    }
+                    break;
+                }
+
+                // ===== 50–51 互动类 =====
+                case MessageType.SHARE_CONTACT: {// 50
+                    // 收到了邀请消息
+                    console.log('🙌 收到了邀请消息');
+                    console.log("messageID", msgData.messageId);
+                    exec(`powershell -c (New-Object Media.SoundPlayer '${recivePath}').PlaySync();`)
+                    const msgInfo = {
+                        id: msgData.messageId,
+                        sessionId: msgData.contact?.chatSessionId || '',
+                        messageType: msgData.messageType,
+                        messageContent: msgData.content?.extraData || '',
+                        sendUserId: msgData.sender?.userId,
+                        sendUserName: msgData.sender?.userName,
+                        sendTime: msgData.sendTime,
+                        contactId: msgData.contact?.contactId || '',
+                        sendStatus: 1,
+                    }
+                    // 先插入消息
+                    insertChatMessageRecordIgnore(msgInfo);
+                    //先判断是否为发送给自己的
+                    if (msgData.sender?.userId === userId && !msgData.contact?.chatSessionId?.startsWith("G")) {
+                        const shareUserInfo = JSON.parse(msgData.content?.summary!)
+                        console.log("shareUserInfo", shareUserInfo);
+                        const sessionRow = findSessionByUserAndContact(userId, shareUserInfo.id);
+                        if (sessionRow) {
+                            console.log('sessionRow:', sessionRow);
+                            updateSessionLastMessage(
+                                msgData.contact?.chatSessionId!,
+                                msgData.content?.text!,
+                                msgData.sendTime!
+                            );
+                            updateSessionNoReadCount(userId, shareUserInfo.id, sessionRow.noReadCount + 1);
+                        } else {
+                            console.log('not found sessionRow');
+                            // 如果没有记录，则插入一条新会话
+                            insertChatSessionUserIgnore({
+                                userId,
+                                contactId: shareUserInfo.id,
+                                sessionId: msgData.contact?.chatSessionId,
+                                contactName: shareUserInfo?.userName,
+                                contactAvatar: shareUserInfo?.userAvatar,
+                                contactType: msgData.contact?.contactType,
+                                lastTime: msgData.sendTime,
+                                lastMessage: msgData.content?.text,
+                            }, 1);
+                            if (mainWindow?.webContents) {
+                                mainWindow.webContents.send('reload-session-list');
+                            }
+                        }
+                    } else {
+                        // 更新 session（如果已存在则更新 lastMessage / lastReceiveTime，不新增）
+                        if (msgData.contact?.chatSessionId?.startsWith("G")) {
+                            const sessionRow = findSessionByUserAndContact(userId, msgData.contact?.contactId!);
+                            if (sessionRow) {
+                                updateSessionLastMessage(
+                                    msgData.contact?.chatSessionId!,
+                                    msgData.content?.text!,
+                                    msgData.sendTime!
+                                );
+                                updateSessionNoReadCount(userId, msgData.contact?.contactId!, sessionRow.noReadCount + 1);
+                            } else {
+                                // 如果没有记录，则插入一条新会话
+                                insertChatSessionUserIgnore({
+                                    userId,
+                                    contactId: msgData.contact?.contactId!,
+                                    sessionId: msgData.contact?.chatSessionId,
+                                    contactName: msgData.contact?.contactName,
+                                    contactAvatar: msgData.content?.summary,
+                                    contactType: msgData.contact?.contactType,
+                                    lastTime: msgData.sendTime,
+                                    lastMessage: msgData.content?.text,
+                                }, 1);
+                                if (mainWindow?.webContents) {
+                                    mainWindow.webContents.send('reload-session-list');
+                                }
+                            }
+                        } else {
+                            const sessionRow = findSessionByUserAndContact(userId, msgData.sender?.userId!);
+                            if (sessionRow) {
+                                console.log('sessionRow:', sessionRow);
+                                updateSessionLastMessage(
+                                    msgData.contact?.chatSessionId!,
+                                    msgData.content?.text!,
+                                    msgData.sendTime!
+                                );
+                                updateSessionNoReadCount(userId, msgData.sender?.userId!, sessionRow.noReadCount + 1);
+                            } else {
+                                console.log('not found sessionRow');
+                                // 如果没有记录，则插入一条新会话
+                                insertChatSessionUserIgnore({
+                                    userId,
+                                    contactId: msgData.sender?.userId!,
+                                    sessionId: msgData.contact?.chatSessionId,
+                                    contactName: msgData.sender?.userName,
+                                    contactAvatar: msgData.sender?.userAvatar,
+                                    contactType: msgData.contact?.contactType,
+                                    lastTime: msgData.sendTime,
+                                    lastMessage: msgData.content?.text,
+                                }, 1);
+                                if (mainWindow?.webContents) {
+                                    mainWindow.webContents.send('reload-session-list');
+                                }
+                            }
+                        }
+                    }
+                    if (mainWindow?.webContents) {
+                        mainWindow.webContents.send('receive-message', msgInfo);
+                        mainWindow.webContents.send('change-session-info', {
+                            chatSessionId: msgData.contact?.chatSessionId!,
+                            lastMessage: msgData.content?.text!,
+                            lastReceiveTime: msgData.sendTime!
+                        });
                     }
                     break;
                 }
