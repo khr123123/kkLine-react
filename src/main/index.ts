@@ -6,6 +6,7 @@ import { Menu, nativeImage, Tray } from 'electron';
 import { closeWs, initWs } from './ws'
 import { clearApplyCount, clearNoreadCount, hasChatSessionUser, insertChatMessageRecordIgnore, insertChatSessionUserIgnore, queryAllSession, queryMessagesBySession, removeChatSessionUser, removeMessageById, removeMessageBySessionId, revokeMessageById, setSessionTop, updateSessionLastMessage } from '../db/dbService';
 import path from 'path'
+import { logoutWithToken } from '../renderer/src/api/userApis';
 const { exec } = require('child_process');
 const sendPath = path.join(__dirname, '../../resources/send.wav')
 let mainWindow: BrowserWindow;
@@ -75,6 +76,7 @@ function registerIpcHandlers(mainWindow: BrowserWindow) {
   ipcMain.on('window-minimize', () => mainWindow.minimize())
   ipcMain.on('window-close', () => {
     mainWindow.close()
+    closeWs()
     if (notificationWindow) {
       notificationWindow.close()
     }
@@ -211,8 +213,10 @@ function createTray(win: BrowserWindow) {
     },
     {
       label: '退出',
-      click: () => {
+      click: async () => {
         app.quit()
+        await logoutWithToken(currentLoginUser.token)
+        closeWs()
       },
     },
   ])

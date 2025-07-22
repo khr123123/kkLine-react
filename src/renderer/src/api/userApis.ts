@@ -1,6 +1,6 @@
 // @ts-ignore
 /* eslint-disable */
-import request from '@renderer/http/request'
+import request from '../http/request'
 
 /** 添加用户（管理员权限） POST /user/add */
 export async function addUser(body: API.UserAddRequest, options?: { [key: string]: any }) {
@@ -142,6 +142,25 @@ export async function userLogout(options?: { [key: string]: any }) {
     method: 'POST',
     ...(options || {})
   })
+}
+// logoutService.ts（你可以放在主进程任意可导入的地方）
+import axios from 'axios';
+
+export async function logoutWithToken(token: string): Promise<void> {
+  try {
+    const response = await axios.post('http://127.0.0.1:8080/api/user/logout', {}, {
+      headers: {
+        Authorization: `${token}`,
+        'Content-Type': 'application/json',
+      },
+      timeout: 50000,
+      withCredentials: true,
+    });
+
+    console.log('登出成功:', response.data);
+  } catch (error) {
+    console.error('登出失败:', error);
+  }
 }
 
 /** 用户注册 根据请求体中的注册信息创建新用户 POST /user/register */

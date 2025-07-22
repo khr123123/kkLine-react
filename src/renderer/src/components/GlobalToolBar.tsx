@@ -5,6 +5,7 @@ import {
   BorderOutlined,
   ShrinkOutlined,
 } from '@ant-design/icons';
+import { userLogout } from '@renderer/api/userApis';
 import { Button, Tooltip } from 'antd';
 import React, { useState } from 'react';
 
@@ -17,7 +18,10 @@ const GlobalToolBar: React.FC<GlobalToolBarProps> = ({ isLoginPage = false }) =>
   const [isMaximized, setIsMaximized] = useState(false);
 
   const handleMinimize = (): void => window.electron.ipcRenderer.send('window-minimize');
-  const handleClose = (): void => window.electron.ipcRenderer.send('window-close');
+  const handleClose = async (): Promise<void> => {
+    window.electron.ipcRenderer.send('window-close');
+    await userLogout()
+  }
   const handleTogglePin = (): void => {
     window.electron.ipcRenderer.send('window-toggle-always-on-top');
     setIsPinned((prev) => !prev);

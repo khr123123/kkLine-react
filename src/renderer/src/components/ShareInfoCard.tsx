@@ -1,4 +1,4 @@
-import { Avatar, Card, Tag, Typography } from 'antd'
+import { Avatar, Card, Space, Tag, Typography } from 'antd'
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
 
@@ -48,14 +48,14 @@ const ShareInfoCard: React.FC<ShareItemProps> = ({ item }) => {
                 <Card.Meta
                     avatar={<Avatar size={64} src={user.userAvatar} />}
                     title={
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <Space>
                             <Text strong style={{ fontSize: 18 }}>
                                 {user.userName}
                             </Text>
                             <Tag color={user.userRole === 'user' ? 'blue' : 'green'}>
                                 {user.userRole === 'user' ? '用户' : user.userRole}
                             </Tag>
-                        </div>
+                        </Space>
                     }
                     description={
                         <>
@@ -81,12 +81,12 @@ const ShareInfoCard: React.FC<ShareItemProps> = ({ item }) => {
                 <Card.Meta
                     avatar={<Avatar size={64} src={group.groupAvatar} />}
                     title={
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <Space>
                             <Text strong style={{ fontSize: 18 }}>
                                 {group.groupName}
                             </Text>
                             <Tag color="purple">群组</Tag>
-                        </div>
+                        </Space>
                     }
                     description={
                         group.groupDescription ? (

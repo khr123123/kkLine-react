@@ -1,5 +1,5 @@
 // src/utils/request.ts
-import { useUserStore } from '@renderer/store/useUserStore'
+import { useUserStore } from '../store/useUserStore'
 import { message } from 'antd'
 import axios, { AxiosInstance } from 'axios'
 
