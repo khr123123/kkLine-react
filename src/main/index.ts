@@ -4,7 +4,7 @@ import { join } from 'path';
 import icon from '../../resources/wechat.png?asset';
 import { Menu, nativeImage, Tray } from 'electron';
 import { closeWs, initWs } from './ws'
-import { clearApplyCount, clearNoreadCount, hasChatSessionUser, insertChatMessageRecordIgnore, insertChatSessionUserIgnore, queryAllSession, queryMessagesBySession, removeChatSessionUser, removeMessageById, removeMessageBySessionId, revokeMessageById, setSessionTop, updateSessionLastMessage } from '../db/dbService';
+import { accumulateApplyCount, clearApplyCount, clearNoreadCount, hasChatSessionUser, insertChatMessageRecordIgnore, insertChatSessionUserIgnore, queryAllSession, queryMessagesBySession, removeChatSessionUser, removeMessageById, removeMessageBySessionId, revokeMessageById, setSessionTop, updateSessionLastMessage } from '../db/dbService';
 import path from 'path'
 import { logoutWithToken } from '../renderer/src/api/userApis';
 const { exec } = require('child_process');
@@ -126,6 +126,9 @@ function registerIpcHandlers(mainWindow: BrowserWindow) {
   // 6. 初始化Msg列表
   ipcMain.handle('get-message-list', (_, sessionId) => {
     return queryMessagesBySession(sessionId);
+  });
+  ipcMain.handle('get-noread-receive-apply-count', () => {
+    return accumulateApplyCount(currentLoginUser.id, 0)
   });
 
   // 7. 当前用户发送消息后 直接在本地后端保存即可

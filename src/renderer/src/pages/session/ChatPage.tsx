@@ -102,9 +102,9 @@ const ChatPage: React.FC = () => {
         onItemClick: () => setFriendInfoDrawerVisible(true)
       }
     ]
+
   const [friendInfoDrawerVisible, setFriendInfoDrawerVisible] = useState(false)
   const [groupInfoDrawerVisible, setGroupInfoDrawerVisible] = useState(false)
-
   const friendInfoDrawer = () => {
     if (!friendInfo) return null
     return (

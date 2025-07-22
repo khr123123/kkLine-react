@@ -16,14 +16,13 @@ export function accumulateApplyCount(userId: number | string, delta: number): nu
   insertStmt.run(userId, newCount);
 
   return newCount;
-} export function clearApplyCount(userId: number | string): void {
+}
+export function clearApplyCount(userId: number | string): void {
   const stmt = db.prepare(`
     UPDATE applyCount SET applyCount = 0 WHERE userId = ?
   `);
   stmt.run(userId);
 }
-
-
 export function insertChatMessageRecordIgnore(msg: any) {
   const stmt = db.prepare(`
     INSERT OR IGNORE INTO chatMessage (

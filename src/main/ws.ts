@@ -199,7 +199,7 @@ export const createWs = (url: string) => {
                             msgData.content?.text!,
                             msgData.sendTime!
                         );
-                        updateSessionNoReadCount(userId, msgData.sender?.userId!, sessionRow.noReadCount + 1);
+                        updateSessionNoReadCount(userId, msgData.contact?.chatSessionId!, sessionRow.noReadCount + 1);
                     } else {
                         // 如果没有记录，则插入一条新会话
                         insertChatSessionUserIgnore({
@@ -247,7 +247,7 @@ export const createWs = (url: string) => {
                             msgData.sendTime!,
                             msgData.contact?.memberCount!,
                         );
-                        updateSessionNoReadCount(userId, msgData.contact?.contactId!, sessionRow.noReadCount + 1);
+                        updateSessionNoReadCount(userId, msgData.contact?.chatSessionId!, sessionRow.noReadCount + 1);
                     } else {
                         // 如果没有记录，则插入一条新会话
                         insertChatSessionUserIgnore({
@@ -299,7 +299,7 @@ export const createWs = (url: string) => {
                             msgData.sendTime!,
                             msgData.contact?.memberCount!,
                         );
-                        updateSessionNoReadCount(userId, msgData.contact?.contactId!, sessionRow.noReadCount + 1);
+                        updateSessionNoReadCount(userId, msgData.contact?.chatSessionId!, sessionRow.noReadCount + 1);
                     } else {
                         // 如果没有记录，则插入一条新会话
                         insertChatSessionUserIgnore({
@@ -348,7 +348,7 @@ export const createWs = (url: string) => {
                             msgData.sendTime!,
                             msgData.contact?.memberCount!,
                         );
-                        updateSessionNoReadCount(userId, msgData.contact?.contactId!, sessionRow.noReadCount + 1);
+                        updateSessionNoReadCount(userId, msgData.contact?.chatSessionId!, sessionRow.noReadCount + 1);
                     } else {
                         // 如果没有记录，则插入一条新会话
                         insertChatSessionUserIgnore({
@@ -440,7 +440,7 @@ export const createWs = (url: string) => {
                                 msgData.content?.text!,
                                 msgData.sendTime!
                             );
-                            updateSessionNoReadCount(userId, msgData.sender?.userId!, sessionRow.noReadCount + 1);
+                            updateSessionNoReadCount(userId, msgData.contact?.chatSessionId!, sessionRow.noReadCount + 1);
                         } else {
                             console.log('not found sessionRow');
                             // 如果没有记录，则插入一条新会话
@@ -525,7 +525,7 @@ export const createWs = (url: string) => {
                                 msgData.content?.text!,
                                 msgData.sendTime!
                             );
-                            updateSessionNoReadCount(userId, msgData.sender?.userId!, sessionRow.noReadCount + 1);
+                            updateSessionNoReadCount(userId, msgData.contact?.chatSessionId!, sessionRow.noReadCount + 1);
                         } else {
                             console.log('not found sessionRow');
                             // 如果没有记录，则插入一条新会话

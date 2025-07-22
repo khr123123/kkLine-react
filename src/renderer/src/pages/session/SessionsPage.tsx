@@ -12,6 +12,7 @@ import { Avatar, Badge, Dropdown, Input, List, Menu, Modal, theme, Typography } 
 import React, { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { formatDate } from "../../utils/timeUtil"
+import { useNoReadStore } from '@renderer/store/useNoReadStore';
 
 const { Text } = Typography;
 
@@ -50,6 +51,14 @@ const SessionsPage: React.FC = () => {
   const [contextContact, setContextContact] = useState<Contact | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
+  const unreadMap = useNoReadStore(state => state.unreadMap);
+  const noReadApplyCount = useNoReadStore(state => state.noReadApplyCount);
+  const increase = useNoReadStore(state => state.increase);
+  const clear = useNoReadStore(state => state.clear);
+  const initFromContacts = useNoReadStore(state => state.initFromContacts);
+  const setNoReadApplyCount = useNoReadStore(state => state.setNoReadApplyCount);
+  const clearNoReadApplyCount = useNoReadStore(state => state.clearNoReadApplyCount);
+
   useEffect(() => {
     if (!contacts || contacts.length === 0) return;
     const match = location.pathname.match(/^\/sessions\/([^/]+)$/);
@@ -61,6 +70,11 @@ const SessionsPage: React.FC = () => {
       }
     }
   }, [contacts, location.pathname]);
+  const selectedContactRef = useRef<Contact | null>(null);
+  // 同步 selectedContact 到 ref
+  useEffect(() => {
+    selectedContactRef.current = selectedContact;
+  }, [selectedContact]);
   //置顶处理器 0：取消置顶 1：置顶
   const handleTop = (contact: Contact) => {
     setContacts((prev) => {
@@ -112,25 +126,40 @@ const SessionsPage: React.FC = () => {
   const menu = <Menu onClick={onMenuClick} items={getMenuItems(contextContact)} />;
   const [globalLoading, setGlobalLoading] = useState(true);
   //邀请的数量
-  const [noReadApplyCount, setNoReadApplyCount] = useState<number>(0);
   const { token } = theme.useToken();
   const [ellipsis] = useState(true);
   const fatchSessionList = () => {
     window.electron.ipcRenderer.invoke('get-session-list').then((result: any) => {
       setContacts(result);
+      initFromContacts(result)
       setGlobalLoading(false);
+    });
+    window.electron.ipcRenderer.invoke('get-noread-receive-apply-count').then((result: any) => {
+      setNoReadApplyCount(result)
     });
   }
   useEffect(() => {
     fatchSessionList()
+  }, []);
+  useEffect(() => {
     window.electron.ipcRenderer.on('receive-apply', (_event: any, totleApplyCount: any) => setNoReadApplyCount(totleApplyCount))
     window.electron.ipcRenderer.on('reload-session-list', () => fatchSessionList())
     window.electron.ipcRenderer.on('change-session-info', (_event: any, msgInfo: any) => {
       const { chatSessionId, lastMessage, lastReceiveTime } = msgInfo;
+      if (chatSessionId !== selectedContactRef.current?.sessionId) {
+        increase(chatSessionId);
+      } else {
+        window.electron.ipcRenderer.send("clear-noread-count", chatSessionId)
+      }
       setContacts(prev => prev.map(contact => contact.sessionId === chatSessionId ? { ...contact, lastMessage, lastReceiveTime } : contact))
     })
     window.electron.ipcRenderer.on('change-group-session-info', (_event: any, msgInfo: any) => {
       const { chatSessionId, lastMessage, lastReceiveTime, memberCount } = msgInfo;
+      if (chatSessionId !== selectedContactRef.current?.sessionId) {
+        increase(chatSessionId);
+      } else {
+        window.electron.ipcRenderer.send("clear-noread-count", chatSessionId)
+      }
       setContacts(prev => prev.map(contact => contact.sessionId === chatSessionId ? { ...contact, lastMessage, lastReceiveTime, memberCount } : contact))
     })
     return () => {
@@ -184,8 +213,8 @@ const SessionsPage: React.FC = () => {
               className="hover-icon"
               style={{ fontSize: 20 }}
               onClick={() => {
+                clearNoReadApplyCount()
                 window.electron.ipcRenderer.invoke('open-notification-window')
-                setNoReadApplyCount(0)
               }}
             />
           </Badge>
@@ -224,6 +253,7 @@ const SessionsPage: React.FC = () => {
                 onClick={() => {
                   navigate(`/sessions/${item.sessionId}`);
                   window.electron.ipcRenderer.send("clear-noread-count", item.sessionId)
+                  clear(item.sessionId)
                   setContacts(prev =>
                     prev.map(contact =>
                       contact.sessionId === item.sessionId
@@ -240,7 +270,7 @@ const SessionsPage: React.FC = () => {
                         <Avatar shape="square" size={50} src={item.contactAvatar} />
                       </Badge>
                     ) : (
-                      <Badge count={item.noReadCount}>
+                      <Badge count={unreadMap[item.sessionId]}>
                         <Avatar shape="square" size={50} src={item.contactAvatar} />
                       </Badge>
                     )
