@@ -22,6 +22,7 @@ import SessionsPage from './pages/session/SessionsPage'
 import SettingPage from './pages/SettingPage'
 import YoutubePage from './pages/YoutubePage'
 import { useThemeStore } from './store/useThemeStore'
+import AdManagerPage from './adminPages/AdManagerPage'
 const router = createBrowserRouter([
   {
     path: '/login',
@@ -133,6 +134,10 @@ const router = createBrowserRouter([
       {
         path: 'messagePanel',
         element: <>messagePanel</>
+      },
+      {
+        path: 'adManager',
+        element: <AdManagerPage />
       }
     ]
   }

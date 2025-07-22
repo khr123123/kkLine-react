@@ -48,7 +48,25 @@ export async function getLoginUser(options?: { [key: string]: any }) {
     ...(options || {})
   })
 }
+// logoutService.ts（你可以放在主进程任意可导入的地方）
+import axios from 'axios';
 
+export async function logoutWithToken(token: string): Promise<void> {
+  try {
+    const response = await axios.post('http://127.0.0.1:8080/api/user/logout', {}, {
+      headers: {
+        Authorization: `${token}`,
+        'Content-Type': 'application/json',
+      },
+      timeout: 50000,
+      withCredentials: true,
+    });
+
+    console.log('登出成功:', response.data);
+  } catch (error) {
+    console.error('登出失败:', error);
+  }
+}
 /** 根据用户ID获取用户视图对象 GET /user/get/vo */
 export async function getUserVoById(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
@@ -142,25 +160,6 @@ export async function userLogout(options?: { [key: string]: any }) {
     method: 'POST',
     ...(options || {})
   })
-}
-// logoutService.ts（你可以放在主进程任意可导入的地方）
-import axios from 'axios';
-
-export async function logoutWithToken(token: string): Promise<void> {
-  try {
-    const response = await axios.post('http://127.0.0.1:8080/api/user/logout', {}, {
-      headers: {
-        Authorization: `${token}`,
-        'Content-Type': 'application/json',
-      },
-      timeout: 50000,
-      withCredentials: true,
-    });
-
-    console.log('登出成功:', response.data);
-  } catch (error) {
-    console.error('登出失败:', error);
-  }
 }
 
 /** 用户注册 根据请求体中的注册信息创建新用户 POST /user/register */

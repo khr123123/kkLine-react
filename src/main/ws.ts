@@ -609,7 +609,11 @@ export const createWs = (url: string) => {
                     }
                     break;
                 }
-
+                // ===== 40–49 系统类 =====
+                case MessageType.FORCE_OFF_LINE: { // 强制下线 40 　TODO
+                }
+                case MessageType.ADVERTISEMENT: { // 广告消息 41   　TODO
+                }
                 // ===== 50–51 互动类 =====
                 case MessageType.SHARE_CONTACT: {// 50
                     // 收到了邀请消息

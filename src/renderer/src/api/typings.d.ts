@@ -1,4 +1,13 @@
 declare namespace API {
+  type AdCategory = {
+    id?: string
+    name?: string
+    iconUrl?: string
+    createTime?: string
+    updateTime?: string
+    isDeleted?: number
+  }
+
   type ApplyDealWithRequest = {
     /** 申请ID，必填 */
     applyId: number
@@ -41,6 +50,12 @@ declare namespace API {
   type BaseResponseGroupVO = {
     code?: number
     data?: GroupVO
+    message?: string
+  }
+
+  type BaseResponseListAdCategory = {
+    code?: number
+    data?: AdCategory[]
     message?: string
   }
 
@@ -210,6 +225,10 @@ declare namespace API {
     userVO?: UserVO
     groupVO?: GroupVO
     joined?: boolean
+  }
+
+  type deleteAdParams = {
+    id: string
   }
 
   type DeleteRequest = {
@@ -427,6 +446,14 @@ declare namespace API {
     maxLimit?: number
     countId?: string
     pages?: number
+  }
+
+  type PushAdRequest = {
+    adTitle: string
+    adAvatar: string
+    adContent: string
+    adSessionId: string
+    adminId?: number
   }
 
   type RevokeMsgDto = {

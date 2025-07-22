@@ -9,6 +9,7 @@ import * as contactApplyApis from './contactApplyApis'
 import * as contactApis from './contactApis'
 import * as chatApis from './chatApis'
 import * as ossCallbackController from './ossCallbackController'
+import * as adCategoryController from './adCategoryController'
 export default {
   userApis,
   groupApis,
@@ -16,5 +17,6 @@ export default {
   contactApplyApis,
   contactApis,
   chatApis,
-  ossCallbackController
+  ossCallbackController,
+  adCategoryController
 }

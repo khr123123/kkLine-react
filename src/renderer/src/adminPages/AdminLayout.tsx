@@ -14,7 +14,7 @@ const AdminLayout: React.FC = () => {
   const user = useUserStore((state) => state.user)
 
   const IconFont = createFromIconfontCN({
-    scriptUrl: ['//at.alicdn.com/t/c/font_4966877_38zkbedurio.js']
+    scriptUrl: ['//at.alicdn.com/t/c/font_4966877_qr9j9n33wk.js']
   })
 
   useEffect(() => {
@@ -62,6 +62,10 @@ const AdminLayout: React.FC = () => {
             {
               key: '/admin/messagePanel',
               icon: <IconFont type="icon-xitongxiaoxiguanli-copy" style={{ fontSize: 24 }} />
+            },
+            {
+              key: '/admin/adManager',
+              icon: <IconFont type="icon-zhongdianguanggaowei" style={{ fontSize: 24 }} />
             }
           ].map(({ key, icon }) => ({
             key,
