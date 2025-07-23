@@ -93,7 +93,7 @@ export const createWs = (url: string) => {
                         sendUserName: msgData.sender?.userName,
                         sendTime: msgData.sendTime,
                         contactId: msgData.sender?.userId,
-                        sendStatus: 0,
+                        sendStatus: 1,
                     });
                     insertChatSessionUserIgnore({
                         userId: userId,
@@ -613,6 +613,59 @@ export const createWs = (url: string) => {
                 case MessageType.FORCE_OFF_LINE: { // 强制下线 40 　TODO
                 }
                 case MessageType.ADVERTISEMENT: { // 广告消息 41   　TODO
+                    console.log('📢 收到了广告消息');
+                    exec(`powershell -c (New-Object Media.SoundPlayer '${recivePath}').PlaySync();`)
+                    const msgInfo = {
+                        id: msgData.messageId,
+                        sessionId: msgData.contact?.chatSessionId || '',
+                        messageType: msgData.messageType,
+                        messageContent: JSON.stringify(msgData.content?.extraData || {}),
+                        sendUserId: "AD",
+                        sendUserName: "AD",
+                        sendTime: msgData.sendTime,
+                        contactId: '',
+                        fileUrl: '',
+                        fileSize: '',
+                        fileName: '',
+                        fileType: '',
+                        sendStatus: 1,
+                    }
+                    // 先插入消息
+                    insertChatMessageRecordIgnore(msgInfo);
+                    const sessionRow = findSessionByUserAndContact(userId, msgData.contact?.chatSessionId!);
+                    if (sessionRow) {
+                        updateSessionLastMessage(
+                            msgData.contact?.chatSessionId!,
+                            msgData.content?.extraData.adTitle,
+                            msgData.sendTime!
+                        );
+                        updateSessionNoReadCount(userId, msgData.contact?.chatSessionId!, sessionRow.noReadCount + 1);
+                    } else {
+                        // 如果没有记录，则插入一条新会话
+                        insertChatSessionUserIgnore({
+                            userId,
+                            contactId: msgData.contact?.chatSessionId!,
+                            sessionId: msgData.contact?.chatSessionId,
+                            contactName: msgData.content?.extraData.adCategory.name,
+                            contactAvatar: msgData.content?.extraData.adCategory.iconUrl,
+                            contactType: "",
+                            lastTime: msgData.sendTime,
+                            lastMessage: msgData.content?.extraData.adTitle,
+                        }, 1);
+                        if (mainWindow?.webContents) {
+                            mainWindow.webContents.send('reload-session-list');
+                        }
+                    }
+                    if (mainWindow?.webContents) {
+                        mainWindow.webContents.send('receive-message', msgInfo);
+                        mainWindow.webContents.send('change-ad-session-info', {
+                            chatSessionId: msgData.contact?.chatSessionId!,
+                            lastMessage: msgData.content?.extraData.adTitle,
+                            lastReceiveTime: msgData.sendTime!,
+                            noReadCount: 1
+                        });
+                    }
+                    break;
                 }
                 // ===== 50–51 互动类 =====
                 case MessageType.SHARE_CONTACT: {// 50

@@ -162,11 +162,16 @@ const SessionsPage: React.FC = () => {
       }
       setContacts(prev => prev.map(contact => contact.sessionId === chatSessionId ? { ...contact, lastMessage, lastReceiveTime, memberCount } : contact))
     })
+    window.electron.ipcRenderer.on('change-ad-session-info', (_event: any, msgInfo: any) => {
+      const { chatSessionId, lastMessage, lastReceiveTime, noReadCount } = msgInfo;
+      setContacts(prev => prev.map(contact => contact.sessionId === chatSessionId ? { ...contact, lastMessage, lastReceiveTime, noReadCount } : contact))
+    })
     return () => {
       window.electron.ipcRenderer.removeAllListeners('receive-apply')
       window.electron.ipcRenderer.removeAllListeners('reload-session-list')
       window.electron.ipcRenderer.removeAllListeners('change-session-info')
       window.electron.ipcRenderer.removeAllListeners('change-group-session-info')
+      window.electron.ipcRenderer.removeAllListeners('change-ad-session-info')
     }
   }, [])
 
@@ -266,9 +271,13 @@ const SessionsPage: React.FC = () => {
                 <List.Item.Meta
                   avatar={
                     item.sessionId.toString().startsWith('AD') ? (
-                      <Badge dot>
+                      item.noReadCount > 0 ? (
+                        <Badge dot>
+                          <Avatar shape="square" size={50} src={item.contactAvatar} />
+                        </Badge>
+                      ) : (
                         <Avatar shape="square" size={50} src={item.contactAvatar} />
-                      </Badge>
+                      )
                     ) : (
                       <Badge count={unreadMap[item.sessionId]}>
                         <Avatar shape="square" size={50} src={item.contactAvatar} />

@@ -31,6 +31,7 @@ import { Snowflake } from '@renderer/utils/SnowflakeIdUtil'
 import {
   Avatar,
   Button,
+  Card,
   Divider,
   Drawer,
   Flex,
@@ -68,6 +69,7 @@ const ChatPage: React.FC = () => {
 
   const [friendInfo, setFriendInfo] = useState<any>(null)
   const [groupInfo, setGroupInfo] = useState<any>(null)
+  const [adInfo, setAdInfo] = useState<any>(null)
   const [members, setMembers] = useState<any[]>([])
   const [memberMap, setMemberMap] = useState<Map<number, { name: string; avatar: string }>>(
     new Map()
@@ -390,11 +392,43 @@ const ChatPage: React.FC = () => {
     lastMessageTimeRef.current = result[result.length - 1].sendTime
     setMessages(messagesWithTime)
   }
-
+  const fetchADMessages = async () => {
+    if (!sessionId || !user?.id) return
+    const result = await window.electron.ipcRenderer.invoke('get-message-list', sessionId)
+    const messagesWithTime: CustomBubbleProps[] = []
+    let lastTimestamp = 0
+    let lastTimeNodeContent: string = ''
+    for (const item of result) {
+      const currentTimestamp = new Date(item.sendTime).getTime()
+      if (lastTimestamp === 0 || currentTimestamp - lastTimestamp > 10 * 60 * 1000) {
+        // 如果和上一条消息时间间隔超过10分钟，插入时间节点
+        if (lastTimeNodeContent !== formatRelativeTime(currentTimestamp)) {
+          lastTimeNodeContent = formatRelativeTime(currentTimestamp)
+          messagesWithTime.push({
+            _key: `time-${item.id}`,
+            role: 'time',
+            content: lastTimeNodeContent
+          })
+        }
+      }
+      messagesWithTime.push({
+        _key: item.id,
+        role: 'ad',
+        content: item.messageContent,
+      })
+      lastTimestamp = currentTimestamp
+    }
+    const dto = JSON.parse(result[0].messageContent)
+    setAdInfo({ name: dto.adCategory.name, iconUrl: dto.adCategory.iconUrl })
+    lastMessageTimeRef.current = result[result.length - 1].sendTime
+    setMessages(messagesWithTime)
+  }
   useEffect(() => {
     if (!sessionId) return
     if (sessionId.startsWith('G')) {
       fetchGroupInfoAndMessages()
+    } else if (sessionId.startsWith('AD')) {
+      fetchADMessages()
     } else {
       fetchFriendInfoAndMessages()
     }
@@ -566,11 +600,18 @@ const ChatPage: React.FC = () => {
 
       const sysMsgType = [3, 10, 11, 12, 13, 14, 15, 24]
       const shareMsgType = [50]
+      const adMsgType = [41]
       if (sysMsgType.includes(msgInfo.messageType)) {
         newMessages.push({
           _key: msgInfo.id,
           role: 'sys',
           content: msgInfo.messageContent
+        })
+      } else if (adMsgType.includes(msgInfo.messageType)) {
+        newMessages.push({
+          _key: msgInfo.id,
+          role: 'ad',
+          content: msgInfo.messageContent,
         })
       } else if (shareMsgType.includes(msgInfo.messageType)) {
         newMessages.push({
@@ -776,28 +817,35 @@ const ChatPage: React.FC = () => {
   return (
     <>
       <div style={{ display: 'flex', flexDirection: 'column', height: '95vh', width: '100%' }}>
-        <Space style={{ padding: '0 16px', marginBottom: 8 }}>
-          {isGroup ? (
-            <Flex align="center" gap={8}>
-              <Avatar src={groupInfo?.groupAvatar} />
-              <Text strong style={{ flex: 1, fontSize: 20 }}>
-                {groupInfo?.groupName}
-                <Text type="secondary" style={{ fontSize: 16 }}>
-                  （{members.length}）
+        {sessionId?.startsWith("AD") ?
+          <Space style={{ padding: '0 16px', marginBottom: 8 }}>
+            <Avatar src={adInfo?.iconUrl} shape='square' />
+            <Text strong style={{ flex: 1, fontSize: 20 }}>
+              {adInfo?.name}
+            </Text>
+          </Space> :
+          <Space style={{ padding: '0 16px', marginBottom: 8 }}>
+            {isGroup ? (
+              <Flex align="center" gap={8}>
+                <Avatar src={groupInfo?.groupAvatar} />
+                <Text strong style={{ flex: 1, fontSize: 20 }}>
+                  {groupInfo?.groupName}
+                  <Text type="secondary" style={{ fontSize: 16 }}>
+                    （{members.length}）
+                  </Text>
                 </Text>
-              </Text>
-            </Flex>
-          ) : (
-            <Flex align="center" gap={8}>
-              <Avatar src={friendInfo?.userAvatar} />
-              <Text strong style={{ fontSize: 18 }}>
-                {friendInfo?.userName}
-              </Text>
-            </Flex>
-          )}
-          <Actions items={actionItems} />
-        </Space>
-
+              </Flex>
+            ) : (
+              <Flex align="center" gap={8}>
+                <Avatar src={friendInfo?.userAvatar} />
+                <Text strong style={{ fontSize: 18 }}>
+                  {friendInfo?.userName}
+                </Text>
+              </Flex>
+            )}
+            <Actions items={actionItems} />
+          </Space>
+        }
         <Flex vertical gap="small" style={{ flex: 1, overflowY: 'auto' }}>
           <Bubble.List
             autoScroll
@@ -1066,6 +1114,64 @@ const ChatPage: React.FC = () => {
                 variant: 'borderless',
                 messageRender: (content) => {
                   return <ShareInfoCard item={content} />
+                }
+              },
+              ad: {
+                style: { margin: '0 auto' },
+                variant: 'borderless',
+                styles: {
+                  content: {
+                    fontSize: 11,
+                    color: '#666666',
+                    border: `1px solid ${token.colorBorder}`,
+                  }
+                },
+                messageRender: (contentStr) => {
+                  let content: any = {};
+                  try {
+                    content = JSON.parse(contentStr);
+                  } catch (e) {
+                    console.error("广告内容解析失败", contentStr);
+                    return <div style={{ color: 'red' }}>广告内容解析失败</div>;
+                  }
+                  return (
+                    <Card
+                      hoverable
+                      style={{
+                        width: 440,
+                        margin: '0 auto',
+                        borderRadius: 8,
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+                      }}
+                      cover={
+                        <img
+                          alt="广告封面"
+                          src={content.adPicture}
+                          style={{ height: 180, objectFit: 'cover' }}
+                        />
+                      }
+                    >
+                      <Card.Meta
+                        title={content.adTitle || '无标题广告'}
+                        description={
+                          <div
+                            style={{
+                              fontSize: 12,
+                              color: '#666',
+                              marginTop: 8,
+                              display: '-webkit-box',
+                              WebkitLineClamp: 2,
+                              WebkitBoxOrient: 'vertical',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            }}
+                          >
+                            {content.adContent || '暂无广告内容'}
+                          </div>
+                        }
+                      />
+                    </Card>
+                  );
                 }
               }
             }}

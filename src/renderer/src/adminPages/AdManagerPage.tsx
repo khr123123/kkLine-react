@@ -207,50 +207,59 @@ const AdManagerPage: React.FC = () => {
                 open={isPublishModalOpen}
                 onCancel={() => setIsPublishModalOpen(false)}
                 onOk={handlePublish}
-                destroyOnClose
+                destroyOnHidden
+                width={800}
             >
                 <Form form={publishForm} layout="vertical">
-                    <Form.Item
-                        label="广告标题"
-                        name="adTitle"
-                        rules={[{ required: true, message: '请输入广告标题' }]}
-                    >
-                        <Input />
-                    </Form.Item>
-                    <Form.Item
-                        label="广告内容"
-                        name="adContent"
-                        rules={[{ required: true, message: '请输入广告内容' }]}
-                    >
-                        <Input.TextArea rows={4} />
-                    </Form.Item>
-                    <Form.Item
-                        label="选择广告分类"
-                        name="adSessionId"
-                        rules={[{ required: true, message: '请选择分类' }]}
-                    >
-                        <Select
-                            placeholder="请选择分类"
-                            onChange={(value) => {
-                                const selected = data.find((item) => item.id === value);
-                                publishForm.setFieldsValue({
-                                    adAvatar: selected?.iconUrl || ''
-                                });
-                            }}
-                        >
-                            {data.map((item) => (
-                                <Select.Option key={item.id} value={item.id}>
-                                    {item.name}
-                                </Select.Option>
-                            ))}
-                        </Select>
-                    </Form.Item>
-                    <Form.Item name="adAvatar" noStyle>
+                    <div style={{ display: 'flex', gap: 24 }}>
+                        <div style={{ flex: 1 }}>
+                            <Form.Item label="广告封面">
+                                <PicUploader
+                                    token={user?.token!}
+                                    onSuccess={(url) => {
+                                        publishForm.setFieldsValue({
+                                            adPicture: url || ''
+                                        });
+                                    }}
+                                />
+                            </Form.Item>
+                            <Form.Item
+                                label="广告标题"
+                                name="adTitle"
+                                rules={[{ required: true, message: '请输入广告标题' }]}
+                            >
+                                <Input />
+                            </Form.Item>
+                            <Form.Item
+                                label="选择广告分类"
+                                name="adSessionId"
+                                rules={[{ required: true, message: '请选择分类' }]}
+                            >
+                                <Select placeholder="请选择分类">
+                                    {data.map((item) => (
+                                        <Select.Option key={item.id} value={item.id}>
+                                            {item.name}
+                                        </Select.Option>
+                                    ))}
+                                </Select>
+                            </Form.Item>
+                        </div>
+                        <div style={{ flex: 2 }}>
+                            <Form.Item
+                                label="广告内容"
+                                name="adContent"
+                                rules={[{ required: true, message: '请输入广告内容' }]}
+                            >
+                                <Input.TextArea autoSize={{ minRows: 12, maxRows: 12 }} />
+                            </Form.Item>
+                        </div>
+                    </div>
+                    <Form.Item name="adPicture" noStyle>
                         <Input type="hidden" />
                     </Form.Item>
                 </Form>
             </Modal>
-        </div>
+        </div >
     );
 };
 
