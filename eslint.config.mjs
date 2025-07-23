@@ -33,7 +33,7 @@ export default tseslint.config(
       '@typescript-eslint/no-unused-vars': 'off',
       '@typescript-eslint/ban-ts-comment': 'off',
       'no-console': 'off',
-      'no-debugger': 'off'
+      'no-debugger': 'off',
     }
   },
 

@@ -1,6 +1,6 @@
 // @ts-ignore
 /* eslint-disable */
-import request from '@renderer/http/request'
+import request from '../http/request'
 
 /** 申请添加好友或加入群组 发起好友或群组的申请请求 POST /contactApply/applyAdd */
 export async function applyAdd(body: API.ApplyRequest, options?: { [key: string]: any }) {

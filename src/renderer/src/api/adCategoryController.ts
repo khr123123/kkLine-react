@@ -1,6 +1,6 @@
 // @ts-ignore
 /* eslint-disable */
-import request from '@renderer/http/request'
+import request from '../http/request'
 
 /** 新增广告种类 POST /admin/adCategory/add */
 export async function addAd(body: API.AdCategory, options?: { [key: string]: any }) {

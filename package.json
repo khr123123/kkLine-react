@@ -21,6 +21,37 @@
     "build:mac": "electron-vite build && electron-builder --mac",
     "build:linux": "electron-vite build && electron-builder --linux"
   },
+  "build": {
+    "extraResources": [
+      "./assets/**"
+    ],
+    "productName": "KKLine",
+    "appId": "com.KKLine",
+    "directories": {
+      "output": "installPackages"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowElevation": true,
+      "allowToChangeInstallationDirectory": true,
+      "installerIcon": "./resources/icon.ico",
+      "uninstallerIcon": "./resources/icon.ico",
+      "installerHeaderIcon": "./resources/icon.ico",
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "KKLine"
+    },
+    "mac": {
+      "icon": "icons/icon.icns"
+    },
+    "win": {
+      "artifactName": "${productName}Setup.${version}.exe",
+      "icon": "resources/icon.ico",
+      "target": [
+        "nsis"
+      ]
+    }
+  },
   "dependencies": {
     "@ant-design/icons": "^5.6.1",
     "@ant-design/pro-components": "^2.8.9",
@@ -38,7 +69,6 @@
     "react-file-viewer-ts": "^0.0.30",
     "react-infinite-scroll-component": "^6.1.0",
     "react-markdown": "^10.1.0",
-    "react-pdf": "^10.0.1",
     "react-router-dom": "^7.6.3",
     "ws": "^8.18.3",
     "zustand": "^5.0.6"

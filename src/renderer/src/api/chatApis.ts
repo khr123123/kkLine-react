@@ -1,6 +1,6 @@
 // @ts-ignore
 /* eslint-disable */
-import request from '@renderer/http/request'
+import request from '../http/request'
 
 /** 删除消息 POST /chat/deleteMsg */
 export async function deleteMsg(body: API.RevokeMsgDto, options?: { [key: string]: any }) {

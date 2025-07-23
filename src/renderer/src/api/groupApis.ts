@@ -1,6 +1,6 @@
 // @ts-ignore
 /* eslint-disable */
-import request from '@renderer/http/request'
+import request from '../http/request'
 
 /** 添加成员 群主邀请用户加入群聊 POST /group/addMember */
 export async function addMember(body: API.GroupAddMemberRequest, options?: { [key: string]: any }) {

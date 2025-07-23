@@ -1,6 +1,6 @@
 // @ts-ignore
 /* eslint-disable */
-import request from '@renderer/http/request'
+import request from '../http/request'
 
 /** 查询与某人关系的合法性 GET /contact/checkRelation */
 export async function checkRelation(

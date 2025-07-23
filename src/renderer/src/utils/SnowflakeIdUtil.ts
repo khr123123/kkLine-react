@@ -9,9 +9,6 @@ export class Snowflake {
     private static datacenterIdBits = 5n;
     private static sequenceBits = 12n;
 
-    private static maxWorkerId = -1n ^ (-1n << Snowflake.workerIdBits);       // 31
-    private static maxDatacenterId = -1n ^ (-1n << Snowflake.datacenterIdBits); // 31
-
     private static workerIdShift = Snowflake.sequenceBits;
     private static datacenterIdShift = Snowflake.sequenceBits + Snowflake.workerIdBits;
     private static timestampLeftShift = Snowflake.sequenceBits + Snowflake.workerIdBits + Snowflake.datacenterIdBits;

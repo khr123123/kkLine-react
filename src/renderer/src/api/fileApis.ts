@@ -1,6 +1,6 @@
 // @ts-ignore
 /* eslint-disable */
-import request from '@renderer/http/request'
+import request from '../http/request'
 
 /** 文件上传并且监听上传进度 POST /file/uploadFileWithProgressListener */
 export async function uploadFile(

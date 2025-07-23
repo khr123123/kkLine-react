@@ -80,11 +80,11 @@ const columns: ProColumns<Group>[] = [
     valueType: 'option',
     fixed: 'right',
     width: 100,
-    render: (text, record, _, action) => (
+    render: (_text, record, _, action) => (
       <>
         <EditOutlined
           style={{ fontSize: 20, color: '#1890ff', marginRight: 12, cursor: 'pointer' }}
-          onClick={() => action?.startEditable?.(record.id)}
+          onClick={() => action?.startEditable?.(record.id!)}
           title="编辑"
         />
         <Popconfirm
@@ -167,7 +167,7 @@ export default () => {
             <Button icon={<EllipsisOutlined />} />
           </Dropdown>
         ]}
-        request={async (params, sort, filter) => {
+        request={async (params, sort, _) => {
           setLoading(true)
           try {
             const sortField = Object.keys(sort || {})[0]
