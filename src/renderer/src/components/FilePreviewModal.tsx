@@ -1,10 +1,8 @@
 ﻿import React, { useEffect, useState } from 'react';
 import { Button, Modal, Spin } from 'antd';
-import { FilePreview } from 'react-file-viewer-ts';
-import 'react-file-viewer-ts/styles.css';
-import { FileType } from 'react-file-viewer-ts/dist/types/types';
 import ReactMarkdown from 'react-markdown';
 import { DownloadOutlined } from '@ant-design/icons';
+import * as XLSX from 'xlsx';
 
 interface FilePreviewModalProps {
     open: boolean;
@@ -21,14 +19,16 @@ function getFileType(fileName?: string): string {
 
 const FilePreviewModal: React.FC<FilePreviewModalProps> = ({ open, onClose, fileUrl, fileName }) => {
     const ext = getFileType(fileName);
-    const fileType = ext as FileType;
-
     const isVideo = /\.(mp4|webm|ogg)$/i.test(fileName || '');
     const isAudio = /\.(mp3|wav|ogg)$/i.test(fileName || '');
     const isMarkdown = /\.md$/i.test(fileName || '');
     const isPpt = /\.(ppt|pptx)$/i.test(fileName || '');
     const isTxt = /\.txt$/i.test(fileName || '');
+    const isExcel = /\.(xlsx|xls)$/i.test(fileName || '');
+    const isPdf = /\.pdf$/i.test(fileName || '');
+
     const [mdContent, setMdContent] = useState<string>('');
+    const [rows, setRows] = useState<any[][]>([]);
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
@@ -49,6 +49,22 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({ open, onClose, file
         }
     }, [fileUrl, fileName, isMarkdown, isTxt, open]);
 
+    useEffect(() => {
+        const loadExcel = async () => {
+            try {
+                const res = await fetch(fileUrl);
+                const buffer = await res.arrayBuffer();
+                const wb = XLSX.read(buffer, { type: 'array' });
+                const sheet = wb.Sheets[wb.SheetNames[0]];
+                const data = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+                setRows(data as any[][]);
+            } catch (err) {
+                console.error('读取失败', err);
+            }
+        };
+        loadExcel();
+    }, [fileUrl, fileName, isExcel, open]);
+
     const handleDownload = (url: string) => {
         const suffix = url.slice(url.lastIndexOf('.'));
         const filename = Date.now() + suffix;
@@ -65,7 +81,6 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({ open, onClose, file
                 link.remove();
             });
     };
-
     return (
         <Modal
             open={open}
@@ -106,11 +121,27 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({ open, onClose, file
                     <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         PPT 文件暂不支持预览。请点击右上角下载查看。
                     </div>
-                ) : (
-                    <FilePreview type={fileType} file={fileUrl} />
-                )}
+                ) : isExcel ? (
+                    <table border={1} cellPadding={6} style={{ borderCollapse: 'collapse' }}>
+                        <tbody>
+                            {rows.map((row, i) => (
+                                <tr key={i}>
+                                    {row.map((cell, j) => (
+                                        <td key={j}>{cell}</td>
+                                    ))}
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                ) : isPdf ? (
+                    <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        PDF 文件暂不支持预览。请点击右上角下载查看。
+                    </div>
+                ) : (<div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    该文件暂不支持预览。请点击右上角下载查看。
+                </div>)}
             </div>
-        </Modal>
+        </Modal >
     );
 };
 
