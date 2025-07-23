@@ -1183,64 +1183,65 @@ const ChatPage: React.FC = () => {
         <div
           style={{ paddingTop: 12, position: 'sticky', paddingRight: 8, paddingLeft: 8, bottom: 6 }}
         >
-          <Sender
-            prefix={
-              <div style={{ position: 'relative', marginRight: 18 }}>
-                <Upload
-                  name="file"
-                  className="avatar-uploader"
-                  showUploadList={false}
-                  action="http://127.0.0.1:8080/api/chat/sendFileMessageWhitProgress"
-                  headers={{ Authorization: user?.token! }}
-                  beforeUpload={beforeUpload}
-                  data={getUploadData}
-                >
-                  <Button
-                    style={{ position: 'absolute', top: -10, right: -22, zIndex: 1 }}
-                    type="text"
-                    icon={<LinkOutlined style={{ fontSize: 18, color: '#666' }} />}
-                  />
-                </Upload>
-                <Popover
-                  content={
-                    <EmojiPicker
-                      onEmojiClick={(emoji) => setValue((prev) => prev + emoji.emoji)}
-                      searchDisabled
-                      skinTonesDisabled
-                      height={400}
-                      width={300}
+          {sessionId?.startsWith("AD") ? <></> :
+            <Sender
+              prefix={
+                <div style={{ position: 'relative', marginRight: 18 }}>
+                  <Upload
+                    name="file"
+                    className="avatar-uploader"
+                    showUploadList={false}
+                    action="http://127.0.0.1:8080/api/chat/sendFileMessageWhitProgress"
+                    headers={{ Authorization: user?.token! }}
+                    beforeUpload={beforeUpload}
+                    data={getUploadData}
+                  >
+                    <Button
+                      style={{ position: 'absolute', top: -10, right: -22, zIndex: 1 }}
+                      type="text"
+                      icon={<LinkOutlined style={{ fontSize: 18, color: '#666' }} />}
                     />
-                  }
-                  trigger="click"
-                >
-                  <Button
-                    style={{ position: 'absolute', top: -45, right: -22, zIndex: 1 }}
-                    type="text"
-                    icon={<SmileOutlined style={{ fontSize: 18, color: '#d48806' }} />}
-                  />
-                </Popover>
-              </div>
-            }
-            value={value}
-            onChange={(v) => setValue(v)}
-            onSubmit={sendMessage}
-            autoSize={{ minRows: 3, maxRows: 3 }}
-            onFocus={async () => {
-              if (isGroup) return
-              await sendTypingState({
-                contactId: getContactIdFromSession(sessionId!, user!.id!.toString()),
-                typing: true
-              })
-            }} // 聚焦事件 正在输入..
-            onBlur={async () => {
-              if (isGroup) return
-              await sendTypingState({
-                contactId: getContactIdFromSession(sessionId!, user!.id!.toString()),
-                typing: false
-              })
-              // 失焦事件 输入结束..
-            }}
-          />
+                  </Upload>
+                  <Popover
+                    content={
+                      <EmojiPicker
+                        onEmojiClick={(emoji) => setValue((prev) => prev + emoji.emoji)}
+                        searchDisabled
+                        skinTonesDisabled
+                        height={400}
+                        width={300}
+                      />
+                    }
+                    trigger="click"
+                  >
+                    <Button
+                      style={{ position: 'absolute', top: -45, right: -22, zIndex: 1 }}
+                      type="text"
+                      icon={<SmileOutlined style={{ fontSize: 18, color: '#d48806' }} />}
+                    />
+                  </Popover>
+                </div>
+              }
+              value={value}
+              onChange={(v) => setValue(v)}
+              onSubmit={sendMessage}
+              autoSize={{ minRows: 3, maxRows: 3 }}
+              onFocus={async () => {
+                if (isGroup) return
+                await sendTypingState({
+                  contactId: getContactIdFromSession(sessionId!, user!.id!.toString()),
+                  typing: true
+                })
+              }} // 聚焦事件 正在输入..
+              onBlur={async () => {
+                if (isGroup) return
+                await sendTypingState({
+                  contactId: getContactIdFromSession(sessionId!, user!.id!.toString()),
+                  typing: false
+                })
+                // 失焦事件 输入结束..
+              }}
+            />}
         </div>
       </div>
       <FilePreviewModal
