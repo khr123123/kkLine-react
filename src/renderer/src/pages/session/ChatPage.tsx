@@ -1191,7 +1191,7 @@ const ChatPage: React.FC = () => {
                     name="file"
                     className="avatar-uploader"
                     showUploadList={false}
-                    action="http://127.0.0.1:8080/api/chat/sendFileMessageWhitProgress"
+                    action="http://118.31.247.73:8080/api/chat/sendFileMessageWhitProgress"
                     headers={{ Authorization: user?.token! }}
                     beforeUpload={beforeUpload}
                     data={getUploadData}

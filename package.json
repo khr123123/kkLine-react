@@ -1,10 +1,10 @@
 {
-  "name": "kkline-react",
+  "name": "kkline",
   "version": "1.0.0",
-  "description": "An Electron application with React and TypeScript",
+  "description": "kkline",
   "main": "./out/main/index.js",
-  "author": "example.com",
-  "homepage": "https://electron-vite.org",
+  "author": "khr.com",
+  "homepage": "https://www.kuanghaoran.com",
   "scripts": {
     "openapi": "node openapi2ts.config.ts",
     "format": "prettier --write .",
@@ -34,19 +34,16 @@
       "oneClick": false,
       "allowElevation": true,
       "allowToChangeInstallationDirectory": true,
-      "installerIcon": "./resources/icon.ico",
-      "uninstallerIcon": "./resources/icon.ico",
-      "installerHeaderIcon": "./resources/icon.ico",
+      "installerIcon": "./resources/favicon.ico",
+      "uninstallerIcon": "./resources/favicon.ico",
+      "installerHeaderIcon": "./resources/favicon.ico",
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "KKLine"
     },
-    "mac": {
-      "icon": "icons/icon.icns"
-    },
     "win": {
       "artifactName": "${productName}Setup.${version}.exe",
-      "icon": "resources/icon.ico",
+      "icon": "resources/favicon.ico",
       "target": [
         "nsis"
       ]

@@ -5,7 +5,7 @@ import axios, { AxiosInstance } from 'axios'
 
 // 创建 axios 实例
 const request: AxiosInstance = axios.create({
-    baseURL: "http://127.0.0.1:8080/api",
+    baseURL: "http://118.31.247.73:8080/api",
     timeout: 50000,
     withCredentials: true,
 })

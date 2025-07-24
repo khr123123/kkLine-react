@@ -26,7 +26,7 @@ export const initWs = (loginUser: LoginUser, _mainWindow: Electron.BrowserWindow
     const token = loginUser.token
     userId = loginUser.id
     console.log(`👤 当前用户Current User是: ${userId},token为: ${token}`);
-    wsUrl = `ws://127.0.0.1:8081/ws?token=${token}`
+    wsUrl = `ws://118.31.247.73:8081/ws?token=${token}`
     needReconnect = true
     maxRetryCount = 5
     retryCount = 0

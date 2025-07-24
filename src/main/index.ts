@@ -1,12 +1,10 @@
 import { electronApp, is, optimizer } from '@electron-toolkit/utils';
-import { app, BrowserWindow, ipcMain, shell, } from 'electron';
-import { join } from 'path';
+import axios from 'axios';
+import { app, BrowserWindow, ipcMain, Menu, nativeImage, shell, Tray, } from 'electron';
+import path, { join } from 'path';
 import icon from '../../resources/wechat.png?asset';
-import { Menu, nativeImage, Tray } from 'electron';
-import { closeWs, initWs } from './ws'
 import { accumulateApplyCount, clearApplyCount, clearNoreadCount, hasChatSessionUser, insertChatMessageRecordIgnore, insertChatSessionUserIgnore, queryAllSession, queryMessagesBySession, removeChatSessionUser, removeMessageById, removeMessageBySessionId, revokeMessageById, setSessionTop, updateSessionLastMessage } from '../db/dbService';
-import path from 'path'
-import { logoutWithToken } from '../renderer/src/api/userApis';
+import { closeWs, initWs } from './ws';
 const { exec } = require('child_process');
 const sendPath = path.join(__dirname, '../../resources/send.wav')
 let mainWindow: BrowserWindow;
@@ -218,7 +216,20 @@ function createTray(win: BrowserWindow) {
       label: '退出',
       click: async () => {
         app.quit()
-        await logoutWithToken(currentLoginUser.token)
+        try {
+          const response = await axios.post('http://118.31.247.73:8080/api/user/logout', {}, {
+            headers: {
+              Authorization: `${currentLoginUser.token}`,
+              'Content-Type': 'application/json',
+            },
+            timeout: 50000,
+            withCredentials: true,
+          });
+
+          console.log('登出成功:', response.data);
+        } catch (error) {
+          console.error('登出失败:', error);
+        }
         closeWs()
       },
     },
