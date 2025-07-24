@@ -1,7 +1,8 @@
 // App.tsx
 import { ConfigProvider, theme } from 'antd'
 import { useEffect } from 'react'
-import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom'
+import { createHashRouter, Navigate, RouterProvider } from 'react-router-dom'
+import AdManagerPage from './adminPages/AdManagerPage'
 import AdminLayout from './adminPages/AdminLayout'
 import GroupListpage from './adminPages/GroupListpage'
 import UserListPage from './adminPages/UserListPage'
@@ -22,8 +23,7 @@ import SessionsPage from './pages/session/SessionsPage'
 import SettingPage from './pages/SettingPage'
 import YoutubePage from './pages/YoutubePage'
 import { useThemeStore } from './store/useThemeStore'
-import AdManagerPage from './adminPages/AdManagerPage'
-const router = createBrowserRouter([
+const router = createHashRouter([
   {
     path: '/login',
     element: <LoginPage />
