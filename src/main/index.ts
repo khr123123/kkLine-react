@@ -39,7 +39,7 @@ function createWindow(): void {
     mainWindow.loadURL('http://localhost:5173/login')
     // mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
   } else {
-    mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
+     mainWindow.loadURL(`file://${join(__dirname, '../renderer/index.html')}#/login`)
   }
 }
 
@@ -284,6 +284,6 @@ function createNotificationWindow(): void {
     notificationWindow.loadURL('http://localhost:5173/notifications');
     // mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
   } else {
-    // mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
+    mainWindow.loadURL(`file://${join(__dirname, '../renderer/index.html')}#/notifications`)
   }
 }
