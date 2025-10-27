@@ -450,10 +450,11 @@ declare namespace API {
 
   type PushAdRequest = {
     adTitle: string
-    adAvatar: string
+    adPicture: string
     adContent: string
     adSessionId: string
     adminId?: number
+    adCategory?: AdCategory
   }
 
   type RevokeMsgDto = {
@@ -471,6 +472,10 @@ declare namespace API {
     contactId: string
     /** 被分享的好友ID或群ID列表 */
     shareIds: string[]
+  }
+
+  type simpleChatParams = {
+    query?: string
   }
 
   type uploadFileParams = {

@@ -79,7 +79,7 @@ const SearchPage: React.FC = () => {
                 desc: data.userVO.userProfile || '这个人很懒没有留下任何描述..',
                 buttonDisabled: data.joined || mySelf,
                 buttonType: 'primary' as const,
-                buttonText: data.joined ? '已经是好友' : mySelf ? 'MySelf' : '发送消息',
+                buttonText: data.joined ? '已经是好友' : mySelf ? 'MySelf' : '追加',
             };
         }
         return {
@@ -180,12 +180,12 @@ const SearchPage: React.FC = () => {
                     width: '100%',
                 }}
             >
-                <WechatOutlined /> 搜索好友/群组
+                <WechatOutlined /> 友達 OR グループを探す
             </Title>
 
             <div style={searchAreaStyle}>
                 <Input
-                    placeholder="请输入群号或好友号"
+                    placeholder="友達ID OR グループIDを入力してください"
                     prefix={<SearchOutlined />}
                     allowClear
                     value={keyword}
@@ -205,7 +205,7 @@ const SearchPage: React.FC = () => {
                     loading={loading}
                     style={{ borderRadius: 8, padding: '0 24px', height: 40, fontSize: 16 }}
                 >
-                    搜索
+                    探す
                 </Button>
             </div>
 
@@ -221,7 +221,7 @@ const SearchPage: React.FC = () => {
                             userSelect: 'none',
                         }}
                     >
-                        {result.contactType === 1 ? '群组' : '好友'}
+                        {result.contactType === 1 ? 'グループ' : '友達'}
                     </Tag>
 
                     <Card

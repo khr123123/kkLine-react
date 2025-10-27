@@ -133,7 +133,19 @@ const router = createBrowserRouter([
       },
       {
         path: 'messagePanel',
-        element: <>messagePanel</>
+        element: <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            height: "200px",
+            fontSize: "18px",
+            fontWeight: "500",
+            color: "#666",
+          }}
+        >
+          管理员 暂不支持查看用户的聊天记录
+        </div>
       },
       {
         path: 'adManager',

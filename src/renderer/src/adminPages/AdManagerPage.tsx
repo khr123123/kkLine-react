@@ -5,7 +5,7 @@ import {
     DeleteOutlined,
     ReloadOutlined
 } from '@ant-design/icons';
-import { listAd, addAd, deleteAd, publicAd } from '@renderer/api/adCategoryController';
+import { listAd, addAd, deleteAd, publicAd } from '@renderer/api/adApis';
 import dayjs from 'dayjs';
 import PicUploader from '@renderer/components/PicUploader';
 import { useUserStore } from '@renderer/store/useUserStore';

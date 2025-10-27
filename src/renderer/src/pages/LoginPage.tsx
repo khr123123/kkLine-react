@@ -109,20 +109,21 @@ const Page = () => {
       <div style={{ backgroundColor: 'white', height: '100vh' }}>
         {isRegisterPage ? (
           <LoginFormPage
+            submitter={{ searchConfig: { submitText: '登録' } }}
             form={form}
             onFinish={registerHandelr}
             backgroundImageUrl="https://mdn.alipayobjects.com/huamei_gcee1x/afts/img/A*y0ZTS6WLwvgAAAAAAAAAAAAADml6AQ/fmt.webp"
             backgroundVideoUrl="https://gw.alipayobjects.com/v/huamei_gcee1x/afts/video/jXRBRK_VAwoAAAAAAAAAAAAAK4eUAQBr"
             logo={logo}
             title='KK LINE'
-            subTitle="一个基于 Electron + React 的聊天系统"
+            subTitle="Electron + React を基づいているチャットシステム"
             containerStyle={{
               backgroundColor: 'rgba(0, 0, 0, 0.65)',
               backdropFilter: 'blur(4px)'
             }}
             activityConfig={{
-              title: '测试活动',
-              subTitle: '本项目仅用于学习展示',
+              title: 'テストイベント',
+              subTitle: '本プロジェクトは学習およびデモンストレーション目的のみで使用され、商業目的での利用は禁止です',
               style: {
                 boxShadow: '0px 0px 8px rgba(0, 0, 0, 0.2)',
                 color: token.colorTextHeading,
@@ -140,7 +141,7 @@ const Page = () => {
                     width: 120
                   }}
                 >
-                  去看看
+                  見てみる
                 </Button>
               )
             }}
@@ -241,25 +242,26 @@ const Page = () => {
               style={{ float: 'right', margin: '-20px 10px 10px 10px' }}
               onClick={() => setIsRegisterPage(false)}
             >
-              已有账号？去登录
+              ログインに
             </a>
           </LoginFormPage>
         ) : (
           <LoginFormPage
+            submitter={{ searchConfig: { submitText: 'ログイン' } }}
             form={form}
             onFinish={onFinishHandler}
             backgroundImageUrl="https://mdn.alipayobjects.com/huamei_gcee1x/afts/img/A*y0ZTS6WLwvgAAAAAAAAAAAAADml6AQ/fmt.webp"
             backgroundVideoUrl="https://gw.alipayobjects.com/v/huamei_gcee1x/afts/video/jXRBRK_VAwoAAAAAAAAAAAAAK4eUAQBr"
             logo={logo}
             title="KK LINE"
-            subTitle="一个基于 Electron + React 的聊天系统"
+            subTitle="ElectronとReactで構築したチャットシステム"
             containerStyle={{
               backgroundColor: 'rgba(0, 0, 0, 0.65)',
               backdropFilter: 'blur(4px)'
             }}
             activityConfig={{
-              title: '测试活动',
-              subTitle: '本项目仅用于学习展示',
+              title: 'テスト',
+              subTitle: '商業目的での利用は禁止です',
               style: {
                 boxShadow: '0px 0px 8px rgba(0, 0, 0, 0.2)',
                 color: token.colorTextHeading,
@@ -277,7 +279,7 @@ const Page = () => {
                     width: 120
                   }}
                 >
-                  去看看
+                  見てみる
                 </Button>
               )
             }}
@@ -285,7 +287,7 @@ const Page = () => {
               <div style={{ textAlign: 'center' }}>
                 <Divider plain>
                   <span style={{ color: token.colorTextPlaceholder, fontSize: 14 }}>
-                    其他登录方式
+                    その他のログイン方法
                   </span>
                 </Divider>
                 <Space size={24}>
@@ -297,8 +299,8 @@ const Page = () => {
             }
           >
             <Tabs centered activeKey={loginType} onChange={(key) => setLoginType(key as LoginType)}>
-              <Tabs.TabPane key="account" tab="账号密码登录" />
-              <Tabs.TabPane key="email" tab="邮箱登录" />
+              <Tabs.TabPane key="account" tab="アカウントで" />
+              <Tabs.TabPane key="email" tab="メールで" />
             </Tabs>
 
             {loginType === 'account' && (
@@ -311,12 +313,12 @@ const Page = () => {
                       <UserOutlined className="prefixIcon" style={{ color: token.colorText }} />
                     )
                   }}
-                  placeholder="用户名"
+                  placeholder="アカウント"
                   validateTrigger="onBlur"
                   rules={[
-                    { required: true, message: '请输入用户名' },
-                    { min: 6, message: '用户名长度不能小于6' },
-                    { max: 12, message: '用户名长度不能大于12' }
+                    { required: true, message: 'アカウントを入力してください' },
+                    { min: 6, message: '6文字以上で入力してください' },
+                    { max: 12, message: '12文字以内で入力してください' },
                   ]}
                 />
                 <ProFormText.Password
@@ -327,12 +329,12 @@ const Page = () => {
                       <LockOutlined className="prefixIcon" style={{ color: token.colorText }} />
                     )
                   }}
-                  placeholder="密码"
+                  placeholder="パスワード"
                   validateTrigger="onBlur"
                   rules={[
-                    { required: true, message: '请输入密码' },
-                    { min: 6, message: '密码长度不能小于6' },
-                    { max: 12, message: '密码长度不能大于12' }
+                    { required: true, message: 'パスワードを入力してください' },
+                    { min: 6, message: '6文字以上で入力してください' },
+                    { max: 12, message: '12文字以内で入力してください' },
                   ]}
                 />
               </>
@@ -349,7 +351,7 @@ const Page = () => {
                       <MailOutlined className="prefixIcon" style={{ color: token.colorText }} />
                     )
                   }}
-                  placeholder="邮箱地址"
+                  placeholder="メールアドレス"
                   rules={[
                     { required: true, message: '请输入邮箱地址！' },
                     {
@@ -366,7 +368,7 @@ const Page = () => {
                       <LockOutlined className="prefixIcon" style={{ color: token.colorText }} />
                     )
                   }}
-                  placeholder="请输入验证码"
+                  placeholder="チェックコード"
                   captchaTextRender={(timing, count) =>
                     timing ? `${count} 秒后重试` : '获取验证码'
                   }
@@ -389,7 +391,7 @@ const Page = () => {
             )}
             <div style={{ marginBottom: 24, paddingBottom: 24 }}>
               <a style={{ float: 'right' }} onClick={() => setIsRegisterPage(true)}>
-                没有账号？去注册
+                新規登録
               </a>
             </div>
           </LoginFormPage>

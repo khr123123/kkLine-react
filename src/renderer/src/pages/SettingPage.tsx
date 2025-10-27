@@ -16,7 +16,7 @@ import {
 } from 'antd';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useThemeStore } from '../store/useThemeStore'; // 根据你的实际路径调整
+import { useThemeStore } from '../store/useThemeStore'; 
 import AnimatedTitle from '@renderer/animation/AnimatedTitle';
 
 const { Option } = Select;

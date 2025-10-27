@@ -13,6 +13,8 @@ import {
     FileSearchOutlined,
     AppstoreAddOutlined,
 } from '@ant-design/icons';
+import { simpleChat } from '@renderer/api/aiApis';
+
 
 const HOT_TOPICS = {
     key: '1',
@@ -43,57 +45,54 @@ const ChatArea: React.FC = () => {
     const [attachmentsOpen, setAttachmentsOpen] = useState(false);
     const [attachedFiles, setAttachedFiles] = useState<any[]>([]);
     const [inputValue, setInputValue] = useState('');
-
-    // messages结构示例：{ message: { role, content }, status }
     const [messages, setMessages] = useState<any[]>([]);
-
     const [loading, setLoading] = useState(false);
 
-    // 模拟请求延时
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-    // 发送消息函数
-    const onSubmit = (val: string) => {
+    // ✅ 真正调用后端 AI
+    const onSubmit = async (val: string) => {
         if (!val.trim()) {
             message.warning('Please enter a message');
             return;
         }
-
         if (loading) {
             message.error('Request in progress, please wait');
             return;
         }
-
-        // 用户消息先显示
+        // 添加用户消息与AI占位消息
         setMessages((prev) => [
             ...prev,
             { message: { role: 'user', content: val }, status: 'done' },
-            { message: { role: 'assistant', content: '' }, status: 'loading' }, // 机器人回复占位
+            { message: { role: 'assistant', content: '', loading: true }, status: 'loading' },
         ]);
         setLoading(true);
         setInputValue('');
-
-        // 模拟异步AI回复，2秒后返回
-        timeoutRef.current = setTimeout(() => {
+        try {
+            const response = await simpleChat({ query: val });
+            const data = response; // 后端返回纯文本
             setMessages((prev) =>
-                prev.map((msg, idx) => {
-                    if (msg.status === 'loading' && msg.message.role === 'assistant') {
-                        return {
-                            message: {
-                                role: 'assistant',
-                                content: `AI response to: "${val}"`,
-                            },
-                            status: 'done',
-                        };
-                    }
-                    return msg;
-                }),
+                prev.map((msg) =>
+                    msg.status === 'loading' && msg.message.role === 'assistant'
+                        ? { message: { role: 'assistant', content: data, loading: false }, status: 'done' }
+                        : msg
+                )
             );
+        } catch (error) {
+            console.error(error);
+            message.error('Failed to get AI response');
+            setMessages((prev) =>
+                prev.map((msg) =>
+                    msg.status === 'loading' && msg.message.role === 'assistant'
+                        ? { message: { role: 'assistant', content: 'Error: failed to fetch response.' }, status: 'done' }
+                        : msg
+                )
+            );
+        } finally {
             setLoading(false);
-        }, 2000);
+        }
     };
 
-    // 取消请求函数
     const onCancel = () => {
         if (loading) {
             if (timeoutRef.current) {
@@ -103,10 +102,7 @@ const ChatArea: React.FC = () => {
             setMessages((prev) =>
                 prev.map((msg) =>
                     msg.status === 'loading' && msg.message.role === 'assistant'
-                        ? {
-                            message: { role: 'assistant', content: 'Request cancelled.' },
-                            status: 'done',
-                        }
+                        ? { message: { role: 'assistant', content: 'Request cancelled.' }, status: 'done' }
                         : msg,
                 ),
             );
@@ -139,7 +135,7 @@ const ChatArea: React.FC = () => {
     );
 
     return (
-        <div style={{ flex: 1, height: '100vh', display: 'flex', flexDirection: 'column', padding: 24 }}>
+        <div style={{ flex: 1, maxHeight: '95vh', display: 'flex', flexDirection: 'column', padding: 24 }}>
             {messages.length ? (
                 <Bubble.List
                     items={messages.map((i) => ({

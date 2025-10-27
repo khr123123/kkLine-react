@@ -32,7 +32,7 @@ const UserIconCard: React.FC<UserIconCardProps> = ({ user }) => {
             <div style={{ marginLeft: 16, flex: 1 }}>
                 <Title level={5} style={{ margin: 0 }}>{user.userName || '-'}</Title>
                 <Text type="secondary">ID：{user.id || '-'}</Text><br />
-                <Text type="secondary">邮箱：{user.userEmail || '-'}</Text>
+                <Text type="secondary">メール：{user.userEmail || '-'}</Text>
             </div>
         </div>
     );
