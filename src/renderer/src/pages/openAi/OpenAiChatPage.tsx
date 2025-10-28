@@ -135,7 +135,7 @@ const ChatArea: React.FC = () => {
     );
 
     return (
-        <div style={{ flex: 1, maxHeight: '95vh', display: 'flex', flexDirection: 'column', padding: 24 }}>
+        <div style={{ flex: 1, maxHeight: '95vh', display: 'flex', flexDirection: 'column', padding: 24, paddingRight: 6, paddingBottom: 8 }}>
             {messages.length ? (
                 <Bubble.List
                     items={messages.map((i) => ({

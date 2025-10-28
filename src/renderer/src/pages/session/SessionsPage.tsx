@@ -175,22 +175,8 @@ const SessionsPage: React.FC = () => {
     }
   }, [])
 
-
   const listRef = useRef<HTMLDivElement>(null);
-  const [hasScroll, setHasScroll] = useState(false);
-  useEffect(() => {
-    function checkScroll() {
-      if (listRef.current) {
-        const el = listRef.current;
-        setHasScroll(el.scrollHeight > el.clientHeight);
-      }
-    }
-    checkScroll();
-    window.addEventListener('resize', checkScroll);
-    return () => {
-      window.removeEventListener('resize', checkScroll);
-    };
-  }, [sortedContacts]);
+
   return (
     <>
       <GlobalLoading loading={globalLoading} />
@@ -228,7 +214,7 @@ const SessionsPage: React.FC = () => {
           className="scrollableDiv"
           itemLayout="horizontal"
           dataSource={sortedContacts}
-          style={{ flexGrow: 1, overflowY: 'auto', marginTop: hasScroll ? 22 : 0, }}
+          style={{ flexGrow: 1, overflowY: 'auto', marginTop: 0, marginBottom: 12 }}
           ref={listRef}
           renderItem={(item) => (
             <Dropdown
