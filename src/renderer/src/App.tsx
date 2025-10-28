@@ -178,6 +178,7 @@ export default function App() {
         break
     }
   }, [themeMode])
+
   return (
     <ConfigProvider theme={{ algorithm: getAlgorithm(), hashed: false }}>
       <RouterProvider router={router} />

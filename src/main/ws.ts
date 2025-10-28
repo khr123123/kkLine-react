@@ -587,6 +587,274 @@ export const createWs = (url: string) => {
                     }
                     break;
                 }
+                //  25  视频/语音通话的offer
+                case MessageType.CHAT_VIDEO_AUDIO_OFFER: {
+                    console.log('视频/语音通话的offer');
+                    exec(`powershell -c (New-Object Media.SoundPlayer '${recivePath}').PlaySync();`)
+                    if (msgData.contact?.chatSessionId?.startsWith("G") && msgData.sender?.userId === userId) return
+                    const msgInfo = {
+                        id: msgData.messageId,
+                        sessionId: msgData.contact?.chatSessionId || '',
+                        messageType: msgData.messageType,
+                        messageContent: msgData.content?.text || '',
+                        sendUserId: msgData.sender?.userId,
+                        sendUserName: msgData.sender?.userName,
+                        sendTime: msgData.sendTime,
+                        contactId: msgData.contact?.contactId || '',
+                        sendStatus: 1,
+                    }
+                    // 先插入消息
+                    // insertChatMessageRecordIgnore(msgInfo);
+                    // 更新 session（如果已存在则更新 lastMessage / lastReceiveTime，不新增）
+                    if (msgData.contact?.chatSessionId?.startsWith("G")) {
+                        const sessionRow = findSessionByUserAndContact(userId, msgData.contact?.contactId!);
+                        if (sessionRow) {
+                            updateSessionLastMessage(
+                                msgData.contact?.chatSessionId!,
+                                msgData.content?.text!,
+                                msgData.sendTime!
+                            );
+                            updateSessionNoReadCount(userId, msgData.contact?.contactId!, sessionRow.noReadCount + 1);
+                        } else {
+                            // 如果没有记录，则插入一条新会话
+                            insertChatSessionUserIgnore({
+                                userId,
+                                contactId: msgData.contact?.contactId!,
+                                sessionId: msgData.contact?.chatSessionId,
+                                contactName: msgData.contact?.contactName,
+                                contactAvatar: msgData.content?.extraData,
+                                contactType: msgData.contact?.contactType,
+                                lastTime: msgData.sendTime,
+                                lastMessage: msgData.content?.text,
+                            }, 1);
+                            if (mainWindow?.webContents) {
+                                mainWindow.webContents.send('reload-session-list');
+                            }
+                        }
+                    } else {
+                        const sessionRow = findSessionByUserAndContact(userId, msgData.sender?.userId!);
+                        if (sessionRow) {
+                            console.log('sessionRow:', sessionRow);
+                            updateSessionLastMessage(
+                                msgData.contact?.chatSessionId!,
+                                msgData.content?.text!,
+                                msgData.sendTime!
+                            );
+                            updateSessionNoReadCount(userId, msgData.contact?.chatSessionId!, sessionRow.noReadCount + 1);
+                        } else {
+                            console.log('not found sessionRow');
+                            // 如果没有记录，则插入一条新会话
+                            insertChatSessionUserIgnore({
+                                userId,
+                                contactId: msgData.sender?.userId!,
+                                sessionId: msgData.contact?.chatSessionId,
+                                contactName: msgData.sender?.userName,
+                                contactAvatar: msgData.sender?.userAvatar,
+                                contactType: msgData.contact?.contactType,
+                                lastTime: msgData.sendTime,
+                                lastMessage: msgData.content?.text,
+                            }, 1);
+                            if (mainWindow?.webContents) {
+                                mainWindow.webContents.send('reload-session-list');
+                            }
+                        }
+                    }
+                    if (mainWindow?.webContents) {
+                        mainWindow.webContents.send('receive-message', msgInfo);
+                        mainWindow.webContents.send('change-session-info', {
+                            chatSessionId: msgData.contact?.chatSessionId!,
+                            lastMessage: msgData.content?.text!,
+                            lastReceiveTime: msgData.sendTime!
+                        });
+                        mainWindow.webContents.send('reviced-videoAudeo-offer', {
+                            senderId: msgData.sender?.userId,
+                            senderName: msgData.sender?.userName,
+                            senderAvatar: msgData.sender?.userAvatar,
+                            text: msgData.content?.text,
+                            sdp: msgData.content?.extraData,
+                        });
+                    }
+                    break;
+                }
+                // 视频/语音通话的answer
+                case MessageType.CHAT_VIDEO_AUDIO_ANSWER: {
+                    console.log('语音通话的answer');
+                    exec(`powershell -c (New-Object Media.SoundPlayer '${recivePath}').PlaySync();`)
+                    if (msgData.contact?.chatSessionId?.startsWith("G") && msgData.sender?.userId === userId) return
+                    const msgInfo = {
+                        id: msgData.messageId,
+                        sessionId: msgData.contact?.chatSessionId || '',
+                        messageType: msgData.messageType,
+                        messageContent: msgData.content?.text || '',
+                        sendUserId: msgData.sender?.userId,
+                        sendUserName: msgData.sender?.userName,
+                        sendTime: msgData.sendTime,
+                        contactId: msgData.contact?.contactId || '',
+                        sendStatus: 1,
+                    }
+                    // 先插入消息
+                    // insertChatMessageRecordIgnore(msgInfo);
+                    // 更新 session（如果已存在则更新 lastMessage / lastReceiveTime，不新增）
+                    if (msgData.contact?.chatSessionId?.startsWith("G")) {
+                        const sessionRow = findSessionByUserAndContact(userId, msgData.contact?.contactId!);
+                        if (sessionRow) {
+                            updateSessionLastMessage(
+                                msgData.contact?.chatSessionId!,
+                                msgData.content?.text!,
+                                msgData.sendTime!
+                            );
+                            updateSessionNoReadCount(userId, msgData.contact?.contactId!, sessionRow.noReadCount + 1);
+                        } else {
+                            // 如果没有记录，则插入一条新会话
+                            insertChatSessionUserIgnore({
+                                userId,
+                                contactId: msgData.contact?.contactId!,
+                                sessionId: msgData.contact?.chatSessionId,
+                                contactName: msgData.contact?.contactName,
+                                contactAvatar: msgData.content?.extraData,
+                                contactType: msgData.contact?.contactType,
+                                lastTime: msgData.sendTime,
+                                lastMessage: msgData.content?.text,
+                            }, 1);
+                            if (mainWindow?.webContents) {
+                                mainWindow.webContents.send('reload-session-list');
+                            }
+                        }
+                    } else {
+                        const sessionRow = findSessionByUserAndContact(userId, msgData.sender?.userId!);
+                        if (sessionRow) {
+                            console.log('sessionRow:', sessionRow);
+                            updateSessionLastMessage(
+                                msgData.contact?.chatSessionId!,
+                                msgData.content?.text!,
+                                msgData.sendTime!
+                            );
+                            updateSessionNoReadCount(userId, msgData.contact?.chatSessionId!, sessionRow.noReadCount + 1);
+                        } else {
+                            console.log('not found sessionRow');
+                            // 如果没有记录，则插入一条新会话
+                            insertChatSessionUserIgnore({
+                                userId,
+                                contactId: msgData.sender?.userId!,
+                                sessionId: msgData.contact?.chatSessionId,
+                                contactName: msgData.sender?.userName,
+                                contactAvatar: msgData.sender?.userAvatar,
+                                contactType: msgData.contact?.contactType,
+                                lastTime: msgData.sendTime,
+                                lastMessage: msgData.content?.text,
+                            }, 1);
+                            if (mainWindow?.webContents) {
+                                mainWindow.webContents.send('reload-session-list');
+                            }
+                        }
+                    }
+                    if (mainWindow?.webContents) {
+                        mainWindow.webContents.send('receive-message', msgInfo);
+                        mainWindow.webContents.send('change-session-info', {
+                            chatSessionId: msgData.contact?.chatSessionId!,
+                            lastMessage: msgData.content?.text!,
+                            lastReceiveTime: msgData.sendTime!
+                        });
+                        mainWindow.webContents.send('reviced-videoAudeo-answer', {
+                            senderId: msgData.sender?.userId,
+                            senderName: msgData.sender?.userName,
+                            senderAvatar: msgData.sender?.userAvatar,
+                            text: msgData.content?.text,
+                            sdp: msgData.content?.extraData,
+                        });
+                    }
+                    break;
+                }
+                // 收到对方视频/语音通话的ice
+                case MessageType.CHAT_VIDEO_AUDIO_ICE: {
+                    console.log('收到对方视频/语音通话的ice');
+                    exec(`powershell -c (New-Object Media.SoundPlayer '${recivePath}').PlaySync();`)
+                    if (msgData.contact?.chatSessionId?.startsWith("G") && msgData.sender?.userId === userId) return
+                    const msgInfo = {
+                        id: msgData.messageId,
+                        sessionId: msgData.contact?.chatSessionId || '',
+                        messageType: msgData.messageType,
+                        messageContent: msgData.content?.text || '',
+                        sendUserId: msgData.sender?.userId,
+                        sendUserName: msgData.sender?.userName,
+                        sendTime: msgData.sendTime,
+                        contactId: msgData.contact?.contactId || '',
+                        sendStatus: 1,
+                    }
+                    // 先插入消息
+                    // insertChatMessageRecordIgnore(msgInfo);
+                    // 更新 session（如果已存在则更新 lastMessage / lastReceiveTime，不新增）
+                    if (msgData.contact?.chatSessionId?.startsWith("G")) {
+                        const sessionRow = findSessionByUserAndContact(userId, msgData.contact?.contactId!);
+                        if (sessionRow) {
+                            updateSessionLastMessage(
+                                msgData.contact?.chatSessionId!,
+                                msgData.content?.text!,
+                                msgData.sendTime!
+                            );
+                            updateSessionNoReadCount(userId, msgData.contact?.contactId!, sessionRow.noReadCount + 1);
+                        } else {
+                            // 如果没有记录，则插入一条新会话
+                            insertChatSessionUserIgnore({
+                                userId,
+                                contactId: msgData.contact?.contactId!,
+                                sessionId: msgData.contact?.chatSessionId,
+                                contactName: msgData.contact?.contactName,
+                                contactAvatar: msgData.content?.extraData,
+                                contactType: msgData.contact?.contactType,
+                                lastTime: msgData.sendTime,
+                                lastMessage: msgData.content?.text,
+                            }, 1);
+                            if (mainWindow?.webContents) {
+                                mainWindow.webContents.send('reload-session-list');
+                            }
+                        }
+                    } else {
+                        const sessionRow = findSessionByUserAndContact(userId, msgData.sender?.userId!);
+                        if (sessionRow) {
+                            console.log('sessionRow:', sessionRow);
+                            updateSessionLastMessage(
+                                msgData.contact?.chatSessionId!,
+                                msgData.content?.text!,
+                                msgData.sendTime!
+                            );
+                            updateSessionNoReadCount(userId, msgData.contact?.chatSessionId!, sessionRow.noReadCount + 1);
+                        } else {
+                            console.log('not found sessionRow');
+                            // 如果没有记录，则插入一条新会话
+                            insertChatSessionUserIgnore({
+                                userId,
+                                contactId: msgData.sender?.userId!,
+                                sessionId: msgData.contact?.chatSessionId,
+                                contactName: msgData.sender?.userName,
+                                contactAvatar: msgData.sender?.userAvatar,
+                                contactType: msgData.contact?.contactType,
+                                lastTime: msgData.sendTime,
+                                lastMessage: msgData.content?.text,
+                            }, 1);
+                            if (mainWindow?.webContents) {
+                                mainWindow.webContents.send('reload-session-list');
+                            }
+                        }
+                    }
+                    if (mainWindow?.webContents) {
+                        mainWindow.webContents.send('receive-message', msgInfo);
+                        mainWindow.webContents.send('change-session-info', {
+                            chatSessionId: msgData.contact?.chatSessionId!,
+                            lastMessage: msgData.content?.text!,
+                            lastReceiveTime: msgData.sendTime!
+                        });
+                        console.log('📡 向渲染进程发送 ICE');
+                        mainWindow.webContents.send('reviced-videoAudeo-candidate', {
+                            senderId: msgData.sender?.userId,
+                            senderName: msgData.sender?.userName,
+                            senderAvatar: msgData.sender?.userAvatar,
+                            text: msgData.content?.text,
+                            candidate: msgData.content?.extraData,
+                        });
+                    }
+                    break;
+                }
                 // ===== 30–39 文件传输相关 =====
                 // 30号上传完成的消息 弃用，改用上传监听
                 case MessageType.FILE_TRANSMITTING: {// 31 END ✅

@@ -53,6 +53,8 @@ import EmojiPicker from 'emoji-picker-react'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { formatRelativeTime } from '../../utils/timeUtil'
+import VideoCallModal from './components/VideoCallModel'
+import IncomingCallModal from './components/IncomingCallModel'
 
 let globalUploadId: any
 const { Text } = Typography
@@ -821,6 +823,10 @@ const ChatPage: React.FC = () => {
         link.remove()
       })
   }
+
+  //发送视频聊天邀请
+  const [videoCallVisible, setVideoCallVisible] = useState(false);
+
   return (
     <>
       <div style={{ display: 'flex', flexDirection: 'column', height: '95vh', width: '100%' }}>
@@ -865,11 +871,9 @@ const ChatPage: React.FC = () => {
                 footer: (content: BubbleContentType) => {
                   return (
                     <Flex style={{ marginTop: -10 }}>
-                      <Button type="text" size="small" title="复制">
-                        <Text
-                          copyable={{ text: (content as { txt: string }).txt, tooltips: false }}
-                        />
-                      </Button>
+                      <Text
+                        copyable={{ text: (content as { txt: string }).txt, tooltips: false }}
+                      />
                       <Popconfirm
                         placement="rightBottom"
                         title={`即将撤回消息 [${(content as { txt: string }).txt}]`}
@@ -1227,6 +1231,9 @@ const ChatPage: React.FC = () => {
                       icon={<SmileOutlined style={{ fontSize: 18, color: '#d48806' }} />}
                     />
                   </Popover>
+                  <Button type="primary" onClick={() => setVideoCallVisible(true)}>
+                    发起视频通话
+                  </Button>
                 </div>
               }
               value={value}
@@ -1273,6 +1280,16 @@ const ChatPage: React.FC = () => {
           }
         }}
       />}
+      {/* 视频通话 */}
+      {<VideoCallModal
+        visible={videoCallVisible}
+        onCancel={() => setVideoCallVisible(false)}
+        receiverId={isGroup
+          ? sessionId!
+          : getContactIdFromSession(sessionId!, user!.id!.toString())}
+        type="video"
+      />}
+      {<IncomingCallModal />}
     </>
   )
 }
