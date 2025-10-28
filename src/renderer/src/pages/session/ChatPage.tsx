@@ -597,10 +597,13 @@ const ChatPage: React.FC = () => {
           style: { margin: '0 auto' }
         })
       }
-
       const sysMsgType = [3, 10, 11, 12, 13, 14, 15, 24]
       const shareMsgType = [50]
       const adMsgType = [41]
+      // Fix:Bug Someone has enjoyed a group and you are not a member not viewing the member's avatar
+      if (msgInfo.messageType === 12) {
+        fetchGroupInfoAndMessages()
+      }
       if (sysMsgType.includes(msgInfo.messageType)) {
         newMessages.push({
           _key: msgInfo.id,
