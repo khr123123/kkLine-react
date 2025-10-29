@@ -1,0 +1,142 @@
+﻿/**
+ * 视频通话弹窗样式
+ */
+
+/* 弹窗容器样式重置 */
+.video-call-modal .ant-modal-content {
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.video-call-modal .ant-modal-body {
+    padding: 0;
+}
+
+/* 控制按钮悬停效果 */
+.video-call-modal button:hover {
+    transform: scale(1.05);
+    transition: all 0.2s ease-in-out;
+}
+
+.video-call-modal button:active {
+    transform: scale(0.95);
+}
+
+/* 挂断按钮特殊动画 */
+.video-call-modal button[title="挂断"]:hover {
+    box-shadow: 0 6px 20px rgba(255, 77, 79, 0.5);
+}
+
+/* 视频画面过渡动画 */
+.video-call-modal video {
+    transition: all 0.3s ease-in-out;
+}
+
+/* 远程视频加载动画 */
+@keyframes videoFadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.video-call-modal video {
+    animation: videoFadeIn 0.5s ease-in-out;
+}
+
+/* 通话状态标签动画 */
+.video-call-modal .ant-tag {
+    animation: fadeInDown 0.3s ease-in-out;
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 全屏模式下的特殊样式 */
+.video-call-modal .ant-modal-wrap {
+    overflow: hidden;
+}
+
+/* 控制栏淡入淡出效果 */
+.video-call-modal>div>div:first-child,
+.video-call-modal>div>div:last-child {
+    transition: opacity 0.3s ease-in-out;
+}
+
+/* 本地视频小窗口悬停效果 */
+.video-call-modal>div>div:nth-child(2):hover {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    transform: scale(1.02);
+    transition: all 0.2s ease-in-out;
+}
+
+/* 按钮组动画 */
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.video-call-modal .ant-space {
+    animation: slideUp 0.4s ease-in-out;
+}
+
+/* 头像边框动画 */
+@keyframes avatarPulse {
+
+    0%,
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7);
+    }
+
+    50% {
+        box-shadow: 0 0 0 10px rgba(255, 255, 255, 0);
+    }
+}
+
+.video-call-modal .ant-avatar {
+    animation: avatarPulse 2s infinite;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .video-call-modal .ant-modal {
+        max-width: 100vw !important;
+        margin: 0;
+    }
+
+    .video-call-modal button {
+        width: 48px !important;
+        height: 48px !important;
+        font-size: 18px !important;
+    }
+}
+
+/* 工具栏按钮特效 */
+.toolbar-wrapper svg {
+    transition: all 0.2s ease-in-out;
+}
+
+.toolbar-wrapper svg:hover {
+    transform: scale(1.2);
+    filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.8));
+}

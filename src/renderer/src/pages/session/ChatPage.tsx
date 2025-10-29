@@ -1,4 +1,5 @@
 import {
+  AudioOutlined,
   CloseCircleOutlined,
   DownloadOutlined,
   ExclamationCircleFilled,
@@ -12,6 +13,7 @@ import {
   SolutionOutlined,
   SwapOutlined,
   UndoOutlined,
+  VideoCameraAddOutlined,
   ZoomInOutlined,
   ZoomOutOutlined
 } from '@ant-design/icons'
@@ -54,32 +56,52 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { formatRelativeTime } from '../../utils/timeUtil'
 import VideoCallModal from './components/VideoCallModel'
-import IncomingCallModal from './components/IncomingCallModel'
+import AudioCallModel from './components/AudioCallModel'
 
+// 全局上传ID，用于追踪文件上传进度
 let globalUploadId: any
 const { Text } = Typography
 
+/**
+ * 自定义气泡消息属性接口
+ * 扩展了Ant Design X的BubbleProps
+ */
 interface CustomBubbleProps extends Omit<BubbleProps, 'content'> {
   content?: BubbleContentType
 }
-const ChatPage: React.FC = () => {
-  const { sessionId } = useParams()
-  const isGroup = sessionId?.startsWith('G')
-  const user = useUserStore((state) => state.user)
-  const [value, setValue] = useState('')
-  const [messages, setMessages] = useState<CustomBubbleProps[]>([])
 
-  const [friendInfo, setFriendInfo] = useState<any>(null)
-  const [groupInfo, setGroupInfo] = useState<any>(null)
-  const [adInfo, setAdInfo] = useState<any>(null)
-  const [members, setMembers] = useState<any[]>([])
+/**
+ * 聊天页面主组件
+ * 支持单聊、群聊和广告消息展示
+ */
+const ChatPage: React.FC = () => {
+  // ========== 路由参数和基础状态 ==========
+  const { sessionId } = useParams() // 获取会话ID（从路由参数）
+  const isGroup = sessionId?.startsWith('G') // 判断是否是群聊（G开头表示群组）
+  const user = useUserStore((state) => state.user) // 获取当前登录用户信息
+  const [value, setValue] = useState('') // 输入框内容
+  const [messages, setMessages] = useState<CustomBubbleProps[]>([]) // 消息列表
+
+  // ========== 联系人信息状态 ==========
+  const [friendInfo, setFriendInfo] = useState<any>(null) // 好友信息
+  const [groupInfo, setGroupInfo] = useState<any>(null) // 群组信息
+  const [adInfo, setAdInfo] = useState<any>(null) // 广告信息
+  const [members, setMembers] = useState<any[]>([]) // 群成员列表
   const [memberMap, setMemberMap] = useState<Map<number, { name: string; avatar: string }>>(
     new Map()
-  )
-  const { token } = theme.useToken()
-  const lastMessageTimeRef = useRef<number>(0)
-  const [shareVisible, setShareVisible] = useState<boolean>(false)
+  ) // 群成员ID映射表（用于快速查找成员头像和昵称）
 
+  // ========== 主题和引用 ==========
+  const { token } = theme.useToken() // 获取Ant Design主题token
+  const lastMessageTimeRef = useRef<number>(0) // 记录最后一条消息的时间（用于时间节点插入）
+  const [shareVisible, setShareVisible] = useState<boolean>(false) // 分享弹窗显示状态
+
+  // ========== 操作栏配置 ==========
+  /**
+   * 根据是否是群聊配置不同的操作按钮
+   * 群聊：分享、群组详情
+   * 单聊：分享、好友信息、视频通话、语音通话
+   */
   const actionItems: ActionsProps['items'] = isGroup
     ? [
       {
@@ -99,16 +121,31 @@ const ChatPage: React.FC = () => {
         icon: <ShareAltOutlined title="分享好友" />,
         onItemClick: () => setShareVisible(true)
       },
-
       {
         key: 'groupInfo',
         icon: <IdcardOutlined title="好友信息" />,
         onItemClick: () => setFriendInfoDrawerVisible(true)
+      },
+      {
+        key: 'videoCall',
+        icon: <VideoCameraAddOutlined title="发起视频通话" />,
+        onItemClick: () => setVideoCallVisible(true)
+      },
+      {
+        key: 'audioCall',
+        icon: <AudioOutlined title="发起语音通话" />,
+        onItemClick: () => setAudioCallVisible(true)
       }
     ]
 
-  const [friendInfoDrawerVisible, setFriendInfoDrawerVisible] = useState(false)
-  const [groupInfoDrawerVisible, setGroupInfoDrawerVisible] = useState(false)
+  // ========== 抽屉和弹窗状态 ==========
+  const [friendInfoDrawerVisible, setFriendInfoDrawerVisible] = useState(false) // 好友信息抽屉
+  const [groupInfoDrawerVisible, setGroupInfoDrawerVisible] = useState(false) // 群组信息抽屉
+
+  /**
+   * 好友信息抽屉组件
+   * 展示好友的详细信息（头像、昵称、ID、性别、邮箱等）
+   */
   const friendInfoDrawer = () => {
     if (!friendInfo) return null
     return (
@@ -120,6 +157,7 @@ const ChatPage: React.FC = () => {
         maskStyle={{ backgroundColor: 'rgba(0, 0, 0, 0.1)' }}
       >
         <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+          {/* 头像和基本信息 */}
           <Space align="center" size="large" style={{ width: '100%' }}>
             <Avatar size={64} src={friendInfo.userAvatar} alt="头像" style={{ borderRadius: 8 }} />
             <Space direction="vertical" size={4} style={{ flex: 1 }}>
@@ -130,6 +168,8 @@ const ChatPage: React.FC = () => {
             </Space>
           </Space>
           <Divider size="small" style={{ margin: 0 }} />
+
+          {/* 详细信息 */}
           <Space direction="vertical" size={12} style={{ width: '100%' }}>
             <Text>
               <Text strong>账号：</Text>
@@ -153,6 +193,8 @@ const ChatPage: React.FC = () => {
             </Text>
           </Space>
           <Divider size="small" style={{ margin: 0 }} />
+
+          {/* 个人简介 */}
           <div>
             <Text strong>个人简介：</Text>
             <div style={{ marginTop: 6, whiteSpace: 'pre-wrap', color: '#666', minHeight: 40 }}>
@@ -163,6 +205,11 @@ const ChatPage: React.FC = () => {
       </Drawer>
     )
   }
+
+  /**
+   * 群组信息抽屉组件
+   * 展示群组的详细信息（群头像、群名称、成员列表、群公告等）
+   */
   const groupInfoDrawer = () => {
     if (!groupInfo || !members) return null
     return (
@@ -174,6 +221,7 @@ const ChatPage: React.FC = () => {
         maskStyle={{ backgroundColor: 'rgba(0, 0, 0, 0.1)' }}
       >
         <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+          {/* 群头像和基本信息 */}
           <Space align="center" size="large" style={{ width: '100%' }}>
             <Avatar size={64} src={groupInfo.groupAvatar} alt="头像" style={{ borderRadius: 8 }} />
             <Space direction="vertical" size={4} style={{ flex: 1 }}>
@@ -182,6 +230,7 @@ const ChatPage: React.FC = () => {
                   <Title level={4} style={{ margin: 0 }}>
                     {groupInfo.groupName}
                   </Title>
+                  {/* 群加入方式标签 */}
                   {groupInfo.joinType === 0 ? (
                     <Tag color="green">直接加入</Tag>
                   ) : (
@@ -197,17 +246,21 @@ const ChatPage: React.FC = () => {
             </Space>
           </Space>
           <Divider size="small" style={{ margin: 0 }} />
+
+          {/* 群成员列表 */}
           <div style={{ marginBottom: 16 }}>
             <Text strong>群成员（{members.length}人）</Text>
             <div style={{ height: 18 }}></div>
             <AntMembersGrid
               members={members.map((item) => {
-                if (item.id === groupInfo.groupOwner) item.isOwner = true
+                if (item.id === groupInfo.groupOwner) item.isOwner = true // 标记群主
                 return item
               })}
             />
           </div>
           <Divider size="small" style={{ margin: 0 }} />
+
+          {/* 群公告 */}
           <div>
             {groupInfo.groupNotice && (
               <>
@@ -225,23 +278,44 @@ const ChatPage: React.FC = () => {
       </Drawer>
     )
   }
+
+  /**
+   * 从会话ID中提取联系人ID
+   * 会话ID格式：用户ID1 + 用户ID2（按字典序拼接）
+   * @param sessionId 会话ID
+   * @param myId 当前用户ID
+   * @returns 联系人ID
+   */
   const getContactIdFromSession = (sessionId: string, myId: string): string => {
     if (sessionId.startsWith(myId)) return sessionId.slice(myId.length)
     if (sessionId.endsWith(myId)) return sessionId.slice(0, sessionId.length - myId.length)
     return ''
   }
+
+  /**
+   * 获取好友信息并加载历史消息
+   * 用于单聊场景
+   */
   const fetchFriendInfoAndMessages = async () => {
     if (!sessionId || !user?.id) return
+
+    // 提取联系人ID并获取好友信息
     const contactId = getContactIdFromSession(sessionId, user.id.toString())
     const userRes = await getUserVoById({ id: contactId as unknown as number })
     const resData = userRes.data as API.UserVO
     setFriendInfo(userRes.data)
+
+    // 从本地数据库获取消息列表
     const result = await window.electron.ipcRenderer.invoke('get-message-list', sessionId)
     const messagesWithTime: CustomBubbleProps[] = []
     let lastTimestamp = 0
     let lastTimeNodeContent: string = ''
+
+    // 遍历消息，构建消息气泡列表
     for (const item of result) {
       const currentTimestamp = new Date(item.sendTime).getTime()
+
+      // 如果距离上一条消息超过10分钟，插入时间节点
       if (lastTimestamp === 0 || currentTimestamp - lastTimestamp > 10 * 60 * 1000) {
         if (lastTimeNodeContent !== formatRelativeTime(currentTimestamp)) {
           lastTimeNodeContent = formatRelativeTime(currentTimestamp)
@@ -252,15 +326,19 @@ const ChatPage: React.FC = () => {
           })
         }
       }
-      const sysMsgType = [1, 24]
-      const shareMsgType = [50]
+
+      const sysMsgType = [1, 24] // 系统消息类型
+      const shareMsgType = [50] // 分享消息类型
+
       if (sysMsgType.includes(item.messageType)) {
+        // 系统消息（如好友申请通过等）
         messagesWithTime.push({
           _key: item.id,
           role: 'sys',
           content: item.messageContent
         })
       } else if (shareMsgType.includes(item.messageType)) {
+        // 分享消息（分享名片等）
         messagesWithTime.push({
           _key: item.id,
           role: 'share',
@@ -286,11 +364,11 @@ const ChatPage: React.FC = () => {
           _key: item.id,
           role: isFile
             ? item.sendUserId === user?.id
-              ? 'meFile'
-              : 'friendFile'
+              ? 'meFile' // 我发送的文件
+              : 'friendFile' // 好友发送的文件
             : item.sendUserId === user?.id
-              ? 'me'
-              : 'friend',
+              ? 'me' // 我发送的文本消息
+              : 'friend', // 好友发送的文本消息
           content,
           avatar:
             item.sendUserId === user?.id ? { src: user?.userAvatar } : { src: resData.userAvatar }
@@ -298,23 +376,35 @@ const ChatPage: React.FC = () => {
         lastTimestamp = currentTimestamp
       }
     }
+
+    // 记录最后一条消息时间
     if (result.length > 0) {
       lastMessageTimeRef.current = result[result.length - 1].sendTime
     }
     setMessages(messagesWithTime)
   }
 
+  /**
+   * 获取群组信息并加载历史消息
+   * 用于群聊场景
+   */
   const fetchGroupInfoAndMessages = async () => {
     if (!sessionId || !user?.id) return
     let resData: any
-    //ID和 名称与头像映射
+
+    // ID和名称、头像映射表（用于快速查找群成员信息）
     let memberMap = new Map<number, { name: string; avatar: string }>()
+
+    // 获取群组信息和成员列表
     const groupRes = (await getGroupInfoWithMembers({ id: sessionId })) as API.BaseResponseGroupVO
     const result = await window.electron.ipcRenderer.invoke('get-message-list', sessionId)
+
     if (groupRes.code === 0) {
       resData = groupRes.data as API.GroupVO
       setGroupInfo(resData)
       setMembers(resData?.userVOList || [])
+
+      // 构建成员映射表
       resData?.userVOList?.forEach((m: any) => {
         memberMap.set(m.id, { name: m.userName, avatar: m.userAvatar })
       })
@@ -322,13 +412,17 @@ const ChatPage: React.FC = () => {
     } else {
       setGroupInfo({ groupName: result[0].contactId })
     }
+
     const messagesWithTime: CustomBubbleProps[] = []
     let lastTimestamp = 0
     let lastTimeNodeContent: string = ''
+
+    // 遍历消息，构建消息气泡列表
     for (const item of result) {
       const currentTimestamp = new Date(item.sendTime).getTime()
+
+      // 如果距离上一条消息超过10分钟，插入时间节点
       if (lastTimestamp === 0 || currentTimestamp - lastTimestamp > 10 * 60 * 1000) {
-        // 如果和上一条消息时间间隔超过10分钟，插入时间节点
         if (lastTimeNodeContent !== formatRelativeTime(currentTimestamp)) {
           lastTimeNodeContent = formatRelativeTime(currentTimestamp)
           messagesWithTime.push({
@@ -338,16 +432,19 @@ const ChatPage: React.FC = () => {
           })
         }
       }
-      const sysMsgType = [3, 10, 11, 12, 13, 14, 15, 24]
-      const shareMsgType = [50]
+
+      const sysMsgType = [3, 10, 11, 12, 13, 14, 15, 24] // 群系统消息类型
+      const shareMsgType = [50] // 分享消息类型
+
       if (sysMsgType.includes(item.messageType)) {
-        // sys 角色的系统消息
+        // 系统消息（如XXX加入群聊、XXX退出群聊等）
         messagesWithTime.push({
           _key: item.id,
           role: 'sys',
           content: item.messageContent
         })
       } else if (shareMsgType.includes(item.messageType)) {
+        // 分享消息
         messagesWithTime.push({
           _key: item.id,
           role: 'share',
@@ -359,7 +456,7 @@ const ChatPage: React.FC = () => {
           header: <span style={{ fontSize: '13px', color: '#888' }}>{item.sendUserName}</span>
         })
       } else {
-        // 判断是否是文件消息（根据 fileUrl 判断）
+        // 判断是否是文件消息
         const isFile = !!item.fileUrl
         const content = isFile
           ? {
@@ -391,19 +488,27 @@ const ChatPage: React.FC = () => {
         lastTimestamp = currentTimestamp
       }
     }
+
     lastMessageTimeRef.current = result[result.length - 1].sendTime
     setMessages(messagesWithTime)
   }
+
+  /**
+   * 获取广告消息
+   * 用于广告会话场景
+   */
   const fetchADMessages = async () => {
     if (!sessionId || !user?.id) return
     const result = await window.electron.ipcRenderer.invoke('get-message-list', sessionId)
     const messagesWithTime: CustomBubbleProps[] = []
     let lastTimestamp = 0
     let lastTimeNodeContent: string = ''
+
     for (const item of result) {
       const currentTimestamp = new Date(item.sendTime).getTime()
+
+      // 如果距离上一条消息超过10分钟，插入时间节点
       if (lastTimestamp === 0 || currentTimestamp - lastTimestamp > 10 * 60 * 1000) {
-        // 如果和上一条消息时间间隔超过10分钟，插入时间节点
         if (lastTimeNodeContent !== formatRelativeTime(currentTimestamp)) {
           lastTimeNodeContent = formatRelativeTime(currentTimestamp)
           messagesWithTime.push({
@@ -413,6 +518,7 @@ const ChatPage: React.FC = () => {
           })
         }
       }
+
       messagesWithTime.push({
         _key: item.id,
         role: 'ad',
@@ -420,22 +526,35 @@ const ChatPage: React.FC = () => {
       })
       lastTimestamp = currentTimestamp
     }
+
+    // 解析广告分类信息
     const dto = JSON.parse(result[0].messageContent)
     setAdInfo({ name: dto.adCategory.name, iconUrl: dto.adCategory.iconUrl })
     lastMessageTimeRef.current = result[result.length - 1].sendTime
     setMessages(messagesWithTime)
   }
+
+  /**
+   * 初始化加载：根据会话类型加载对应的消息和信息
+   */
   useEffect(() => {
     if (!sessionId) return
     if (sessionId.startsWith('G')) {
-      fetchGroupInfoAndMessages()
+      fetchGroupInfoAndMessages() // 群聊
     } else if (sessionId.startsWith('AD')) {
-      fetchADMessages()
+      fetchADMessages() // 广告
     } else {
-      fetchFriendInfoAndMessages()
+      fetchFriendInfoAndMessages() // 单聊
     }
   }, [sessionId])
+
+  /**
+   * 文件上传前的验证和处理
+   * @param file 上传的文件
+   * @returns 是否继续上传
+   */
   const beforeUpload = (file: RcFile) => {
+    // 验证文件大小（不超过10MB）
     const isLt10MB = file.size / 1024 / 1024 < 10
     if (!isLt10MB) {
       message.error('文件必须小于 10MB！')
@@ -445,11 +564,13 @@ const ChatPage: React.FC = () => {
       message.error('系统错误，请重新登录..')
       return false
     }
-    // 这里你可以拿 fileInfo.uid, fileInfo.name, fileInfo.size 等属性
+
+    // 生成全局唯一上传ID
     globalUploadId = Snowflake.nextId()
     if (!sessionId || !user?.id) return
     const now = Date.now()
-    // 构造消息内容
+
+    // 构造消息内容（带上传进度）
     const content = {
       uid: globalUploadId,
       name: file.name,
@@ -457,12 +578,14 @@ const ChatPage: React.FC = () => {
       status: 'uploading',
       percent: 0
     }
+
     const contactId = sessionId.startsWith('G')
       ? sessionId
       : getContactIdFromSession(sessionId, user.id.toString())
-    // 本地消息对象
+
     const newMessages: CustomBubbleProps[] = []
-    // 判断是否要插入时间节点（比如间隔超过 1 分钟 ）
+
+    // 判断是否要插入时间节点（比如间隔超过1分钟）
     if (now - lastMessageTimeRef.current > 1 * 60 * 1000) {
       newMessages.push({
         _key: `time-${now}`,
@@ -471,6 +594,8 @@ const ChatPage: React.FC = () => {
         style: { margin: '0 auto' }
       })
     }
+
+    // 添加文件上传消息气泡
     newMessages.push({
       _key: globalUploadId,
       role: 'meFile',
@@ -479,10 +604,12 @@ const ChatPage: React.FC = () => {
       variant: 'borderless',
       header: isGroup && <span style={{ fontSize: '13px', color: '#888' }}>{user.userName}</span>
     })
+
+    // 构造消息对象（待发送到服务器）
     const newMsg = {
       id: globalUploadId,
       sessionId,
-      messageType: 21,
+      messageType: 21, // 文件消息类型
       messageContent: `[${file.type}]`,
       sendUserId: user.id,
       sendUserName: user.userName,
@@ -494,45 +621,69 @@ const ChatPage: React.FC = () => {
       fileType: file.type,
       sendStatus: 0
     }
+
+    // 立即显示上传中的消息
     setMessages((prev) => [...prev, ...newMessages])
+
+    // 通知主进程发送文件消息
     window.electron.ipcRenderer.send('user-send-file-message', newMsg)
     return true
   }
 
+  /**
+   * 获取文件上传的额外数据
+   * @param file 上传的文件
+   * @returns 上传参数
+   */
   const getUploadData = (file: UploadFile) => {
+    // 根据文件类型判断业务类型
     let bizType: 'picture' | 'file' | 'video' = 'file'
     if (file.type?.startsWith('image/')) bizType = 'picture'
     if (file.type?.startsWith('video/')) bizType = 'video'
+
     const contactId = isGroup
       ? sessionId
       : getContactIdFromSession(sessionId!, user!.id!.toString())
+
     return {
       messageId: globalUploadId,
       biz: bizType,
       contactId: contactId
     }
   }
+
+  /**
+   * 发送文本消息
+   */
   const sendMessage = async () => {
-    if (!value.trim()) return
+    if (!value.trim()) return // 空消息不发送
     if (!sessionId || !user?.id) return
-    const id = Snowflake.nextId()
+
+    const id = Snowflake.nextId() // 生成消息ID
     let res: any
     const now = Date.now() // 当前时间戳
+
+    // 根据会话类型发送消息
     if (sessionId.startsWith('G')) {
+      // 群聊消息
       res = await sendMsg({
         messageId: id,
         messageContent: value,
         contactId: sessionId,
-        messageType: 20
+        messageType: 20 // 群文本消息
       })
     } else {
+      // 单聊消息
       const contactId = getContactIdFromSession(sessionId, user.id.toString())
       res = await sendMsg({ messageId: id, messageContent: value, contactId, messageType: 20 })
     }
+
     if (res.code === 0) {
+      // 消息发送成功
       window.electron.ipcRenderer.send('user-send-message', res.data)
       const newMessages: CustomBubbleProps[] = []
-      // 判断是否要插入时间节点（比如间隔超过 1 分钟 ）
+
+      // 判断是否要插入时间节点（比如间隔超过1分钟）
       if (now - lastMessageTimeRef.current > 1 * 60 * 1000) {
         newMessages.push({
           _key: `time-${now}`,
@@ -541,6 +692,7 @@ const ChatPage: React.FC = () => {
           style: { margin: '0 auto' }
         })
       }
+
       // 添加实际消息
       newMessages.push({
         _key: id,
@@ -552,10 +704,13 @@ const ChatPage: React.FC = () => {
         },
         header: isGroup && <span style={{ fontSize: '13px', color: '#888' }}>{user.userName}</span>
       })
+
       setMessages((prev) => [...prev, ...newMessages])
-      setValue('')
+      setValue('') // 清空输入框
       lastMessageTimeRef.current = now
     }
+
+    // 错误处理
     if (res.code === 50001) {
       const errorMsg = res.message
       message.error(errorMsg + ",您以不在该群被，或被拉黑!")
@@ -563,6 +718,7 @@ const ChatPage: React.FC = () => {
     if (res.code === 40101) {
       const errorMsg = res.message
       message.error(errorMsg)
+      // 显示发送失败的消息（带感叹号图标）
       setMessages((prev) => [
         ...prev,
         {
@@ -588,12 +744,20 @@ const ChatPage: React.FC = () => {
       setValue('')
     }
   }
+
+  /**
+   * 监听接收到的新消息
+   * 当收到新消息时，实时更新消息列表
+   */
   useEffect(() => {
     const msgReciveListener = (_event: any, msgInfo: any) => {
+      // 只处理当前会话的消息
       if (msgInfo.sessionId !== sessionId) return
+
       const currentTimestamp = new Date(msgInfo.sendTime).getTime()
       const timeDiff = currentTimestamp - lastMessageTimeRef.current
       const newMessages: CustomBubbleProps[] = []
+
       // 超过10分钟插入时间节点
       if (timeDiff > 10 * 60 * 1000) {
         newMessages.push({
@@ -603,26 +767,33 @@ const ChatPage: React.FC = () => {
           style: { margin: '0 auto' }
         })
       }
+
       const sysMsgType = [3, 10, 11, 12, 13, 14, 15, 24]
       const shareMsgType = [50]
       const adMsgType = [41]
-      // Fix:Bug Someone has enjoyed a group and you are not a member not viewing the member's avatar
+
+      // 修复Bug：有人加入群聊时，刷新群成员列表
       if (msgInfo.messageType === 12) {
         fetchGroupInfoAndMessages()
       }
+
+      // 根据消息类型构建不同的消息气泡
       if (sysMsgType.includes(msgInfo.messageType)) {
+        // 系统消息
         newMessages.push({
           _key: msgInfo.id,
           role: 'sys',
           content: msgInfo.messageContent
         })
       } else if (adMsgType.includes(msgInfo.messageType)) {
+        // 广告消息
         newMessages.push({
           _key: msgInfo.id,
           role: 'ad',
           content: msgInfo.messageContent,
         })
       } else if (shareMsgType.includes(msgInfo.messageType)) {
+        // 分享消息
         newMessages.push({
           _key: msgInfo.id,
           role: 'share',
@@ -636,7 +807,9 @@ const ChatPage: React.FC = () => {
           )
         })
       } else {
+        // 普通消息或文件消息
         if (msgInfo.messageType === 21) {
+          // 文件消息
           newMessages.push({
             _key: msgInfo.id,
             role: 'friendFile',
@@ -655,6 +828,7 @@ const ChatPage: React.FC = () => {
             )
           })
         } else {
+          // 文本消息
           newMessages.push({
             _key: msgInfo.id,
             role: 'friend',
@@ -683,6 +857,10 @@ const ChatPage: React.FC = () => {
     }
   }, [sessionId, user?.id, friendInfo, memberMap])
 
+  /**
+   * 监听文件上传进度
+   * 实时更新文件消息的上传进度
+   */
   useEffect(() => {
     const handler = (
       _event: any,
@@ -710,18 +888,25 @@ const ChatPage: React.FC = () => {
     }
   }, [])
 
+  // 文件预览弹窗状态
   const [filePreview, setFilePreview] = useState({
     open: false,
     fileUrl: '',
     fileName: ''
   })
 
+  /**
+   * 监听"正在输入"状态
+   * 只在单聊时显示对方正在输入的提示
+   */
   useEffect(() => {
     const handleTyping = (_event: any, currentSessionId: string, isTyping: boolean) => {
-      if (sessionId !== currentSessionId || isGroup) return
+      if (sessionId !== currentSessionId || isGroup) return // 群聊不显示正在输入
+
       setMessages((prev) => {
         const filtered = prev.filter((msg) => msg.id !== 'typing')
         if (isTyping) {
+          // 添加正在输入的加载气泡
           return [
             ...filtered,
             {
@@ -732,6 +917,7 @@ const ChatPage: React.FC = () => {
             }
           ]
         } else {
+          // 移除正在输入的加载气泡
           return filtered
         }
       })
@@ -742,19 +928,27 @@ const ChatPage: React.FC = () => {
     }
   }, [sessionId, friendInfo])
 
+  /**
+   * 安全的消息列表
+   * 确保"正在输入"气泡始终显示在最后
+   */
   const safeMessages = useMemo(() => {
     const normal = messages.filter((msg) => msg.id !== 'typing')
     const typing = messages.filter((msg) => msg.id === 'typing')
     return [...normal, ...typing]
   }, [messages])
 
-  // 撤回消息
+  /**
+   * 撤回消息
+   * @param messageId 消息ID
+   */
   const handleRevokeMessage = async (messageId: string) => {
     if (!sessionId || !sessionId) return
     const res = (await revokeMsg({ messageId, sessionId })) as unknown as API.BaseResponseBoolean
     if (res.code === 0) {
       message.success('消息撤回成功!')
       window.electron.ipcRenderer.send('user-revoke-message', messageId, sessionId)
+      // 将消息替换为系统提示消息
       setMessages((prevMessages) => {
         const target = prevMessages.find((m) => m._key === messageId)
         if (!target) return prevMessages
@@ -772,6 +966,9 @@ const ChatPage: React.FC = () => {
     }
   }
 
+  /**
+   * 监听别人撤回消息的事件
+   */
   useEffect(() => {
     window.electron.ipcRenderer.on('somebody-revoke-msg', (_, data) => {
       const { messageId, messageContent } = data
@@ -794,19 +991,27 @@ const ChatPage: React.FC = () => {
     }
   }, [])
 
-  // 删除消息
+  /**
+   * 删除消息
+   * @param messageId 消息ID
+   */
   const handleDeleteMessage = async (messageId: string) => {
     if (!sessionId || !sessionId) return
     const res = (await deleteMsg({ messageId, sessionId })) as unknown as API.BaseResponseBoolean
     if (res.code === 0) {
       message.success('消息删除成功!')
       window.electron.ipcRenderer.send('user-delete-message', messageId)
+      // 从消息列表中移除
       setMessages((prevMessages) => prevMessages.filter((m) => m._key !== messageId))
     } else {
       message.error(res.message)
     }
   }
-  //图片下载
+
+  /**
+   * 下载图片
+   * @param url 图片URL
+   */
   const onDownload = (url: string) => {
     const suffix = url.slice(url.lastIndexOf('.'))
     const filename = Date.now() + suffix
@@ -824,21 +1029,34 @@ const ChatPage: React.FC = () => {
       })
   }
 
-  //发送视频聊天邀请
-  const [videoCallVisible, setVideoCallVisible] = useState(false);
+  // ========== 通话相关状态 ==========
+  const [videoCallVisible, setVideoCallVisible] = useState(false); // 视频通话弹窗
+  const [audioCallVisible, setAudioCallVisible] = useState(false); // 语音通话弹窗
 
+  /**
+   * 发起视频通话（预留功能）
+   */
+  const handleVideoCall = () => {
+    setVideoCallVisible(true)
+  };
+
+  // ========== 主渲染 ==========
   return (
     <>
       <div style={{ display: 'flex', flexDirection: 'column', height: '95vh', width: '100%' }}>
+        {/* 聊天头部：显示联系人/群组信息和操作按钮 */}
         {sessionId?.startsWith("AD") ?
+          // 广告会话头部
           <Space style={{ padding: '0 16px', marginBottom: 8 }}>
             <Avatar src={adInfo?.iconUrl} shape='square' />
             <Text strong style={{ flex: 1, fontSize: 20 }}>
               {adInfo?.name}
             </Text>
           </Space> :
+          // 普通会话头部
           <Space style={{ padding: '0 16px', marginBottom: 8 }}>
             {isGroup ? (
+              // 群聊头部
               <Flex align="center" gap={8}>
                 <Avatar src={groupInfo?.groupAvatar} />
                 <Text strong style={{ flex: 1, fontSize: 20 }}>
@@ -849,6 +1067,7 @@ const ChatPage: React.FC = () => {
                 </Text>
               </Flex>
             ) : (
+              // 单聊头部
               <Flex align="center" gap={8}>
                 <Avatar src={friendInfo?.userAvatar} />
                 <Text strong style={{ fontSize: 18 }}>
@@ -859,11 +1078,14 @@ const ChatPage: React.FC = () => {
             <Actions items={actionItems} />
           </Space>
         }
+
+        {/* 消息列表区域 */}
         <Flex vertical gap="small" style={{ flex: 1, overflowY: 'auto' }}>
           <Bubble.List
             autoScroll
             className="scrollableDiv"
             roles={{
+              // 我发送的文本消息样式
               me: {
                 placement: 'end',
                 style: { maxWidth: '100%' },
@@ -871,9 +1093,11 @@ const ChatPage: React.FC = () => {
                 footer: (content: BubbleContentType) => {
                   return (
                     <Flex style={{ marginTop: -10 }}>
+                      {/* 复制按钮 */}
                       <Text
                         copyable={{ text: (content as { txt: string }).txt, tooltips: false }}
                       />
+                      {/* 撤回按钮 */}
                       <Popconfirm
                         placement="rightBottom"
                         title={`即将撤回消息 [${(content as { txt: string }).txt}]`}
@@ -889,6 +1113,7 @@ const ChatPage: React.FC = () => {
                           title="撤回"
                         />
                       </Popconfirm>
+                      {/* 删除按钮 */}
                       <Popconfirm
                         placement="rightBottom"
                         title={`即将删除消息 [${(content as { txt: string }).txt}]`}
@@ -908,6 +1133,7 @@ const ChatPage: React.FC = () => {
                   )
                 }
               },
+              // 我发送的文件消息样式
               meFile: {
                 placement: 'end',
                 style: { maxWidth: '100%' },
@@ -919,16 +1145,19 @@ const ChatPage: React.FC = () => {
                         cursor: item.url ? 'pointer' : 'default'
                       }}
                       onClick={() => {
+                        // 非图片文件打开预览弹窗
                         item.url && !/\.(png|jpe?g|gif|bmp|webp|svg)$/i.test(item.name)
                           ? setFilePreview({ open: true, fileUrl: item.url, fileName: item.name })
                           : void 0
                       }}
                     >
+                      {/* 文件卡片组件 */}
                       <Attachments.FileCard
                         key={item.uid}
                         item={item}
                         imageProps={{
                           preview: {
+                            // 图片预览工具栏
                             toolbarRender: (
                               _,
                               {
@@ -958,6 +1187,7 @@ const ChatPage: React.FC = () => {
                           }
                         }}
                       />
+                      {/* 上传进度环 */}
                       {item.percent > 0 && item.percent < 100 && (
                         <Progress
                           type="circle"
@@ -1018,11 +1248,13 @@ const ChatPage: React.FC = () => {
                   )
                 }
               },
+              // 好友发送的文本消息样式
               friend: {
                 placement: 'start',
                 style: { maxWidth: '100%' },
                 messageRender: (content) => <div>{content.txt}</div>
               },
+              // 好友发送的文件消息样式
               friendFile: {
                 placement: 'start',
                 style: { maxWidth: '100%' },
@@ -1092,6 +1324,7 @@ const ChatPage: React.FC = () => {
                   </Flex>
                 )
               },
+              // 时间节点样式
               time: {
                 style: { margin: '0 auto' },
                 styles: {
@@ -1105,6 +1338,7 @@ const ChatPage: React.FC = () => {
                   }
                 }
               },
+              // 系统消息样式
               sys: {
                 style: { margin: '0 auto' },
                 variant: 'shadow',
@@ -1120,6 +1354,7 @@ const ChatPage: React.FC = () => {
                   }
                 }
               },
+              // 分享消息样式
               share: {
                 style: { maxWidth: '100%' },
                 variant: 'borderless',
@@ -1127,6 +1362,7 @@ const ChatPage: React.FC = () => {
                   return <ShareInfoCard item={content} />
                 }
               },
+              // 广告消息样式
               ad: {
                 style: { margin: '0 auto' },
                 variant: 'borderless',
@@ -1191,13 +1427,16 @@ const ChatPage: React.FC = () => {
           />
         </Flex>
 
+        {/* 消息输入区域 */}
         <div
           style={{ paddingTop: 12, position: 'sticky', paddingRight: 8, paddingLeft: 8, bottom: 6 }}
         >
+          {/* 广告会话不显示输入框 */}
           {sessionId?.startsWith("AD") ? <></> :
             <Sender
               prefix={
                 <div style={{ position: 'relative', marginRight: 18 }}>
+                  {/* 文件上传按钮 */}
                   <Upload
                     name="file"
                     className="avatar-uploader"
@@ -1213,6 +1452,7 @@ const ChatPage: React.FC = () => {
                       icon={<LinkOutlined style={{ fontSize: 18, color: '#666' }} />}
                     />
                   </Upload>
+                  {/* 表情选择器 */}
                   <Popover
                     content={
                       <EmojiPicker
@@ -1231,9 +1471,6 @@ const ChatPage: React.FC = () => {
                       icon={<SmileOutlined style={{ fontSize: 18, color: '#d48806' }} />}
                     />
                   </Popover>
-                  <Button type="primary" onClick={() => setVideoCallVisible(true)}>
-                    发起视频通话
-                  </Button>
                 </div>
               }
               value={value}
@@ -1241,32 +1478,41 @@ const ChatPage: React.FC = () => {
               onSubmit={sendMessage}
               autoSize={{ minRows: 3, maxRows: 3 }}
               onFocus={async () => {
+                // 单聊时发送"正在输入"状态
                 if (isGroup) return
                 await sendTypingState({
                   contactId: getContactIdFromSession(sessionId!, user!.id!.toString()),
                   typing: true
                 })
-              }} // 聚焦事件 正在输入..
+              }}
               onBlur={async () => {
+                // 单聊时发送"停止输入"状态
                 if (isGroup) return
                 await sendTypingState({
                   contactId: getContactIdFromSession(sessionId!, user!.id!.toString()),
                   typing: false
                 })
-                // 失焦事件 输入结束..
               }}
             />
           }
         </div>
       </div>
+
+      {/* 文件预览弹窗 */}
       <FilePreviewModal
         open={filePreview.open}
         onClose={() => setFilePreview({ open: false, fileUrl: '', fileName: '' })}
         fileUrl={filePreview.fileUrl}
         fileName={filePreview.fileName}
       />
+
+      {/* 好友信息抽屉 */}
       {friendInfoDrawer()}
+
+      {/* 群组信息抽屉 */}
       {groupInfoDrawer()}
+
+      {/* 分享弹窗 */}
       {<ShareModal
         visible={shareVisible}
         onClose={() => setShareVisible(false)}
@@ -1280,16 +1526,24 @@ const ChatPage: React.FC = () => {
           }
         }}
       />}
-      {/* 视频通话 */}
+
+      {/* 视频通话弹窗 */}
       {<VideoCallModal
         visible={videoCallVisible}
         onCancel={() => setVideoCallVisible(false)}
         receiverId={isGroup
           ? sessionId!
           : getContactIdFromSession(sessionId!, user!.id!.toString())}
-        type="video"
       />}
-      {<IncomingCallModal />}
+
+      {/* 语音通话弹窗 */}
+      {<AudioCallModel
+        visible={audioCallVisible}
+        onCancel={() => setAudioCallVisible(false)}
+        receiverId={isGroup
+          ? sessionId!
+          : getContactIdFromSession(sessionId!, user!.id!.toString())}
+      />}
     </>
   )
 }
