@@ -65,6 +65,7 @@
     "better-sqlite3": "^12.2.0",
     "electron-updater": "^6.3.9",
     "emoji-picker-react": "^4.12.3",
+    "livekit-client": "^2.15.14",
     "motion": "^12.23.6",
     "react-file-viewer-ts": "^0.0.30",
     "react-infinite-scroll-component": "^6.1.0",

@@ -119,6 +119,26 @@ function registerIpcHandlers(mainWindow: BrowserWindow) {
   // 5. 校验是否是[新的通知]窗口 防止恶意路由跳转
   ipcMain.handle("check-is-notification-window", () => mainWindow !== null)
 
+
+  // 3.1. 打开[videoCall]窗口
+  ipcMain.handle('open-videoCall-window', (_, { receiveId }) => {
+    createVideoCallWindow(receiveId);
+  });
+  // 4.1. 关闭[videoCall]窗口
+  ipcMain.on('window-close-videoCall', () => videoCallWindow?.close())
+  // 5.1. 校验是否是[videoCall]窗口 防止恶意路由跳转
+  ipcMain.handle("check-is-videoCall-window", () => mainWindow !== null)
+
+  // 3.2. 打开[audidCall]窗口
+  ipcMain.handle('open-audidCall-window', (_, { receiveId }) => {
+    createAudioCallWindow(receiveId);
+  });
+  // 4.2. 关闭[audidCall]窗口
+  ipcMain.on('window-close-audidCall', () => audioCallWindow?.close())
+  // 5.2. 校验是否是[audidCall]窗口 防止恶意路由跳转
+  ipcMain.handle("check-is-audidCall-window", () => mainWindow !== null)
+
+
   // 6. 初始化Session列表
   ipcMain.handle('get-session-list', () => {
     return queryAllSession(currentLoginUser.id)
@@ -276,3 +296,97 @@ function createNotificationWindow(): void {
     // mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
 }
+
+
+
+let audioCallWindow: BrowserWindow | null = null;
+
+function createAudioCallWindow(receiveId): void {
+  if (audioCallWindow) {
+    audioCallWindow.focus();
+    return;
+  }
+
+  audioCallWindow = new BrowserWindow({
+    width: 600,
+    height: 500,
+    minWidth: 600,
+    minHeight: 500,
+    frame: false,
+    resizable: true,
+    show: false,
+    autoHideMenuBar: true,
+    icon,
+    webPreferences: {
+      preload: join(__dirname, '../preload/index.js'),
+      sandbox: false,
+    }
+  });
+
+  audioCallWindow.on('ready-to-show', () => {
+    audioCallWindow?.show();
+  });
+
+  audioCallWindow.on('closed', () => {
+    audioCallWindow = null;
+  });
+
+  audioCallWindow.webContents.setWindowOpenHandler((details) => {
+    shell.openExternal(details.url);
+    return { action: 'deny' };
+  });
+  if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
+    audioCallWindow.loadURL(`http://localhost:5173/audioCallWindow?receiveId=${receiveId}`);
+    // mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
+  } else {
+    // mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
+  }
+}
+
+
+
+let videoCallWindow: BrowserWindow | null = null;
+
+function createVideoCallWindow(receiveId): void {
+  if (videoCallWindow) {
+    videoCallWindow.focus();
+    return;
+  }
+
+  videoCallWindow = new BrowserWindow({
+    width: 750,
+    height: 550,
+    minWidth: 750,
+    minHeight: 550,
+    frame: false,
+    resizable: true,
+    show: false,
+    autoHideMenuBar: true,
+    icon,
+    webPreferences: {
+      preload: join(__dirname, '../preload/index.js'),
+      sandbox: false,
+    }
+  });
+
+  videoCallWindow.on('ready-to-show', () => {
+    videoCallWindow?.show();
+  });
+
+  videoCallWindow.on('closed', () => {
+    videoCallWindow = null;
+  });
+
+  videoCallWindow.webContents.setWindowOpenHandler((details) => {
+    shell.openExternal(details.url);
+    return { action: 'deny' };
+  });
+  if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
+    videoCallWindow.loadURL(`http://localhost:5173/videoCallWindow?receiveId=${receiveId}`);
+    // mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
+  } else {
+    // mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
+  }
+}
+
+

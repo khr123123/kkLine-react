@@ -55,8 +55,8 @@ import EmojiPicker from 'emoji-picker-react'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { formatRelativeTime } from '../../utils/timeUtil'
-import VideoCallModal from './components/VideoCallModel'
-import AudioCallModel from './components/AudioCallModel'
+import VideoCallModal from './components/VideoCallPage'
+import AudioCallModel from './components/AudioCallPage'
 
 // 全局上传ID，用于追踪文件上传进度
 let globalUploadId: any
@@ -129,12 +129,21 @@ const ChatPage: React.FC = () => {
       {
         key: 'videoCall',
         icon: <VideoCameraAddOutlined title="发起视频通话" />,
-        onItemClick: () => setVideoCallVisible(true)
+        onItemClick: () => window.electron.ipcRenderer.invoke('open-videoCall-window', {
+          receiveId: isGroup
+            ? sessionId!
+            : getContactIdFromSession(sessionId!, user!.id!.toString())
+        })
+
       },
       {
         key: 'audioCall',
         icon: <AudioOutlined title="发起语音通话" />,
-        onItemClick: () => setAudioCallVisible(true)
+        onItemClick: () => window.electron.ipcRenderer.invoke('open-audidCall-window', {
+          receiveId: isGroup
+            ? sessionId!
+            : getContactIdFromSession(sessionId!, user!.id!.toString())
+        })
       }
     ]
 
@@ -1525,24 +1534,6 @@ const ChatPage: React.FC = () => {
             message.error("分享失败," + res.message)
           }
         }}
-      />}
-
-      {/* 视频通话弹窗 */}
-      {<VideoCallModal
-        visible={videoCallVisible}
-        onCancel={() => setVideoCallVisible(false)}
-        receiverId={isGroup
-          ? sessionId!
-          : getContactIdFromSession(sessionId!, user!.id!.toString())}
-      />}
-
-      {/* 语音通话弹窗 */}
-      {<AudioCallModel
-        visible={audioCallVisible}
-        onCancel={() => setAudioCallVisible(false)}
-        receiverId={isGroup
-          ? sessionId!
-          : getContactIdFromSession(sessionId!, user!.id!.toString())}
       />}
     </>
   )

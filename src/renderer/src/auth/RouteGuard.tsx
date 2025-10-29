@@ -41,6 +41,10 @@ export const RouteGuard: React.FC<Props> = ({ children }) => {
     // 等待异步结果时可以渲染loading或null
     return allowed ? children : null;
   }
+  // TODO
+  if (path.startsWith('/videoCallWindow') || path.startsWith('/audioCallWindow')) {
+    return children
+  }
   // 4. 其他路径，必须登录，角色不限
   if (!user) {
     return <Navigate to="/login" replace state={{ from: location }} />
