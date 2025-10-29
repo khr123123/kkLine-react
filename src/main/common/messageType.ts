@@ -27,9 +27,8 @@ export enum MessageType {
     TYPING = 22,             // %s 正在输入...
     TYPING_END = 23,         // 输入结束
     REVOKE_MESSAGE = 24,     // %s 撤回了一条消息
-    CHAT_VIDEO_AUDIO_OFFER = 25,     // 视频/语音通话的offer
-    CHAT_VIDEO_AUDIO_ANSWER = 26,  // 视频/语音通话的answer
-    CHAT_VIDEO_AUDIO_ICE = 27,       // 视频/语音通话的ICE
+    CHAT_AUDIO_OFFER = 25,   // 语音通话的offer
+    CHAT_VIDEO_OFFER = 26,   // 视频通话的offer
 
     // ===== 30–39 文件传输相关 =====
     FILE_UPLOAD = 30,        // 文件上传完成

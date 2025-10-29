@@ -1,7 +1,7 @@
 // App.tsx
 import { ConfigProvider, theme } from 'antd'
 import { useEffect } from 'react'
-import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom'
+import { createBrowserRouter, data, Navigate, RouterProvider } from 'react-router-dom'
 import AdminLayout from './adminPages/AdminLayout'
 import GroupListpage from './adminPages/GroupListpage'
 import UserListPage from './adminPages/UserListPage'
@@ -196,7 +196,35 @@ export default function App() {
         break
     }
   }, [themeMode])
+  //绑定 收到语音消息 和 视频消息的msg
+  useEffect(() => {
+    window.electron.ipcRenderer.on('receive-audio-offer', (_, data: any) => {
+      // 只传基础信息
+      const safeData = {
+        receiverId: data.receiverId,
+        room: data.room,
+        senderName: data.senderName,
+        senderAvatar: data.senderAvatar,
+        text: data.text
+      };
+      window.electron.ipcRenderer.invoke('open-videoCall-window', safeData);
+    });
+    window.electron.ipcRenderer.on('reviced-video-offer', (_, data: any) => {
+      const safeData = {
+        receiverId: data.receiverId,
+        room: data.room,
+        senderName: data.senderName,
+        senderAvatar: data.senderAvatar,
+        text: data.text
+      };
+      window.electron.ipcRenderer.invoke('open-videoCall-window', safeData);
+    });
 
+    return () => {
+      window.electron.ipcRenderer.removeAllListeners('receive-audio-offer');
+      window.electron.ipcRenderer.removeAllListeners('reviced-video-offer');
+    };
+  }, []);
   return (
     <ConfigProvider theme={{ algorithm: getAlgorithm(), hashed: false }}>
       <RouterProvider router={router} />

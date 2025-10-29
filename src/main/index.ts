@@ -1,5 +1,5 @@
 import { electronApp, is, optimizer } from '@electron-toolkit/utils';
-import { app, BrowserWindow, ipcMain, shell, } from 'electron';
+import { app, BrowserWindow, ipcMain, shell, systemPreferences } from 'electron';
 import { join } from 'path';
 import icon from '../../resources/wechat.png?asset';
 import { Menu, nativeImage, Tray } from 'electron';
@@ -7,6 +7,11 @@ import { closeWs, initWs } from './ws'
 import { accumulateApplyCount, clearApplyCount, clearNoreadCount, hasChatSessionUser, insertChatMessageRecordIgnore, insertChatSessionUserIgnore, queryAllSession, queryMessagesBySession, removeChatSessionUser, removeMessageById, removeMessageBySessionId, revokeMessageById, setSessionTop, updateSessionLastMessage } from '../db/dbService';
 import path from 'path'
 import { logoutWithToken } from '../renderer/src/api/userApis';
+enum EMediaType {
+  microphone = 'microphone', // 麦克风
+  camera = 'camera', // 相机
+}
+type IAccessStatus = 'not-determined' | 'granted' | 'denied' | 'restricted' | 'unknown'
 const { exec } = require('child_process');
 const sendPath = path.join(__dirname, '../../resources/send.wav')
 let mainWindow: BrowserWindow;
@@ -121,8 +126,13 @@ function registerIpcHandlers(mainWindow: BrowserWindow) {
 
 
   // 3.1. 打开[videoCall]窗口
-  ipcMain.handle('open-videoCall-window', (_, { receiveId }) => {
-    createVideoCallWindow(receiveId);
+  ipcMain.handle('open-videoCall-window', (_, data) => {
+     const { receiverId, senderName, senderAvatar, text, room } = data;
+  console.log('aaaaa', receiverId, senderName,
+    senderAvatar,
+    text,
+    room,)
+    createVideoCallWindow(data);
   });
   // 4.1. 关闭[videoCall]窗口
   ipcMain.on('window-close-videoCall', () => videoCallWindow?.close())
@@ -130,8 +140,8 @@ function registerIpcHandlers(mainWindow: BrowserWindow) {
   ipcMain.handle("check-is-videoCall-window", () => mainWindow !== null)
 
   // 3.2. 打开[audidCall]窗口
-  ipcMain.handle('open-audidCall-window', (_, { receiveId }) => {
-    createAudioCallWindow(receiveId);
+  ipcMain.handle('open-audidCall-window', (_, data) => {
+    createAudioCallWindow(data);
   });
   // 4.2. 关闭[audidCall]窗口
   ipcMain.on('window-close-audidCall', () => audioCallWindow?.close())
@@ -223,6 +233,27 @@ function registerIpcHandlers(mainWindow: BrowserWindow) {
   });
 }
 
+
+// ipcMain.handle('request-media-access', async (_, mediaType: EMediaType = EMediaType.microphone) => {
+//   try {
+//     // 获取当前媒体设备（在这里指麦克风或摄像头）的访问权限状态
+//     const privilege: IAccessStatus = systemPreferences.getMediaAccessStatus(mediaType)
+//     if (privilege !== 'granted') {
+//       // 未授权,则重新唤起系统弹框,等待用户点击授权
+//       await systemPreferences.askForMediaAccess(mediaType)
+//       // 请求权限后，再次获取媒体访问状态并返回
+//       return systemPreferences.getMediaAccessStatus(mediaType)
+//     }
+//     // 已授权,则直接返回媒体访问状态
+//     return privilege
+//   } catch (e) {
+//     console.error('Failed to request media access:', e)
+//     return 'unknown'
+//   }
+// })
+
+
+
 function createTray(win: BrowserWindow) {
   const trayIcon = nativeImage.createFromPath(icon)
   let tray = new Tray(trayIcon)
@@ -301,12 +332,13 @@ function createNotificationWindow(): void {
 
 let audioCallWindow: BrowserWindow | null = null;
 
-function createAudioCallWindow(receiveId): void {
+function createAudioCallWindow(data): void {
+  const { receiverId, senderName, senderAvatar, text, room } = data;
   if (audioCallWindow) {
     audioCallWindow.focus();
     return;
   }
-
+  // 创建新窗口
   audioCallWindow = new BrowserWindow({
     width: 600,
     height: 500,
@@ -320,39 +352,45 @@ function createAudioCallWindow(receiveId): void {
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false,
-    }
+    },
   });
 
-  audioCallWindow.on('ready-to-show', () => {
-    audioCallWindow?.show();
-  });
-
-  audioCallWindow.on('closed', () => {
-    audioCallWindow = null;
-  });
-
+  audioCallWindow.on('ready-to-show', () => audioCallWindow?.show());
+  audioCallWindow.on('closed', () => (audioCallWindow = null));
   audioCallWindow.webContents.setWindowOpenHandler((details) => {
     shell.openExternal(details.url);
     return { action: 'deny' };
   });
+
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
-    audioCallWindow.loadURL(`http://localhost:5173/audioCallWindow?receiveId=${receiveId}`);
-    // mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
+    audioCallWindow.loadURL(`http://localhost:5173/audioCallWindow?receiverId=${receiverId}&senderName=${encodeURIComponent(senderName)}&senderAvatar=${encodeURIComponent(senderAvatar)}&text=${encodeURIComponent(text)}&room=${encodeURIComponent(room)}`);
+    audioCallWindow.webContents.openDevTools(); // 🚀 启动时自动打开 DevTools
   } else {
-    // mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
+
   }
 }
 
 
 
+
 let videoCallWindow: BrowserWindow | null = null;
 
-function createVideoCallWindow(receiveId): void {
+function createVideoCallWindow(data: {
+  receiverId?: string;
+  senderName?: string;
+  senderAvatar?: string;
+  text?: string;
+  room?: string;
+}): void {
+  const { receiverId, senderName, senderAvatar, text, room } = data;
+  console.log('🚀 ~ file: main.ts ~ line 257 ~ createVideoCallWindow ~ room', receiverId, senderName,
+    senderAvatar,
+    text,
+    room,)
   if (videoCallWindow) {
     videoCallWindow.focus();
     return;
   }
-
   videoCallWindow = new BrowserWindow({
     width: 750,
     height: 550,
@@ -366,26 +404,21 @@ function createVideoCallWindow(receiveId): void {
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false,
-    }
+    },
   });
 
-  videoCallWindow.on('ready-to-show', () => {
-    videoCallWindow?.show();
-  });
-
-  videoCallWindow.on('closed', () => {
-    videoCallWindow = null;
-  });
-
+  videoCallWindow.on('ready-to-show', () => videoCallWindow?.show());
+  videoCallWindow.on('closed', () => (videoCallWindow = null));
   videoCallWindow.webContents.setWindowOpenHandler((details) => {
     shell.openExternal(details.url);
     return { action: 'deny' };
   });
+
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
-    videoCallWindow.loadURL(`http://localhost:5173/videoCallWindow?receiveId=${receiveId}`);
-    // mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
+    videoCallWindow.loadURL(`http://localhost:5173/videoCallWindow?receiverId=${receiverId}&senderName=${senderName}&senderAvatar=${senderAvatar}&text=${text}&room=${room}`);
+    videoCallWindow.webContents.openDevTools(); // 🚀 启动时自动打开 DevTools
   } else {
-    // mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
+
   }
 }
 

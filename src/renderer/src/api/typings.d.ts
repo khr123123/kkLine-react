@@ -178,6 +178,19 @@ declare namespace API {
     contactAvatar?: string
   }
 
+  type ChatVideoAudioRequest = {
+    /** 接收方用户ID */
+    receiverId: number
+    /** 通话类型（video/audio） */
+    type: string
+    /** SDP 内容（offer/answer） */
+    sdp?: string
+    /** ICE Candidate 数据 */
+    candidate?: string
+    /** 消息类型：offer / answer / ice */
+    messageType?: string
+  }
+
   type checkRelationParams = {
     contactId: string
   }
@@ -225,6 +238,13 @@ declare namespace API {
     userVO?: UserVO
     groupVO?: GroupVO
     joined?: boolean
+  }
+
+  type CreateRoomRequest = {
+    identity: string
+    room: string
+    type: 'VIDEO' | 'AUDIO'
+    receiverId?: string
   }
 
   type deleteAdParams = {
