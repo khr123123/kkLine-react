@@ -9,8 +9,10 @@
     VideoCameraAddOutlined,
     VideoCameraOutlined,
 } from '@ant-design/icons'
+import { sendMsg } from '@renderer/api/chatApis'
 import { createToken } from '@renderer/api/liveKitApis'
 import { useUserStore } from '@renderer/store/useUserStore'
+import { Snowflake } from '@renderer/utils/SnowflakeIdUtil'
 import { Button, message, Space, Tag, Typography, Avatar, Spin } from 'antd'
 import {
     LocalAudioTrack,
@@ -124,9 +126,17 @@ const VideoCallPage: React.FC = () => {
                 message.success('视频通话已接通')
             })
 
-            room.on(RoomEvent.Disconnected, () => {
+            room.on(RoomEvent.Disconnected, async () => {
                 console.log('❌ 连接已断开')
                 handleHangup()
+                if (receiverId) {
+                    await sendMsg({ messageId: Snowflake.nextId(), contactId: receiverId!, messageContent: "视频通话:" + formatDuration(callDuration), messageType: 28 })
+                        .then(() => {
+                            message.success('已结束通话')
+                        }).catch((err) => {
+                            message.error('结束通话失败: ' + err.message)
+                        })
+                }
             })
 
             room.on(RoomEvent.ParticipantConnected, (participant: RemoteParticipant) => {

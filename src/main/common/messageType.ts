@@ -29,6 +29,8 @@ export enum MessageType {
     REVOKE_MESSAGE = 24,     // %s 撤回了一条消息
     CHAT_AUDIO_OFFER = 25,   // 语音通话的offer
     CHAT_VIDEO_OFFER = 26,   // 视频通话的offer
+    CHAT_AUDIO_END = 27,   // 语音通话结束
+    CHAT_VIDEO_END = 28,   // 视频通话结束
 
     // ===== 30–39 文件传输相关 =====
     FILE_UPLOAD = 30,        // 文件上传完成

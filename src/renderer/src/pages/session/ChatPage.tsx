@@ -14,6 +14,7 @@ import {
   SwapOutlined,
   UndoOutlined,
   VideoCameraAddOutlined,
+  VideoCameraOutlined,
   ZoomInOutlined,
   ZoomOutOutlined
 } from '@ant-design/icons'
@@ -55,6 +56,7 @@ import EmojiPicker from 'emoji-picker-react'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { formatRelativeTime } from '../../utils/timeUtil'
+import { log } from 'node:console'
 
 // 全局上传ID，用于追踪文件上传进度
 let globalUploadId: any
@@ -350,6 +352,7 @@ const ChatPage: React.FC = () => {
 
       const sysMsgType = [1, 24] // 系统消息类型
       const shareMsgType = [50] // 分享消息类型
+      const videoAudioMsgType = [27, 28]// 视频/语音通话消息类型
 
       if (sysMsgType.includes(item.messageType)) {
         // 系统消息（如好友申请通过等）
@@ -367,7 +370,20 @@ const ChatPage: React.FC = () => {
           placement: item.sendUserId === user?.id ? 'end' : 'start',
           avatar: item.sendUserId === user?.id ? { src: user?.userAvatar } : { src: resData.userAvatar },
         })
-      } else {
+      } else if (videoAudioMsgType.includes(item.messageType)) {
+        // 分享消息
+        messagesWithTime.push({
+          _key: item.id,
+          role: 'videoAudio',
+          content: {
+            uid: item.id,
+            txt: item.messageContent
+          },
+          placement: item.sendUserId === user?.id ? 'end' : 'start',
+          avatar: item.sendUserId === user?.id ? { src: user?.userAvatar } : { src: resData.userAvatar },
+        })
+      }
+      else {
         // 判断是否是文件消息（根据 fileUrl 判断）
         const isFile = !!item.fileUrl
         const content = isFile
@@ -792,6 +808,7 @@ const ChatPage: React.FC = () => {
       const sysMsgType = [3, 10, 11, 12, 13, 14, 15, 24]
       const shareMsgType = [50]
       const adMsgType = [41]
+      const videoAudioMsgType = [27, 28]
 
       // 修复Bug：有人加入群聊时，刷新群成员列表
       if (msgInfo.messageType === 12) {
@@ -827,7 +844,25 @@ const ChatPage: React.FC = () => {
             <span style={{ fontSize: '13px', color: '#888' }}>{msgInfo.sendUserName}</span>
           )
         })
-      } else {
+      } else if (videoAudioMsgType.includes(msgInfo.messageType)) {
+        // 分享消息
+        newMessages.push({
+          _key: msgInfo.id,
+          role: 'videoAudio',
+          content: {
+            uid: msgInfo.id,
+            txt: msgInfo.messageContent
+          },
+          placement: msgInfo.sendUserId === user?.id ? 'end' : 'start',
+          avatar: {
+            src: msgInfo.sendUserId === user?.id ? user?.userAvatar : isGroup ? memberMap.get(msgInfo.sendUserId)?.avatar : friendInfo?.userAvatar
+          },
+          header: isGroup && (
+            <span style={{ fontSize: '13px', color: '#888' }}>{msgInfo.sendUserName}</span>
+          )
+        })
+      }
+      else {
         // 普通消息或文件消息
         if (msgInfo.messageType === 21) {
           // 文件消息
@@ -1050,16 +1085,6 @@ const ChatPage: React.FC = () => {
       })
   }
 
-  // ========== 通话相关状态 ==========
-  const [videoCallVisible, setVideoCallVisible] = useState(false); // 视频通话弹窗
-  const [audioCallVisible, setAudioCallVisible] = useState(false); // 语音通话弹窗
-
-  /**
-   * 发起视频通话（预留功能）
-   */
-  const handleVideoCall = () => {
-    setVideoCallVisible(true)
-  };
 
   // ========== 主渲染 ==========
   return (
@@ -1099,7 +1124,6 @@ const ChatPage: React.FC = () => {
             <Actions items={actionItems} />
           </Space>
         }
-
         {/* 消息列表区域 */}
         <Flex vertical gap="small" style={{ flex: 1, overflowY: 'auto' }}>
           <Bubble.List
@@ -1382,6 +1406,32 @@ const ChatPage: React.FC = () => {
                 messageRender: (content) => {
                   return <ShareInfoCard item={content} />
                 }
+              },
+              // 视频通话消息样式
+              videoAudio: {
+                variant: 'borderless',
+                messageRender: (content) => {
+                  return (
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        background: '#e6f4ff',
+                        color: '#03357cff',
+                        padding: '6px 10px',
+                        borderRadius: '18px',
+                        fontSize: '14px',
+                        boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
+                        userSelect: 'none',
+                        fontWeight: 'bold'
+                      }}
+                    >
+                      <VideoCameraOutlined style={{ fontSize: '18px' }} />
+                      <span>{content.txt || '视频通话'}</span>
+                    </div>
+                  )
+                },
               },
               // 广告消息样式
               ad: {
