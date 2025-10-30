@@ -55,8 +55,6 @@ import EmojiPicker from 'emoji-picker-react'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { formatRelativeTime } from '../../utils/timeUtil'
-import VideoCallModal from './components/VideoCallPage'
-import AudioCallModel from './components/AudioCallPage'
 
 // 全局上传ID，用于追踪文件上传进度
 let globalUploadId: any
@@ -95,7 +93,7 @@ const ChatPage: React.FC = () => {
   const { token } = theme.useToken() // 获取Ant Design主题token
   const lastMessageTimeRef = useRef<number>(0) // 记录最后一条消息的时间（用于时间节点插入）
   const [shareVisible, setShareVisible] = useState<boolean>(false) // 分享弹窗显示状态
-  
+
   // ========== 操作栏配置 ==========
   /**
    * 根据是否是群聊配置不同的操作按钮
@@ -133,18 +131,30 @@ const ChatPage: React.FC = () => {
           receiverId: isGroup
             ? sessionId!
             : getContactIdFromSession(sessionId!, user!.id!.toString()),
-          data: {}
+          receiverName: isGroup
+            ? groupInfo.groupName
+            : friendInfo.userName,
+          receiverAvatar: isGroup
+            ? groupInfo?.groupAvatar
+            : friendInfo?.userAvatar,
+          receiverType: isGroup
         })
 
       },
       {
         key: 'audioCall',
         icon: <AudioOutlined title="发起语音通话" />,
-        onItemClick: () => window.electron.ipcRenderer.invoke('open-audidCall-window', {
+        onItemClick: () => window.electron.ipcRenderer.invoke('open-audioCall-window', {
           receiverId: isGroup
             ? sessionId!
             : getContactIdFromSession(sessionId!, user!.id!.toString()),
-          data: {}
+          receiverName: isGroup
+            ? groupInfo.groupName
+            : friendInfo.userName,
+          receiverAvatar: isGroup
+            ? groupInfo?.groupAvatar
+            : friendInfo?.userAvatar,
+          receiverType: isGroup
         })
       }
     ]

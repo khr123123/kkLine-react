@@ -667,6 +667,7 @@ export const createWs = (url: string) => {
                             lastReceiveTime: msgData.sendTime!
                         });
                         mainWindow.webContents.send('receive-audio-offer', {
+                            receiverId: null,
                             senderId: msgData.sender?.userId,
                             senderName: msgData.sender?.userName,
                             senderAvatar: msgData.sender?.userAvatar,
@@ -761,6 +762,7 @@ export const createWs = (url: string) => {
                         console.log(msgData.content?.text);
                         console.log(msgData.sender?.userAvatar);
                         mainWindow.webContents.send('reviced-video-offer', {
+                            receiverId: null,
                             senderId: msgData.sender?.userId,
                             senderName: msgData.sender?.userName,
                             senderAvatar: msgData.sender?.userAvatar,

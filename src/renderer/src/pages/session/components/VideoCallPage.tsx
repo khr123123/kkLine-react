@@ -1,235 +1,232 @@
-﻿import React, { useEffect, useRef, useState } from 'react'
-import { useLocation } from 'react-router-dom'
-import { Button, Space, Typography, message, Tag } from 'antd'
-import {
-    PhoneOutlined,
+﻿import {
     AudioMutedOutlined,
     AudioOutlined,
-    VideoCameraOutlined,
-    VideoCameraAddOutlined,
-    FullscreenOutlined,
-    FullscreenExitOutlined,
     CheckOutlined,
-    CloseOutlined
+    CloseOutlined,
+    FullscreenExitOutlined,
+    FullscreenOutlined,
+    PhoneOutlined,
+    VideoCameraAddOutlined,
+    VideoCameraOutlined,
 } from '@ant-design/icons'
-import { useUserStore } from '@renderer/store/useUserStore'
-import { Room, RoomEvent, RemoteTrack, Track, LocalVideoTrack, LocalAudioTrack } from 'livekit-client'
 import { createToken } from '@renderer/api/liveKitApis'
+import { useUserStore } from '@renderer/store/useUserStore'
+import { Button, message, Space, Tag, Typography, Avatar, Spin } from 'antd'
+import {
+    LocalAudioTrack,
+    LocalVideoTrack,
+    RemoteParticipant,
+    RemoteTrack,
+    RemoteTrackPublication,
+    Room,
+    RoomEvent,
+    Track,
+} from 'livekit-client'
+import React, { useEffect, useRef, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 
 const { Text } = Typography
 
-const VideoCallModal: React.FC = () => {
+type CallStatus = 'caller-waiting' | 'callee-waiting' | 'connected' | 'ended'
+
+const VideoCallPage: React.FC = () => {
     const location = useLocation()
     const query = new URLSearchParams(location.search)
-    const receiverId = query.get('receiverId')
-    const roomParam = query.get('room')
-    const senderName = query.get('senderName')
-    const senderAvatar = query.get('senderAvatar')
-    const text = query.get('text')
+    const getParam = (key: string) => {
+        const val = query.get(key)
+        return val && val !== 'null' && val !== 'undefined' && val.trim() !== '' ? val : null
+    }
+    const receiverId = getParam('receiverId')
+    const roomParam = getParam('room')
+    const senderId = getParam('senderId')
+    const senderName = getParam('senderName')
+    const senderAvatar = getParam('senderAvatar')
+    const text = getParam('text')
+    const receiverName = getParam('receiverName')
+    const receiverAvatar = getParam('receiverAvatar')
 
     const { user, setUser } = useUserStore()
-    const [isCaller, setIsCaller] = useState(false)
-    const [callStatus, setCallStatus] = useState<'calling' | 'waiting' | 'connected' | 'ended'>('waiting')
+    const [callStatus, setCallStatus] = useState<CallStatus>('callee-waiting')
+    const [remoteJoined, setRemoteJoined] = useState(false)
     const [isMuted, setIsMuted] = useState(false)
     const [isVideoEnabled, setIsVideoEnabled] = useState(true)
     const [callDuration, setCallDuration] = useState(0)
     const [isFullscreen, setIsFullscreen] = useState(false)
-    const [isConnecting, setIsConnecting] = useState(false)
 
-    const localVideoRef = useRef<HTMLVideoElement>(null)
-    const remoteVideoRef = useRef<HTMLVideoElement>(null)
+    const localVideoContainerRef = useRef<HTMLDivElement>(null)
+    const remoteVideoContainerRef = useRef<HTMLDivElement>(null)
     const containerRef = useRef<HTMLDivElement>(null)
     const roomRef = useRef<Room | null>(null)
     const timerRef = useRef<NodeJS.Timeout | null>(null)
     const isConnectingRef = useRef(false)
 
-    // 获取用户信息
     useEffect(() => {
         window.electron.ipcRenderer.invoke('get-login-user').then((result: any) => {
             setUser(result)
         })
     }, [])
 
-    // 确定身份
     useEffect(() => {
-        setIsCaller(!!receiverId)
-        setCallStatus('calling')
-    }, [receiverId])
+        if (!user?.id) return
+        if (receiverId) {
+            setCallStatus('caller-waiting')
+            initLiveKit()
+        } else {
+            setCallStatus('callee-waiting')
+        }
 
+        return () => {
+            // 清理资源
+            if (roomRef.current) {
+                roomRef.current.disconnect()
+                roomRef.current = null
+            }
+        }
+    }, [receiverId, user?.id])
 
+    useEffect(() => {
+        if (callStatus === 'caller-waiting' && remoteJoined) {
+            setCallStatus('connected')
+        }
+    }, [remoteJoined, callStatus])
 
-    // 初始化 LiveKit
+    const formatDuration = (s: number) =>
+        `${Math.floor(s / 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`
+
     const initLiveKit = async () => {
         if (isConnectingRef.current || roomRef.current) return
-        // 修复房间名称判断逻辑
-        if (!user?.id || (!roomParam && !receiverId)) {
-            console.warn('❌ user.id 或 roomName 无效，无法连接')
+        if (!user?.id) return
+
+        const roomName: string | null = receiverId ? `${receiverId}-${user.id}` : roomParam
+        if (!roomName) {
+            message.error('房间参数无效,无法连接')
             return
         }
-        isConnectingRef.current = true
-        setIsConnecting(true)
-        try {
-            const room = new Room({ adaptiveStream: true, dynacast: true })
-            roomRef.current = room
 
-            // 监听房间事件
+        isConnectingRef.current = true
+
+        const room = new Room({
+            adaptiveStream: true,
+            dynacast: true,
+            videoCaptureDefaults: {
+                resolution: { width: 1280, height: 720 }
+            }
+        })
+        roomRef.current = room
+
+        try {
+            // 设置事件监听 - 在connect之前设置
             room.on(RoomEvent.Connected, () => {
                 console.log('✅ 已连接到房间')
-                setCallStatus('connected')
+                if (!receiverId) {
+                    setCallStatus('connected')
+                }
                 message.success('视频通话已接通')
-                setIsConnecting(false)
             })
+
             room.on(RoomEvent.Disconnected, () => {
-                console.log('❌ 已断开连接')
+                console.log('❌ 连接已断开')
                 handleHangup()
             })
-            room.on(RoomEvent.TrackSubscribed, (track: RemoteTrack) => {
-                console.log('📹 收到远程轨道:', track.kind)
-                if (track.kind === Track.Kind.Video && remoteVideoRef.current) {
-                    track.attach(remoteVideoRef.current)
-                    console.log('✅ 远程视频已附加到元素')
-                } else if (track.kind === Track.Kind.Audio) {
-                    track.attach()
-                    console.log('🔊 远程音频已附加')
-                }
-            })
-            room.on(RoomEvent.LocalTrackPublished, (publication) => {
-                console.log('📹 本地轨道已发布:', publication.track?.kind)
-                if (publication.track instanceof LocalVideoTrack && localVideoRef.current) {
-                    publication.track.attach(localVideoRef.current)
-                }
-            })
-            // 添加更多调试事件
-            room.on(RoomEvent.ParticipantConnected, (participant) => {
-                console.log('👤 参与者连接:', participant.identity)
-            })
-            room.on(RoomEvent.ParticipantDisconnected, (participant) => {
-                console.log('👤 参与者断开:', participant.identity)
-            })
-            // 修复房间名称逻辑 - 确保双方进入同一房间
-            let roomName: string
-            if (receiverId && receiverId !== 'undefined') {
-                // 主叫方：使用 receiverId + 自己的 ID 作为房间名
-                roomName = receiverId + "-" + user.id
-            } else if (roomParam) {
-                // 被叫方：使用传入的房间名
-                roomName = roomParam
-            } else {
-                throw new Error('无法确定房间名称')
-            }
 
-            // 获取 Token
+            room.on(RoomEvent.ParticipantConnected, (participant: RemoteParticipant) => {
+                console.log('👤 参与者加入:', participant.identity)
+                if (receiverId && participant.identity === receiverId) {
+                    setRemoteJoined(true)
+                }
+            })
+
+            room.on(RoomEvent.ParticipantDisconnected, (participant: RemoteParticipant) => {
+                console.log('👤 参与者离开:', participant.identity)
+                if (receiverId && participant.identity === receiverId.toString()) {
+                    setRemoteJoined(false)
+                    handleHangup()
+                }
+            })
+
+            // 监听远程轨道订阅 - 这是关键
+            room.on(
+                RoomEvent.TrackSubscribed,
+                (
+                    track: RemoteTrack,
+                    publication: RemoteTrackPublication,
+                    participant: RemoteParticipant
+                ) => {
+                    console.log('📹 收到远程轨道:', track.kind, 'from', participant.identity)
+
+                    if (track.kind === Track.Kind.Video) {
+                        // 关键:让LiveKit自动创建video元素
+                        const videoElement = track.attach()
+                        videoElement.style.width = '100%'
+                        videoElement.style.height = '100%'
+                        videoElement.style.objectFit = 'cover'
+
+                        // 清空容器并添加新元素
+                        if (remoteVideoContainerRef.current) {
+                            remoteVideoContainerRef.current.innerHTML = ''
+                            remoteVideoContainerRef.current.appendChild(videoElement)
+                        }
+                    } else if (track.kind === Track.Kind.Audio) {
+                        // 音频直接attach播放
+                        track.attach()
+                    }
+                }
+            )
+
+            // 监听轨道取消订阅
+            room.on(
+                RoomEvent.TrackUnsubscribed,
+                (track: RemoteTrack) => {
+                    console.log('📹 远程轨道移除:', track.kind)
+                    track.detach()
+                }
+            )
+
+            // 监听本地轨道发布
+            room.on(RoomEvent.LocalTrackPublished, (publication) => {
+                console.log('📹 本地轨道已发布:', publication.kind)
+
+                if (publication.track instanceof LocalVideoTrack && localVideoContainerRef.current) {
+                    // 清空容器
+                    localVideoContainerRef.current.innerHTML = ''
+                    // 让LiveKit自动创建video元素
+                    const videoElement = publication.track.attach()
+                    videoElement.style.width = '100%'
+                    videoElement.style.height = '100%'
+                    videoElement.style.objectFit = 'cover'
+                    localVideoContainerRef.current.appendChild(videoElement)
+                }
+            })
+
+            // 获取token
             const tokenParams: Record<string, any> = {
                 identity: user.id.toString(),
-                room: roomName, // 使用统一的房间名
+                room: roomName,
                 type: 'VIDEO',
             }
-            // 只有主叫方才传 receiverId
-            if (receiverId && receiverId !== 'undefined') {
-                tokenParams.receiverId = receiverId
-            }
-            const response = await createToken(tokenParams as any) as any
+            if (receiverId) tokenParams.receiverId = receiverId
+
+            const response = (await createToken(tokenParams as any)) as any
             const token = response.data.token
-            console.log('🎫 Token:', token)
-            console.log('🚀 房间名称:', roomName)
-            console.log('👤 用户身份:', user.id)
-            console.log('📞 是否是主叫方:', !!receiverId)
-            // 连接房间
+
+            // 连接到房间
             await room.connect('ws://localhost:7880', token)
-            console.log('✅ 房间连接成功')
-            // 发布本地音视频 - 根据是否是主叫方选择不同摄像头
-            if (receiverId && receiverId !== 'undefined') {
-                // 主叫方：使用普通摄像头
-                console.log('📹 主叫方：启用普通摄像头')
-                await room.localParticipant.setCameraEnabled(true)
-                await room.localParticipant.setMicrophoneEnabled(true)
+            console.log('🔗 已连接到房间:', room.name)
 
-            } else {
-                // 被叫方：使用 OBS 虚拟摄像头
-                console.log('📹 被叫方：启用 OBS 虚拟摄像头')
-                try {
-                    // 获取所有媒体设备
-                    const devices = await navigator.mediaDevices.enumerateDevices()
-                    console.log('📹 可用设备:', devices.map(d => ({ kind: d.kind, label: d.label })))
-                    // 找到 OBS 虚拟摄像头
-                    const videoDevice = devices.find(
-                        (d) => d.kind === 'videoinput' && d.label.includes('OBS Virtual Camera')
-                    )
-                    if (!videoDevice) {
-                        console.warn('❌ 未找到 OBS 虚拟摄像头，使用默认摄像头')
-                        // 回退到默认摄像头
-                        await room.localParticipant.setCameraEnabled(true)
-                    } else {
-                        console.log('✅ 找到 OBS 虚拟摄像头:', videoDevice.label)
-                        // 获取 OBS 视频流 + 系统麦克风音频流
-                        const stream = await navigator.mediaDevices.getUserMedia({
-                            video: {
-                                deviceId: { exact: videoDevice.deviceId },
-                                width: { ideal: 1280 },
-                                height: { ideal: 720 }
-                            },
-                            audio: true,
-                        })
-                        // 发布视频轨道
-                        if (stream.getVideoTracks().length > 0) {
-                            const videoTrack = stream.getVideoTracks()[0]
-                            const localVideoTrack = new LocalVideoTrack(videoTrack)
-                            await room.localParticipant.publishTrack(localVideoTrack)
-                            console.log('✅ OBS 视频轨道已发布')
-                            // 本地预览
-                            if (localVideoRef.current) {
-                                localVideoTrack.attach(localVideoRef.current)
-                            }
-                        }
-                        // 发布音频轨道
-                        if (stream.getAudioTracks().length > 0) {
-                            const audioTrack = stream.getAudioTracks()[0]
-                            const localAudioTrack = new LocalAudioTrack(audioTrack)
-                            await room.localParticipant.publishTrack(localAudioTrack)
-                            console.log('✅ 音频轨道已发布')
-                        }
-                    }
-                    // 确保麦克风启用
-                    await room.localParticipant.setMicrophoneEnabled(true)
-                } catch (mediaError) {
-                    console.error('❌ OBS 摄像头访问失败:', mediaError)
-                    // 回退到普通摄像头
-                    await room.localParticipant.setCameraEnabled(true)
-                    await room.localParticipant.setMicrophoneEnabled(true)
-                }
-            }
-
-            console.log("✅ 发布本地音视频完成")
-
-            // 检查当前参与者
-            console.log('👥 房间参与者:', Array.from(room.numParticipants.values()).map(p => p.identity))
-            console.log('📹 本地视频轨道:', room.localParticipant.videoTrackPublications.size)
-            console.log('🔊 本地音频轨道:', room.localParticipant.audioTrackPublications.size)
+            // 发布本地媒体 - 使用LiveKit推荐的方法
+            await room.localParticipant.setCameraEnabled(true)
+            await room.localParticipant.setMicrophoneEnabled(true)
+            console.log('📹 本地媒体已发布')
 
         } catch (err: any) {
             console.error('❌ LiveKit 初始化失败:', err)
-            if (err.message.includes('NotAllowedError')) {
-                message.error('请允许摄像头和麦克风访问')
-            } else {
-                message.error('连接失败: ' + err.message)
-            }
-            setIsConnecting(false)
+            message.error('连接失败: ' + err.message)
         } finally {
             isConnectingRef.current = false
         }
     }
-
-    // 自动发起连接（主叫）
-    useEffect(() => {
-        if (receiverId && receiverId !== 'undefined') {
-            console.log("自动发起连接（主叫）");
-            initLiveKit()
-        } else {
-            setCallStatus('waiting')
-        }
-    }, [receiverId, user?.id])
-
     const handleAccept = () => {
+        setCallStatus('caller-waiting')
         initLiveKit()
     }
 
@@ -239,45 +236,29 @@ const VideoCallModal: React.FC = () => {
     }
 
     const handleHangup = () => {
-        if (roomRef.current) roomRef.current.disconnect()
+        if (roomRef.current) {
+            roomRef.current.disconnect()
+            roomRef.current = null
+        }
         setCallStatus('ended')
         message.info('通话已结束')
         setTimeout(() => window.close(), 1000)
     }
 
-    // 通话计时
-    useEffect(() => {
-        if (callStatus === 'connected') {
-            timerRef.current = setInterval(() => setCallDuration((v) => v + 1), 1000)
-        } else {
-            if (timerRef.current) clearInterval(timerRef.current)
-        }
-        return () => {
-            if (timerRef.current) clearInterval(timerRef.current)
-        }
-    }, [callStatus])
-
-    const formatDuration = (s: number) =>
-        `${Math.floor(s / 60)
-            .toString()
-            .padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`
-
     const toggleMute = async () => {
-        if (roomRef.current) {
-            const enable = !isMuted
-            await roomRef.current.localParticipant.setMicrophoneEnabled(enable)
-            setIsMuted(enable)
-            message.info(enable ? '麦克风已开启' : '麦克风已静音')
-        }
+        if (!roomRef.current) return
+        const newMutedState = !isMuted
+        await roomRef.current.localParticipant.setMicrophoneEnabled(!newMutedState)
+        setIsMuted(newMutedState)
+        message.info(newMutedState ? '麦克风已静音' : '麦克风已开启')
     }
 
     const toggleVideo = async () => {
-        if (roomRef.current) {
-            const enable = !isVideoEnabled
-            await roomRef.current.localParticipant.setCameraEnabled(enable)
-            setIsVideoEnabled(enable)
-            message.info(enable ? '摄像头已开启' : '摄像头已关闭')
-        }
+        if (!roomRef.current) return
+        const newVideoState = !isVideoEnabled
+        await roomRef.current.localParticipant.setCameraEnabled(newVideoState)
+        setIsVideoEnabled(newVideoState)
+        message.info(newVideoState ? '摄像头已开启' : '摄像头已关闭')
     }
 
     const toggleFullscreen = () => {
@@ -290,166 +271,224 @@ const VideoCallModal: React.FC = () => {
         }
     }
 
-    return (
-        <>
-            <div
-                className='drag'
-                ref={containerRef}
-                style={{
-                    width: '100vw',
-                    height: '100vh',
-                    background: '#000',
-                    position: 'relative'
-                }}
-            >
-                {/* 远程视频 */}
-                {callStatus === 'connected' ? (
-                    <>
-                        {/* 远程视频 */}
-                        <video
-                            ref={remoteVideoRef}
-                            autoPlay
-                            playsInline
-                            style={{
-                                width: '100%',
-                                height: '100%',
-                                objectFit: 'cover',
-                                background: '#1a1a1a'
-                            }}
-                        />
-                        {/* 本地视频 */}
-                        <video
-                            ref={localVideoRef}
-                            autoPlay
-                            playsInline
-                            style={{
-                                width: '200px',
-                                height: '150px',
-                                position: 'absolute',
-                                bottom: '20px',
-                                right: '20px',
-                                border: '2px solid #fff',
-                                borderRadius: '8px',
-                                objectFit: 'cover',
-                                background: '#000'
-                            }}
-                        />
-                    </>
+    useEffect(() => {
+        if (callStatus === 'connected') {
+            timerRef.current = setInterval(() => setCallDuration((v) => v + 1), 1000)
+        } else {
+            if (timerRef.current) {
+                clearInterval(timerRef.current)
+            }
+        }
+        return () => {
+            if (timerRef.current) {
+                clearInterval(timerRef.current)
+            }
+        }
+    }, [callStatus])
 
-                ) : (
+    const renderWaitingUI = (
+        avatar?: string,
+        name?: string,
+        id?: string,
+        infoText?: string,
+        showLocalVideo?: boolean
+    ) => (
+        <div
+            style={{
+                width: '100%',
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#fff',
+                position: 'relative',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            }}
+        >
+            <Avatar size={100} src={avatar || ''} style={{ marginBottom: 20 }} />
+            <Text style={{ fontSize: 24, marginBottom: 8, color: '#fff' }}>
+                {name || '对方'} {id && <Text style={{ opacity: 0.7, color: '#fff' }}>ID: {id}</Text>}
+            </Text>
+            {infoText && (
+                <Text style={{ opacity: 0.7, fontStyle: 'italic', marginBottom: 12, color: '#fff' }}>
+                    {infoText}
+                </Text>
+            )}
+            <Spin size="large" />
+            {showLocalVideo && (
+                <div
+                    ref={localVideoContainerRef}
+                    style={{
+                        width: '200px',
+                        height: '150px',
+                        position: 'absolute',
+                        bottom: '20px',
+                        right: '20px',
+                        border: '2px solid #fff',
+                        borderRadius: '8px',
+                        overflow: 'hidden',
+                        background: '#000',
+                    }}
+                />
+            )}
+        </div>
+    )
+
+    return (
+        <div
+            className="drag"
+            ref={containerRef}
+            style={{
+                width: '100vw',
+                height: '100vh',
+                position: 'relative',
+                background: '#000',
+            }}
+        >
+            {callStatus === 'caller-waiting' &&
+                renderWaitingUI(
+                    receiverAvatar || undefined,
+                    receiverName || '',
+                    receiverId || '',
+                    '等待对方接入..',
+                    true
+                )}
+            {callStatus === 'callee-waiting' &&
+                renderWaitingUI(
+                    senderAvatar || undefined,
+                    senderName || '',
+                    senderId || '',
+                    text || '',
+                    false
+                )}
+            {callStatus === 'connected' && (
+                <>
+                    {/* 远程视频容器 */}
                     <div
+                        ref={remoteVideoContainerRef}
                         style={{
                             width: '100%',
                             height: '100%',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: '#fff'
+                            background: '#000',
                         }}
-                    >
-                        <Text style={{ fontSize: 24, marginBottom: 8 }}>
-                            {senderName || '对方'}
-                        </Text>
-                        <Text style={{ opacity: 0.8 }}>
-                            {isCaller && callStatus === 'waiting'
-                                ? '等待对方接听'
-                                : !isCaller && callStatus === 'waiting'
-                                    ? '邀请你视频通话'
-                                    : isConnecting
-                                        ? '正在连接...'
-                                        : '正在呼叫...'}
-                        </Text>
-                    </div>
-                )}
+                    />
+                    {/* 本地视频容器 */}
+                    <div
+                        ref={localVideoContainerRef}
+                        style={{
+                            width: '200px',
+                            height: '150px',
+                            position: 'absolute',
+                            bottom: '20px',
+                            right: '20px',
+                            border: '2px solid #fff',
+                            borderRadius: '8px',
+                            overflow: 'hidden',
+                            background: '#000',
+                        }}
+                    />
+                </>
+            )}
 
-                {/* 状态 */}
-                <Tag
-                    color={
-                        callStatus === 'waiting'
-                            ? 'warning'
-                            : callStatus === 'calling'
-                                ? 'processing'
-                                : callStatus === 'connected'
-                                    ? 'success'
-                                    : 'default'
-                    }
-                    style={{ position: 'absolute', top: 20, left: 20 }}
-                >
-                    {callStatus === 'connected'
-                        ? formatDuration(callDuration)
-                        : callStatus === 'waiting'
-                            ? '等待接听'
-                            : callStatus === 'calling'
-                                ? '呼叫中'
-                                : '已结束'}
-                </Tag>
+            <Tag
+                color={
+                    callStatus === 'caller-waiting' || callStatus === 'callee-waiting'
+                        ? 'warning'
+                        : callStatus === 'connected'
+                            ? 'success'
+                            : 'default'
+                }
+                style={{ position: 'absolute', top: 20, left: 20, zIndex: 10 }}
+            >
+                {callStatus === 'connected'
+                    ? formatDuration(callDuration)
+                    : callStatus === 'caller-waiting'
+                        ? '等待接听'
+                        : callStatus === 'callee-waiting'
+                            ? '待加入'
+                            : '已结束'}
+            </Tag>
 
-                {/* 控制按钮 */}
-                <div
-                    className='no-drag'
-                    style={{
-                        position: 'absolute',
-                        bottom: 0,
-                        width: '100%',
-                        display: 'flex',
-                        justifyContent: 'center',
-                        paddingBottom: 30
-                    }}
-                >
-                    {callStatus === 'waiting' ? (
-                        <Space size={40}>
-                            <Button
-                                type="primary"
-                                danger
-                                shape="circle"
-                                icon={<CloseOutlined />}
-                                size="large"
-                                onClick={handleReject}
-                            />
-
-                            <Button
-                                type="primary"
-                                shape="circle"
-                                icon={<CheckOutlined />}
-                                size="large"
-                                onClick={handleAccept}
-                            />
-                        </Space>
-                    ) : (
-                        <Space size={30}>
-                            <Button
-                                shape="circle"
-                                icon={isMuted ? <AudioMutedOutlined /> : <AudioOutlined />}
-                                size="large"
-                                onClick={toggleMute}
-                            />
-                            <Button
-                                shape="circle"
-                                icon={isVideoEnabled ? <VideoCameraOutlined /> : <VideoCameraAddOutlined />}
-                                size="large"
-                                onClick={toggleVideo}
-                            />
-                            <Button
-                                type="primary"
-                                danger
-                                shape="circle"
-                                icon={<PhoneOutlined rotate={135} />}
-                                size="large"
-                                onClick={handleHangup}
-                            />
-                            <Button
-                                shape="circle"
-                                icon={isFullscreen ? <FullscreenExitOutlined /> : <FullscreenOutlined />}
-                                size="large"
-                                onClick={toggleFullscreen}
-                            />
-                        </Space>
-                    )}
-                </div>
+            <div
+                className="no-drag"
+                style={{
+                    position: 'absolute',
+                    bottom: 0,
+                    width: '100%',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    paddingBottom: 30,
+                    zIndex: 10,
+                }}
+            >
+                {callStatus === 'callee-waiting' ? (
+                    <Space size={40}>
+                        <Button
+                            type="primary"
+                            danger
+                            shape="circle"
+                            icon={<CloseOutlined />}
+                            size="large"
+                            onClick={handleReject}
+                        />
+                        <Button
+                            type="primary"
+                            shape="circle"
+                            icon={<CheckOutlined />}
+                            size="large"
+                            onClick={handleAccept}
+                            style={{ background: '#52c41a', borderColor: '#52c41a' }}
+                        />
+                    </Space>
+                ) : callStatus === 'connected' ? (
+                    <Space size={30}>
+                        <Button
+                            shape="circle"
+                            icon={isMuted ? <AudioMutedOutlined /> : <AudioOutlined />}
+                            size="large"
+                            onClick={toggleMute}
+                            type={isMuted ? 'primary' : 'default'}
+                            danger={isMuted}
+                        />
+                        <Button
+                            shape="circle"
+                            icon={isVideoEnabled ? <VideoCameraOutlined /> : <VideoCameraAddOutlined />}
+                            size="large"
+                            onClick={toggleVideo}
+                            type={!isVideoEnabled ? 'primary' : 'default'}
+                            danger={!isVideoEnabled}
+                        />
+                        <Button
+                            type="primary"
+                            danger
+                            shape="circle"
+                            icon={<PhoneOutlined rotate={135} />}
+                            size="large"
+                            onClick={handleHangup}
+                        />
+                        <Button
+                            shape="circle"
+                            icon={isFullscreen ? <FullscreenExitOutlined /> : <FullscreenOutlined />}
+                            size="large"
+                            onClick={toggleFullscreen}
+                        />
+                    </Space>
+                ) : callStatus === 'caller-waiting' ? (
+                    <Space size={40}>
+                        <Button
+                            type="primary"
+                            danger
+                            shape="circle"
+                            icon={<CloseOutlined />}
+                            size="large"
+                            onClick={handleReject}
+                        />
+                    </Space>
+                ) : null}
             </div>
-        </>
+        </div>
     )
 }
 
-export default VideoCallModal
+export default VideoCallPage

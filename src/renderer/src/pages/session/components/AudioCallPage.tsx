@@ -47,7 +47,7 @@ const AudioCallModal: React.FC = () => {
         room: searchParams.get('room') || undefined
     }
 
-    // 判断角色：有 receiverId 则是发送者(主叫)，否则是接收者(被叫)
+    // 判断角色:有 receiverId 则是发送者(主叫),否则是接收者(被叫)
     const isCaller = !!receiverId
     const remoteUserId = isCaller ? receiverId : callParams.receiveId
     const remoteUserName = isCaller ? receiverId : callParams.senderName
@@ -65,8 +65,8 @@ const AudioCallModal: React.FC = () => {
     const [isConnecting, setIsConnecting] = useState(false)
 
     const roomRef = useRef<Room | null>(null)
-    const remoteAudioRef = useRef<HTMLAudioElement>(null)
     const timerRef = useRef<NodeJS.Timeout | null>(null)
+    const audioContainerRef = useRef<HTMLDivElement>(null)
 
     // 格式化通话时长
     const formatDuration = (seconds: number) => {
@@ -80,10 +80,20 @@ const AudioCallModal: React.FC = () => {
         window.electron.ipcRenderer.invoke('get-login-user').then((result: any) => {
             setUser(result)
         })
+
+        return () => {
+            // 清理资源
+            if (roomRef.current) {
+                roomRef.current.disconnect()
+                roomRef.current = null
+            }
+        }
     }, [])
 
     // 初始化 LiveKit 连接
     const initLiveKit = async () => {
+        if (roomRef.current || !user?.id) return
+
         try {
             setIsConnecting(true)
             const room = new Room({
@@ -111,7 +121,17 @@ const AudioCallModal: React.FC = () => {
                 handleHangup()
             })
 
-            // 监听远程音频轨道
+            // 监听参与者连接
+            room.on(RoomEvent.ParticipantConnected, (participant: RemoteParticipant) => {
+                console.log('👤 参与者加入:', participant.identity)
+            })
+
+            room.on(RoomEvent.ParticipantDisconnected, (participant: RemoteParticipant) => {
+                console.log('👤 参与者离开:', participant.identity)
+                handleHangup()
+            })
+
+            // 监听远程音频轨道 - 关键修复
             room.on(
                 RoomEvent.TrackSubscribed,
                 (
@@ -119,37 +139,47 @@ const AudioCallModal: React.FC = () => {
                     publication: RemoteTrackPublication,
                     participant: RemoteParticipant
                 ) => {
+                    console.log('🔊 收到远程轨道:', track.kind, 'from', participant.identity)
+
                     if (track.kind === Track.Kind.Audio) {
+                        // 让LiveKit自动创建audio元素并播放
                         const audioElement = track.attach()
-                        if (remoteAudioRef.current && audioElement.srcObject) {
-                            const audioTrack = (audioElement.srcObject as MediaStream).getAudioTracks()[0]
-                            if (audioTrack) {
-                                remoteAudioRef.current.srcObject = new MediaStream([audioTrack])
-                                remoteAudioRef.current.play()
-                            }
+                        audioElement.volume = isSpeakerOn ? 1 : 0
+
+                        // 添加到容器中(虽然不可见,但可以控制)
+                        if (audioContainerRef.current) {
+                            audioContainerRef.current.innerHTML = ''
+                            audioContainerRef.current.appendChild(audioElement)
                         }
                     }
                 }
             )
 
+            room.on(RoomEvent.TrackUnsubscribed, (track: RemoteTrack) => {
+                console.log('🔊 远程轨道移除:', track.kind)
+                track.detach()
+            })
+
             // 获取 Token
             const response = await createToken({
-                identity: user?.id?.toString()!,
+                identity: user.id.toString(),
                 room: roomName,
                 receiverId: remoteUserId!,
                 type: 'AUDIO',
-                isReceiver: isCaller
-            })
-            const token = response.data.token 
+            }) as any
+            const token = response.data.token
 
             // 连接到 LiveKit 服务器
             await room.connect('ws://localhost:7880', token)
+            console.log('🔗 已连接到房间:', room.name)
 
-            // 发布本地音频
+            // 发布本地音频 - 使用LiveKit推荐的方法
             await room.localParticipant.setMicrophoneEnabled(true)
-        } catch (err) {
+            console.log('🔊 本地音频已发布')
+
+        } catch (err: any) {
             console.error('❌ LiveKit 初始化失败:', err)
-            message.error('无法连接到通话服务，请检查网络或权限设置')
+            message.error('无法连接到通话服务: ' + err.message)
             setIsConnecting(false)
         }
     }
@@ -194,20 +224,27 @@ const AudioCallModal: React.FC = () => {
     // 静音/取消静音
     const toggleMute = async () => {
         if (roomRef.current) {
-            const enabled = !isMuted
-            await roomRef.current.localParticipant.setMicrophoneEnabled(enabled)
-            setIsMuted(!enabled)
-            message.info(enabled ? '麦克风已开启' : '麦克风已静音')
+            const newMutedState = !isMuted
+            await roomRef.current.localParticipant.setMicrophoneEnabled(!newMutedState)
+            setIsMuted(newMutedState)
+            message.info(newMutedState ? '麦克风已静音' : '麦克风已开启')
         }
     }
 
     // 切换扬声器
     const toggleSpeaker = () => {
-        if (remoteAudioRef.current) {
-            remoteAudioRef.current.volume = isSpeakerOn ? 0 : 1
-            setIsSpeakerOn(!isSpeakerOn)
-            message.info(isSpeakerOn ? '扬声器已关闭' : '扬声器已开启')
+        const newSpeakerState = !isSpeakerOn
+        setIsSpeakerOn(newSpeakerState)
+
+        // 控制所有音频元素的音量
+        if (audioContainerRef.current) {
+            const audioElements = audioContainerRef.current.querySelectorAll('audio')
+            audioElements.forEach(audio => {
+                audio.volume = newSpeakerState ? 1 : 0
+            })
         }
+
+        message.info(newSpeakerState ? '扬声器已开启' : '扬声器已关闭')
     }
 
     // 挂断
@@ -216,6 +253,7 @@ const AudioCallModal: React.FC = () => {
         setCallDuration(0)
         if (roomRef.current) {
             roomRef.current.disconnect()
+            roomRef.current = null
         }
         message.info('通话已结束')
         setTimeout(() => {
@@ -273,6 +311,9 @@ const AudioCallModal: React.FC = () => {
                 }}
             />
 
+            {/* 隐藏的音频容器 */}
+            <div ref={audioContainerRef} style={{ display: 'none' }} />
+
             {/* 状态标签 */}
             <Tag
                 color={
@@ -329,7 +370,8 @@ const AudioCallModal: React.FC = () => {
                                 border: '6px solid rgba(255,255,255,0.3)',
                                 boxShadow: '0 12px 40px rgba(0,0,0,0.3)',
                                 fontSize: 64,
-                                fontWeight: 'bold'
+                                fontWeight: 'bold',
+                                background: '#1890ff'
                             }}
                         >
                             {remoteUserName?.[0]?.toUpperCase() || 'U'}
@@ -387,7 +429,7 @@ const AudioCallModal: React.FC = () => {
 
             {/* 控制按钮 */}
             {callStatus === 'waiting' ? (
-                // 接收者：显示接受/拒绝按钮
+                // 接收者:显示接受/拒绝按钮
                 <Space size={24} style={{ marginTop: 32, zIndex: 1 }}>
                     <Button
                         type="primary"
@@ -420,10 +462,11 @@ const AudioCallModal: React.FC = () => {
                     />
                 </Space>
             ) : (
-                // 通话中：显示通话控制按钮
+                // 通话中:显示通话控制按钮
                 <Space size={24} style={{ marginTop: 32, zIndex: 1 }}>
                     <Button
                         type={isMuted ? 'primary' : 'default'}
+                        danger={isMuted}
                         shape="circle"
                         size="large"
                         icon={isMuted ? <AudioMutedOutlined /> : <AudioOutlined />}
@@ -462,14 +505,12 @@ const AudioCallModal: React.FC = () => {
                             width: 64,
                             height: 64,
                             fontSize: 24,
-                            boxShadow: '0 4px 16px rgba(0,0,0,0.2)'
+                            boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
+                            background: isSpeakerOn ? '#1890ff' : '#fff'
                         }}
                     />
                 </Space>
             )}
-
-            {/* 远程音频 */}
-            <audio ref={remoteAudioRef} autoPlay style={{ display: 'none' }} />
 
             {/* 添加动画样式 */}
             <style>{`

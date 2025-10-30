@@ -127,11 +127,6 @@ function registerIpcHandlers(mainWindow: BrowserWindow) {
 
   // 3.1. 打开[videoCall]窗口
   ipcMain.handle('open-videoCall-window', (_, data) => {
-     const { receiverId, senderName, senderAvatar, text, room } = data;
-  console.log('aaaaa', receiverId, senderName,
-    senderAvatar,
-    text,
-    room,)
     createVideoCallWindow(data);
   });
   // 4.1. 关闭[videoCall]窗口
@@ -140,7 +135,7 @@ function registerIpcHandlers(mainWindow: BrowserWindow) {
   ipcMain.handle("check-is-videoCall-window", () => mainWindow !== null)
 
   // 3.2. 打开[audidCall]窗口
-  ipcMain.handle('open-audidCall-window', (_, data) => {
+  ipcMain.handle('open-audioCall-window', (_, data) => {
     createAudioCallWindow(data);
   });
   // 4.2. 关闭[audidCall]窗口
@@ -233,27 +228,6 @@ function registerIpcHandlers(mainWindow: BrowserWindow) {
   });
 }
 
-
-// ipcMain.handle('request-media-access', async (_, mediaType: EMediaType = EMediaType.microphone) => {
-//   try {
-//     // 获取当前媒体设备（在这里指麦克风或摄像头）的访问权限状态
-//     const privilege: IAccessStatus = systemPreferences.getMediaAccessStatus(mediaType)
-//     if (privilege !== 'granted') {
-//       // 未授权,则重新唤起系统弹框,等待用户点击授权
-//       await systemPreferences.askForMediaAccess(mediaType)
-//       // 请求权限后，再次获取媒体访问状态并返回
-//       return systemPreferences.getMediaAccessStatus(mediaType)
-//     }
-//     // 已授权,则直接返回媒体访问状态
-//     return privilege
-//   } catch (e) {
-//     console.error('Failed to request media access:', e)
-//     return 'unknown'
-//   }
-// })
-
-
-
 function createTray(win: BrowserWindow) {
   const trayIcon = nativeImage.createFromPath(icon)
   let tray = new Tray(trayIcon)
@@ -332,13 +306,18 @@ function createNotificationWindow(): void {
 
 let audioCallWindow: BrowserWindow | null = null;
 
-function createAudioCallWindow(data): void {
-  const { receiverId, senderName, senderAvatar, text, room } = data;
+function createAudioCallWindow(data: any): void {
+  const { receiverId, senderId, senderName, senderAvatar, text, room,
+    receiverName, receiverAvatar, receiverType
+  } = data;
+
+  // 🔹 如果已存在窗口，直接聚焦
   if (audioCallWindow) {
     audioCallWindow.focus();
     return;
   }
-  // 创建新窗口
+
+  // 🔹 创建音频通话窗口
   audioCallWindow = new BrowserWindow({
     width: 600,
     height: 500,
@@ -350,47 +329,69 @@ function createAudioCallWindow(data): void {
     autoHideMenuBar: true,
     icon,
     webPreferences: {
-      preload: join(__dirname, '../preload/index.js'),
+      preload: join(__dirname, "../preload/index.js"),
       sandbox: false,
     },
   });
 
-  audioCallWindow.on('ready-to-show', () => audioCallWindow?.show());
-  audioCallWindow.on('closed', () => (audioCallWindow = null));
+  // 🔹 事件绑定
+  audioCallWindow.on("ready-to-show", () => audioCallWindow?.show());
+  audioCallWindow.on("closed", () => (audioCallWindow = null));
   audioCallWindow.webContents.setWindowOpenHandler((details) => {
     shell.openExternal(details.url);
-    return { action: 'deny' };
+    return { action: "deny" };
   });
 
-  if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
-    audioCallWindow.loadURL(`http://localhost:5173/audioCallWindow?receiverId=${receiverId}&senderName=${encodeURIComponent(senderName)}&senderAvatar=${encodeURIComponent(senderAvatar)}&text=${encodeURIComponent(text)}&room=${encodeURIComponent(room)}`);
-    audioCallWindow.webContents.openDevTools(); // 🚀 启动时自动打开 DevTools
-  } else {
+  // 🔹 安全地构造 URL 参数
+  const encodedUrl =
+    `receiverId=${encodeURIComponent(receiverId ?? "")}` +
+    `&receiverName=${encodeURIComponent(receiverName ?? "")}` +
+    `&receiverAvatar=${encodeURIComponent(receiverAvatar ?? "")}` +
+    `&receiverType=${encodeURIComponent(receiverType ?? "")}` +
+    `&senderId=${encodeURIComponent(senderId ?? "")}` +
+    `&senderName=${encodeURIComponent(senderName ?? "")}` +
+    `&senderAvatar=${encodeURIComponent(senderAvatar ?? "")}` +
+    `&text=${encodeURIComponent(text ?? "")}` +
+    `&room=${encodeURIComponent(room ?? "")}`;
 
+  // 🔹 开发模式
+  if (is.dev && process.env["ELECTRON_RENDERER_URL"]) {
+    const devUrl = `${process.env["ELECTRON_RENDERER_URL"]}/audioCallWindow?${encodedUrl.toString()}`;
+    audioCallWindow.loadURL(devUrl);
+    audioCallWindow.webContents.openDevTools(); // 🚀 开发时自动打开 DevTools
+  }
+  // 🔹 生产模式（打包后）
+  else {
+    audioCallWindow.loadFile(join(__dirname, "../renderer/videoCallWindow/index.html"), {
+      query: {
+        receiverId: receiverId ?? "",
+        receiverName: receiverName ?? "",
+        receiverAvatar: receiverAvatar ?? "",
+        receiverType: receiverType ?? "",
+        senderId: senderId ?? "",
+        senderName: senderName ?? "",
+        senderAvatar: senderAvatar ?? "",
+        text: text ?? "",
+        room: room ?? "",
+      },
+    });
   }
 }
 
-
-
-
 let videoCallWindow: BrowserWindow | null = null;
 
-function createVideoCallWindow(data: {
-  receiverId?: string;
-  senderName?: string;
-  senderAvatar?: string;
-  text?: string;
-  room?: string;
-}): void {
-  const { receiverId, senderName, senderAvatar, text, room } = data;
-  console.log('🚀 ~ file: main.ts ~ line 257 ~ createVideoCallWindow ~ room', receiverId, senderName,
-    senderAvatar,
-    text,
-    room,)
+function createVideoCallWindow(data: any): void {
+  const { receiverId, senderId, senderName, senderAvatar, text, room,
+    receiverName, receiverAvatar, receiverType
+  } = data;
+
+  // 🔹 若窗口已存在，则直接聚焦
   if (videoCallWindow) {
     videoCallWindow.focus();
     return;
   }
+
+  // 🔹 创建窗口
   videoCallWindow = new BrowserWindow({
     width: 750,
     height: 550,
@@ -402,24 +403,52 @@ function createVideoCallWindow(data: {
     autoHideMenuBar: true,
     icon,
     webPreferences: {
-      preload: join(__dirname, '../preload/index.js'),
+      preload: join(__dirname, "../preload/index.js"),
       sandbox: false,
     },
   });
 
-  videoCallWindow.on('ready-to-show', () => videoCallWindow?.show());
-  videoCallWindow.on('closed', () => (videoCallWindow = null));
+  // 🔹 事件绑定
+  videoCallWindow.on("ready-to-show", () => videoCallWindow?.show());
+  videoCallWindow.on("closed", () => (videoCallWindow = null));
   videoCallWindow.webContents.setWindowOpenHandler((details) => {
     shell.openExternal(details.url);
-    return { action: 'deny' };
+    return { action: "deny" };
   });
 
-  if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
-    videoCallWindow.loadURL(`http://localhost:5173/videoCallWindow?receiverId=${receiverId}&senderName=${senderName}&senderAvatar=${senderAvatar}&text=${text}&room=${room}`);
-    videoCallWindow.webContents.openDevTools(); // 🚀 启动时自动打开 DevTools
-  } else {
+  // 🔹 URL 参数安全编码，防止中文/空格/特殊符号破坏 query 结构
+  // 🔹 URL 参数安全编码
+  const encodedUrl =
+    `receiverId=${encodeURIComponent(receiverId ?? "")}` +
+    `&receiverName=${encodeURIComponent(receiverName ?? "")}` +
+    `&receiverAvatar=${encodeURIComponent(receiverAvatar ?? "")}` +
+    `&receiverType=${encodeURIComponent(receiverType ?? "")}` +
+    `&senderId=${encodeURIComponent(senderId ?? "")}` +
+    `&senderName=${encodeURIComponent(senderName ?? "")}` +
+    `&senderAvatar=${encodeURIComponent(senderAvatar ?? "")}` +
+    `&text=${encodeURIComponent(text ?? "")}` +
+    `&room=${encodeURIComponent(room ?? "")}`;
 
+  // 🔹 加载前端页面
+  if (is.dev && process.env["ELECTRON_RENDERER_URL"]) {
+    videoCallWindow.loadURL(`${process.env.ELECTRON_RENDERER_URL}/videoCallWindow?${encodedUrl}`);
+    videoCallWindow.webContents.openDevTools(); // 开发模式打开 DevTools
+  } else {
+    videoCallWindow.loadFile(join(__dirname, "../renderer/videoCallWindow/index.html"), {
+      query: {
+        receiverId: receiverId ?? "",
+        receiverName: receiverName ?? "",
+        receiverAvatar: receiverAvatar ?? "",
+        receiverType: receiverType ?? "",
+        senderId: senderId ?? "",
+        senderName: senderName ?? "",
+        senderAvatar: senderAvatar ?? "",
+        text: text ?? "",
+        room: room ?? "",
+      },
+    });
   }
 }
+
 
 

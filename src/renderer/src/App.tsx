@@ -25,6 +25,8 @@ import { useThemeStore } from './store/useThemeStore'
 import AdManagerPage from './adminPages/AdManagerPage'
 import AudioCallModal from './pages/session/components/AudioCallPage'
 import VideoCallModal from './pages/session/components/VideoCallPage'
+import VideoCallPageWithComponents from './pages/session/components/VideoCallLiveKitPage'
+// Define routes
 const router = createBrowserRouter([
   {
     path: '/login',
@@ -174,6 +176,7 @@ const router = createBrowserRouter([
 ])
 
 export default function App() {
+  // 主题切换
   const { themeMode } = useThemeStore()
   const getAlgorithm = () => {
     if (themeMode === 'light') return theme.defaultAlgorithm
@@ -196,35 +199,21 @@ export default function App() {
         break
     }
   }, [themeMode])
+
   //绑定 收到语音消息 和 视频消息的msg
   useEffect(() => {
     window.electron.ipcRenderer.on('receive-audio-offer', (_, data: any) => {
-      // 只传基础信息
-      const safeData = {
-        receiverId: data.receiverId,
-        room: data.room,
-        senderName: data.senderName,
-        senderAvatar: data.senderAvatar,
-        text: data.text
-      };
-      window.electron.ipcRenderer.invoke('open-videoCall-window', safeData);
+      window.electron.ipcRenderer.invoke('open-audioCall-window', data);
     });
     window.electron.ipcRenderer.on('reviced-video-offer', (_, data: any) => {
-      const safeData = {
-        receiverId: data.receiverId,
-        room: data.room,
-        senderName: data.senderName,
-        senderAvatar: data.senderAvatar,
-        text: data.text
-      };
-      window.electron.ipcRenderer.invoke('open-videoCall-window', safeData);
+      window.electron.ipcRenderer.invoke('open-videoCall-window', data);
     });
-
     return () => {
       window.electron.ipcRenderer.removeAllListeners('receive-audio-offer');
       window.electron.ipcRenderer.removeAllListeners('reviced-video-offer');
     };
   }, []);
+
   return (
     <ConfigProvider theme={{ algorithm: getAlgorithm(), hashed: false }}>
       <RouterProvider router={router} />
