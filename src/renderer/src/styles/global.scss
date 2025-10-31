@@ -142,3 +142,40 @@ textarea::-webkit-scrollbar-track {
 :global([class*='ant-bubble']):hover>.bubbleFooter {
     opacity: 1 !important;
 }
+
+
+
+.ripple {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 150px;
+  height: 150px;
+  border: 2px solid #041d8f;
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0.5);
+  animation: rippleAnim 2s infinite;
+  opacity: 0.6;
+}
+
+.ripple:nth-child(2) {
+  animation-delay: 0.4s;
+}
+.ripple:nth-child(3) {
+  animation-delay: 0.8s;
+}
+
+@keyframes rippleAnim {
+  0% {
+    transform: translate(-50%, -50%) scale(0.5);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.2);
+    opacity: 0.3;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.5);
+    opacity: 0;
+  }
+}

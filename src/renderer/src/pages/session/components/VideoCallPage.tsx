@@ -15,7 +15,6 @@ import { useUserStore } from '@renderer/store/useUserStore'
 import { Snowflake } from '@renderer/utils/SnowflakeIdUtil'
 import { Button, message, Space, Tag, Typography, Avatar, Spin } from 'antd'
 import {
-    LocalAudioTrack,
     LocalVideoTrack,
     RemoteParticipant,
     RemoteTrack,
@@ -148,10 +147,8 @@ const VideoCallPage: React.FC = () => {
 
             room.on(RoomEvent.ParticipantDisconnected, (participant: RemoteParticipant) => {
                 console.log('👤 参与者离开:', participant.identity)
-                if (receiverId && participant.identity === receiverId.toString()) {
-                    setRemoteJoined(false)
-                    handleHangup()
-                }
+                setRemoteJoined(false)
+                handleHangup()
             })
 
             // 监听远程轨道订阅 - 这是关键
@@ -353,7 +350,6 @@ const VideoCallPage: React.FC = () => {
                 width: '100vw',
                 height: '100vh',
                 position: 'relative',
-                background: '#000',
             }}
         >
             {callStatus === 'caller-waiting' &&

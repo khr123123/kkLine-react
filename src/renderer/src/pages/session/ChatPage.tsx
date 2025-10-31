@@ -377,7 +377,8 @@ const ChatPage: React.FC = () => {
           role: 'videoAudio',
           content: {
             uid: item.id,
-            txt: item.messageContent
+            txt: item.messageContent,
+            type: item.messageType === 27 ? 'audio' : 'video',
           },
           placement: item.sendUserId === user?.id ? 'end' : 'start',
           avatar: item.sendUserId === user?.id ? { src: user?.userAvatar } : { src: resData.userAvatar },
@@ -851,7 +852,8 @@ const ChatPage: React.FC = () => {
           role: 'videoAudio',
           content: {
             uid: msgInfo.id,
-            txt: msgInfo.messageContent
+            txt: msgInfo.messageContent,
+            type: msgInfo.messageType === 27 ? 'audio' : 'video',
           },
           placement: msgInfo.sendUserId === user?.id ? 'end' : 'start',
           avatar: {
@@ -1407,31 +1409,35 @@ const ChatPage: React.FC = () => {
                   return <ShareInfoCard item={content} />
                 }
               },
-              // 视频通话消息样式
+              // 视频/语音通话消息样式
               videoAudio: {
                 variant: 'borderless',
-                messageRender: (content) => {
+                messageRender: (item) => {
                   return (
                     <div
                       style={{
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '8px',
+                        gap: 8,
                         background: '#e6f4ff',
                         color: '#03357cff',
                         padding: '6px 10px',
-                        borderRadius: '18px',
-                        fontSize: '14px',
+                        borderRadius: 18,
+                        fontSize: 14,
                         boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
                         userSelect: 'none',
-                        fontWeight: 'bold'
+                        fontWeight: 'bold',
                       }}
                     >
-                      <VideoCameraOutlined style={{ fontSize: '18px' }} />
-                      <span>{content.txt || '视频通话'}</span>
+                      {item.type === 'video' ? (
+                        <VideoCameraOutlined style={{ fontSize: 18 }} />
+                      ) : (
+                        <AudioOutlined style={{ fontSize: 18 }} />
+                      )}
+                      <span>{item.txt || (item.type === 'video' ? '视频通话' : '语音通话')}</span>
                     </div>
                   )
-                },
+                }
               },
               // 广告消息样式
               ad: {
