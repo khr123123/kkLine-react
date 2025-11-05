@@ -2,12 +2,14 @@
 import {
   CommentOutlined,
   ContactsOutlined,
+  createFromIconfontCN,
   DashboardOutlined,
   GithubOutlined,
   OpenAIOutlined,
   SearchOutlined,
   SettingOutlined,
   TeamOutlined,
+  TikTokOutlined,
   YoutubeOutlined
 } from '@ant-design/icons'
 import { useUserStore } from '@renderer/store/useUserStore'
@@ -41,6 +43,9 @@ const BaseLayout: React.FC = () => {
     }
   };
 
+  const IconFont = createFromIconfontCN({
+    scriptUrl: ['//at.alicdn.com/t/c/font_4966877_7yg5qaqlu0k.js']
+  })
 
   useEffect(() => {
     if (location.pathname.startsWith('/')) {
@@ -59,6 +64,7 @@ const BaseLayout: React.FC = () => {
       'openai',
       'youtube',
       'setting',
+      'music',
     ];
     if (validKeys.includes(firstSegment)) {
       setSelectedMenuKey(firstSegment);
@@ -105,6 +111,7 @@ const BaseLayout: React.FC = () => {
             { key: 'search', icon: <SearchOutlined style={{ fontSize: 24 }} /> },
             { key: 'openai', icon: <OpenAIOutlined style={{ fontSize: 24 }} /> },
             { key: 'youtube', icon: <YoutubeOutlined style={{ fontSize: 24 }} /> },
+            { key: 'music', icon: <TikTokOutlined style={{ fontSize: 24 }} /> },
             { key: 'myGithub', icon: <GithubOutlined style={{ fontSize: 24 }} /> },
             { key: 'setting', icon: <SettingOutlined style={{ fontSize: 24 }} /> }
           ].map(({ key, icon }) => ({

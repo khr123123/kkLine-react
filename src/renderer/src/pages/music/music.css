@@ -1,0 +1,630 @@
+﻿/* 音乐页面样式文件 */
+
+.music-container {
+  width: 100%;
+  height: 95vh;
+  display: flex;
+  padding-left: 10px;
+  padding-top: 10px;
+  padding-right: 10px;
+  flex-direction: column;
+}
+
+.navigation-bar {
+  flex-shrink: 0;
+}
+
+.main-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+.navigation-bar {
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  height: 64px;
+  background-color: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Logo 样式 */
+.logo {
+  display: flex;
+  align-items: center;
+  margin-right: 32px;
+  cursor: pointer;
+}
+
+.logo-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #85d7ff; /* 淡蓝色 */
+  margin-right: 8px;
+  transition: transform 0.3s;
+}
+
+.logo:hover .logo-icon {
+  transform: scale(1.1);
+}
+
+.logo-text {
+  font-weight: bold;
+  font-size: 20px;
+  color: #1890ff;
+}
+
+/* 菜单样式 */
+.menu {
+  flex: 1;
+  border-bottom: none;
+}
+
+.ant-menu-item-selected {
+  color: #1890ff !important;
+  font-weight: 600;
+}
+
+/* 轮播图样式 */
+.ant-carousel .slick-slide {
+  text-align: center;
+  height: 260px;
+  line-height: 260px;
+  background: #364d79;
+  overflow: hidden;
+}
+
+.ant-carousel .slick-slide img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+/* 卡片悬停效果 */
+.ant-card-hoverable:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+}
+
+/* 文本截断 */
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.line-clamp-4 {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 歌曲列表项悬停效果 */
+.song-item-hover:hover {
+  background-color: #f5f5f5;
+  transition: background-color 0.3s ease;
+}
+
+/* 播放按钮样式 */
+.play-button {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.song-item-hover:hover .play-button {
+  opacity: 1;
+}
+
+/* 歌手头像悬停效果 */
+.artist-avatar-container {
+  position: relative;
+  overflow: hidden;
+  border-radius: 50%;
+}
+
+.artist-avatar-container img {
+  transition: transform 0.3s ease;
+}
+
+.artist-avatar-container:hover img {
+  transform: scale(1.1);
+}
+
+/* 网格布局 */
+.grid {
+  display: grid;
+}
+
+.grid-cols-1 {
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+.grid-cols-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.grid-cols-4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.grid-cols-7 {
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.gap-4 {
+  gap: 1rem;
+}
+
+.gap-6 {
+  gap: 1.5rem;
+}
+
+.gap-8 {
+  gap: 2rem;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .grid-cols-7 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .grid-cols-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .grid-cols-7 {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+/* 按钮样式 */
+.ant-btn-primary {
+  background-color: #1890ff;
+  border-color: #1890ff;
+}
+
+.ant-btn-primary:hover {
+  background-color: #40a9ff;
+  border-color: #40a9ff;
+}
+
+/* 表格样式 */
+.ant-table {
+  background-color: transparent;
+}
+
+.ant-table-thead>tr>th {
+  background-color: #fafafa;
+  font-weight: 600;
+}
+
+.ant-table-tbody>tr:hover>td {
+  background-color: #f5f5f5;
+}
+
+/* 分页样式 */
+.ant-pagination {
+  text-align: center;
+}
+
+/* 标签样式 */
+.ant-tag {
+  border-radius: 4px;
+  padding: 2px 8px;
+}
+
+/* 评论区域样式 */
+.comment-section {
+  background-color: #fafafa;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.comment-item {
+  padding: 12px;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.comment-item:last-child {
+  border-bottom: none;
+}
+
+.comment-item:hover {
+  background-color: #f5f5f5;
+}
+
+/* 侧边栏样式 */
+.sidebar {
+  background-color: #f5f5f5;
+  padding: 16px;
+  border-right: 1px solid #e8e8e8;
+}
+
+/* 封面图片样式 */
+.cover-image {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  object-fit: cover;
+}
+
+/* 加载动画 */
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+}
+
+/* Flex 布局工具类 */
+.flex {
+  display: flex;
+}
+
+.flex-1 {
+  flex: 1;
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.gap-2 {
+  gap: 0.5rem;
+}
+
+.gap-3 {
+  gap: 0.75rem;
+}
+
+/* 间距工具类 */
+.p-2 {
+  padding: 0.5rem;
+}
+
+.p-4 {
+  padding: 1rem;
+}
+
+.p-6 {
+  padding: 1.5rem;
+}
+
+.mb-2 {
+  margin-bottom: 0.5rem;
+}
+
+.mb-4 {
+  margin-bottom: 1rem;
+}
+
+.mb-6 {
+  margin-bottom: 1.5rem;
+}
+
+.mb-8 {
+  margin-bottom: 2rem;
+}
+
+.mt-2 {
+  margin-top: 0.5rem;
+}
+
+.mt-4 {
+  margin-top: 1rem;
+}
+
+.mt-6 {
+  margin-top: 1.5rem;
+}
+
+/* 文本样式 */
+.text-xs {
+  font-size: 0.75rem;
+}
+
+.text-sm {
+  font-size: 0.875rem;
+}
+
+.text-lg {
+  font-size: 1.125rem;
+}
+
+.text-xl {
+  font-size: 1.25rem;
+}
+
+.text-2xl {
+  font-size: 1.5rem;
+}
+
+.text-3xl {
+  font-size: 1.875rem;
+}
+
+.font-medium {
+  font-weight: 500;
+}
+
+.font-semibold {
+  font-weight: 600;
+}
+
+.font-bold {
+  font-weight: 700;
+}
+
+.text-gray-500 {
+  color: #8c8c8c;
+}
+
+.text-gray-600 {
+  color: #595959;
+}
+
+/* 宽度和高度 */
+.w-full {
+  width: 100%;
+}
+
+.h-full {
+  height: 100%;
+}
+
+.w-16 {
+  width: 4rem;
+}
+
+.h-16 {
+  height: 4rem;
+}
+
+.w-48 {
+  width: 12rem;
+}
+
+.h-48 {
+  height: 12rem;
+}
+
+.w-60 {
+  width: 15rem;
+}
+
+.h-60 {
+  height: 15rem;
+}
+
+.w-64 {
+  width: 16rem;
+}
+
+/* 圆角 */
+.rounded {
+  border-radius: 0.25rem;
+}
+
+.rounded-lg {
+  border-radius: 0.5rem;
+}
+
+.rounded-full {
+  border-radius: 9999px;
+}
+
+/* 阴影 */
+.shadow {
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+.shadow-lg {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* 过渡效果 */
+.transition {
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+/* 光标 */
+.cursor-pointer {
+  cursor: pointer;
+}
+
+/* 溢出处理 */
+.overflow-hidden {
+  overflow: hidden;
+}
+
+.overflow-y-auto {
+  overflow-y: auto;
+}
+
+.overflow-x-hidden {
+  overflow-x: hidden;
+}
+
+/* 对象适配 */
+.object-cover {
+  object-fit: cover;
+}
+
+/* 定位 */
+.relative {
+  position: relative;
+}
+
+.absolute {
+  position: absolute;
+}
+
+.inset-0 {
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
+
+/* 透明度 */
+.opacity-0 {
+  opacity: 0;
+}
+
+.opacity-100 {
+  opacity: 1;
+}
+
+/* 背景色 */
+.bg-white {
+  background-color: #ffffff;
+}
+
+.bg-gray-50 {
+  background-color: #fafafa;
+}
+
+.bg-gray-100 {
+  background-color: #f5f5f5;
+}
+
+/* 边框 */
+.border {
+  border-width: 1px;
+}
+
+.border-b {
+  border-bottom-width: 1px;
+}
+
+.border-gray-300 {
+  border-color: #d9d9d9;
+}
+
+/* 空格 */
+.space-y-1>*+* {
+  margin-top: 0.25rem;
+}
+
+.space-y-2>*+* {
+  margin-top: 0.5rem;
+}
+
+.space-y-4>*+* {
+  margin-top: 1rem;
+}
+
+/* 最小宽度 */
+.min-w-0 {
+  min-width: 0;
+}
+
+/* 长宽比 */
+.aspect-square {
+  aspect-ratio: 1 / 1;
+}
+
+/* 截断文本 */
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 文本居中 */
+.text-center {
+  text-align: center;
+}
+
+/* 文本左对齐 */
+.text-left {
+  text-align: left;
+}
+
+/* 自定义滚动条样式 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* 动画 */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-in;
+}
+
+/* 移动端适配 */
+@media (max-width: 640px) {
+  .music-container {
+    font-size: 14px;
+  }
+
+  .navigation-bar {
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .w-60,
+  .h-60 {
+    width: 100%;
+    height: auto;
+  }
+
+  .grid-cols-2 {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
+}

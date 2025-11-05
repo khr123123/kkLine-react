@@ -29,6 +29,54 @@ declare namespace API {
     applyMessage?: string
   }
 
+  type ArtistDetailVO = {
+    artistId?: number
+    artistName?: string
+    gender?: number
+    avatar?: string
+    birth?: string
+    area?: string
+    introduction?: string
+    songs?: SongVO[]
+  }
+
+  type ArtistDTO = {
+    pageNum: number
+    pageSize: number
+    artistName?: string
+    gender?: number
+    area?: string
+  }
+
+  type ArtistVO = {
+    artistId?: number
+    artistName?: string
+    avatar?: string
+  }
+
+  type BannerDTO = {
+    pageNum: number
+    pageSize: number
+    bannerStatus?: 'ENABLE' | 'DISABLE'
+  }
+
+  type BannerVO = {
+    bannerId?: number
+    bannerUrl?: string
+  }
+
+  type BaseResponse = {
+    code?: number
+    data?: Record<string, any>
+    message?: string
+  }
+
+  type BaseResponseArtistDetailVO = {
+    code?: number
+    data?: ArtistDetailVO
+    message?: string
+  }
+
   type BaseResponseBoolean = {
     code?: number
     data?: boolean
@@ -59,6 +107,18 @@ declare namespace API {
     message?: string
   }
 
+  type BaseResponseListArtistVO = {
+    code?: number
+    data?: ArtistVO[]
+    message?: string
+  }
+
+  type BaseResponseListBannerVO = {
+    code?: number
+    data?: BannerVO[]
+    message?: string
+  }
+
   type BaseResponseListContactVO = {
     code?: number
     data?: ContactVO[]
@@ -74,6 +134,18 @@ declare namespace API {
   type BaseResponseListGroup = {
     code?: number
     data?: Group[]
+    message?: string
+  }
+
+  type BaseResponseListPlaylistVO = {
+    code?: number
+    data?: PlaylistVO[]
+    message?: string
+  }
+
+  type BaseResponseListSongVO = {
+    code?: number
+    data?: SongVO[]
     message?: string
   }
 
@@ -107,6 +179,12 @@ declare namespace API {
     message?: string
   }
 
+  type BaseResponsePageArtistVO = {
+    code?: number
+    data?: PageArtistVO
+    message?: string
+  }
+
   type BaseResponsePageContactApplyVO = {
     code?: number
     data?: PageContactApplyVO
@@ -119,6 +197,24 @@ declare namespace API {
     message?: string
   }
 
+  type BaseResponsePageMusicBanner = {
+    code?: number
+    data?: PageMusicBanner
+    message?: string
+  }
+
+  type BaseResponsePagePlaylistVO = {
+    code?: number
+    data?: PagePlaylistVO
+    message?: string
+  }
+
+  type BaseResponsePageSongVO = {
+    code?: number
+    data?: PageSongVO
+    message?: string
+  }
+
   type BaseResponsePageUser = {
     code?: number
     data?: PageUser
@@ -128,6 +224,18 @@ declare namespace API {
   type BaseResponsePageUserVO = {
     code?: number
     data?: PageUserVO
+    message?: string
+  }
+
+  type BaseResponsePlaylistDetailVO = {
+    code?: number
+    data?: PlaylistDetailVO
+    message?: string
+  }
+
+  type BaseResponseSongDetailVO = {
+    code?: number
+    data?: SongDetailVO
     message?: string
   }
 
@@ -147,6 +255,18 @@ declare namespace API {
     code?: number
     data?: UserVO
     message?: string
+  }
+
+  type cancelCollectPlaylistParams = {
+    playlistId: number
+  }
+
+  type cancelCollectSongParams = {
+    songId: number
+  }
+
+  type cancelLikeCommentParams = {
+    id: number
   }
 
   type ChatSendFileRequest = {
@@ -193,6 +313,33 @@ declare namespace API {
 
   type checkRelationParams = {
     contactId: string
+  }
+
+  type collectPlaylistParams = {
+    playlistId: number
+  }
+
+  type collectSongParams = {
+    songId: number
+  }
+
+  type CommentPlaylistDTO = {
+    playlistId?: number
+    content?: string
+  }
+
+  type CommentSongDTO = {
+    songId?: number
+    content?: string
+  }
+
+  type CommentVO = {
+    commentId?: number
+    username?: string
+    userAvatar?: string
+    content?: string
+    createTime?: string
+    likeCount?: number
   }
 
   type ContactApplyVO = {
@@ -251,6 +398,14 @@ declare namespace API {
     id: string
   }
 
+  type deleteBannerParams = {
+    id: number
+  }
+
+  type deleteCommentParams = {
+    id: number
+  }
+
   type DeleteRequest = {
     /** 要删除的数据 ID，必须为正整数 */
     id: number
@@ -275,9 +430,21 @@ declare namespace API {
     letterSegment: number
   }
 
+  type getArtistDetailParams = {
+    id: number
+  }
+
+  type getPlaylistDetailParams = {
+    id: number
+  }
+
   type getRegisterEmailCodeParams = {
     email: string
     isRegister: boolean
+  }
+
+  type getSongDetailParams = {
+    id: number
   }
 
   type getUserByIdParams = {
@@ -374,6 +541,10 @@ declare namespace API {
     groupOwnerName?: string
   }
 
+  type likeCommentParams = {
+    id: number
+  }
+
   type LoginUserVO = {
     id?: number
     userName?: string
@@ -407,9 +578,31 @@ declare namespace API {
     file?: FileInfoDTO
   }
 
+  type MusicBanner = {
+    id?: number
+    bannerUrl?: string
+    status?: number
+    createTime?: string
+    updateTime?: string
+  }
+
   type OrderItem = {
     column?: string
     asc?: boolean
+  }
+
+  type PageArtistVO = {
+    records?: ArtistVO[]
+    total?: number
+    size?: number
+    current?: number
+    orders?: OrderItem[]
+    optimizeCountSql?: PageArtistVO
+    searchCount?: PageArtistVO
+    optimizeJoinOfCountSql?: boolean
+    maxLimit?: number
+    countId?: string
+    pages?: number
   }
 
   type PageContactApplyVO = {
@@ -434,6 +627,48 @@ declare namespace API {
     orders?: OrderItem[]
     optimizeCountSql?: PageGroupVO
     searchCount?: PageGroupVO
+    optimizeJoinOfCountSql?: boolean
+    maxLimit?: number
+    countId?: string
+    pages?: number
+  }
+
+  type PageMusicBanner = {
+    records?: MusicBanner[]
+    total?: number
+    size?: number
+    current?: number
+    orders?: OrderItem[]
+    optimizeCountSql?: PageMusicBanner
+    searchCount?: PageMusicBanner
+    optimizeJoinOfCountSql?: boolean
+    maxLimit?: number
+    countId?: string
+    pages?: number
+  }
+
+  type PagePlaylistVO = {
+    records?: PlaylistVO[]
+    total?: number
+    size?: number
+    current?: number
+    orders?: OrderItem[]
+    optimizeCountSql?: PagePlaylistVO
+    searchCount?: PagePlaylistVO
+    optimizeJoinOfCountSql?: boolean
+    maxLimit?: number
+    countId?: string
+    pages?: number
+  }
+
+  type PageSongVO = {
+    records?: SongVO[]
+    total?: number
+    size?: number
+    current?: number
+    orders?: OrderItem[]
+    optimizeCountSql?: PageSongVO
+    searchCount?: PageSongVO
     optimizeJoinOfCountSql?: boolean
     maxLimit?: number
     countId?: string
@@ -468,6 +703,29 @@ declare namespace API {
     pages?: number
   }
 
+  type PlaylistDetailVO = {
+    playlistId?: number
+    title?: string
+    coverUrl?: string
+    introduction?: string
+    songs?: SongVO[]
+    likeStatus?: number
+    comments?: CommentVO[]
+  }
+
+  type PlaylistDTO = {
+    pageNum: number
+    pageSize: number
+    title?: string
+    style?: string
+  }
+
+  type PlaylistVO = {
+    playlistId?: number
+    title?: string
+    coverUrl?: string
+  }
+
   type PushAdRequest = {
     adTitle: string
     adPicture: string
@@ -496,6 +754,49 @@ declare namespace API {
 
   type simpleChatParams = {
     query?: string
+  }
+
+  type SongDetailVO = {
+    songId?: number
+    songName?: string
+    artistName?: string
+    album?: string
+    lyric?: string
+    duration?: string
+    coverUrl?: string
+    audioUrl?: string
+    releaseTime?: string
+    likeStatus?: number
+    comments?: CommentVO[]
+  }
+
+  type SongDTO = {
+    pageNum: number
+    pageSize: number
+    songName?: string
+    artistName?: string
+    album?: string
+  }
+
+  type SongVO = {
+    songId?: number
+    songName?: string
+    artistName?: string
+    album?: string
+    duration?: string
+    coverUrl?: string
+    audioUrl?: string
+    likeStatus?: number
+    releaseTime?: string
+  }
+
+  type updateBannerParams = {
+    id: number
+  }
+
+  type updateBannerStatusParams = {
+    id: number
+    status: number
   }
 
   type uploadFileParams = {

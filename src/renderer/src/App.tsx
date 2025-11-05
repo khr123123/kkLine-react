@@ -26,6 +26,7 @@ import AdManagerPage from './adminPages/AdManagerPage'
 import AudioCallModal from './pages/session/components/AudioCallPage'
 import VideoCallModal from './pages/session/components/VideoCallPage'
 import VideoCallPageWithComponents from './pages/session/components/VideoCallLiveKitPage'
+import MusicPage from './pages/music'
 // Define routes
 const router = createBrowserRouter([
   {
@@ -128,6 +129,10 @@ const router = createBrowserRouter([
       {
         path: 'setting',
         element: <SettingPage />
+      },
+      {
+        path: 'music',
+        element: <MusicPage />
       }
     ]
   },
