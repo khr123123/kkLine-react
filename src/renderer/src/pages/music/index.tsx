@@ -132,7 +132,7 @@ export default function Music() {
     return (
         <div className="music-container h-screen flex flex-col">
             {/* 导航栏 */}
-            <div className="navigation-bar flex items-center bg-white shadow px-6 h-16">
+            <div className="music-menu navigation-bar flex items-center bg-white shadow px-6 h-16">
                 {/* 左侧 Logo */}
                 <div className="logo flex items-center mr-8 cursor-pointer" >
                     <div className="logo-icon w-8 h-8 rounded-full bg-blue-300 mr-2 flex items-center justify-center">
@@ -140,17 +140,13 @@ export default function Music() {
                     </div>
                     <span className="font-bold text-xl text-blue-500">KK MUSIC</span>
                 </div>
-
-                {/* 菜单 */}
                 <Menu
                     mode="horizontal"
                     items={items}
-                    onClick={(v) => setCurrentView(v.key)}
+                    onClick={(v) => setCurrentView(v.key as ViewType)}
                     style={{ borderBottom: 'none' }}
                 />
             </div>
-
-            {/* 主内容区 */}
             <div className="main-content flex-1 overflow-y-auto">
                 {renderView()}
             </div>

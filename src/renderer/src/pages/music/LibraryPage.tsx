@@ -2,7 +2,6 @@
 import { Spin } from 'antd';
 import { SongTable } from './components/SongTable';
 import { SearchBar } from './components/SearchBar';
-import { useDataFetch } from './hooks/useDataFetch';
 import { usePagination } from './hooks/usePagination';
 import { getAllSongs } from '@renderer/api/songApis';
 
@@ -11,38 +10,36 @@ interface LibraryPageProps {
 }
 
 export const LibraryPage: React.FC<LibraryPageProps> = ({ onPlaySong }) => {
-  const { data, loading, fetchData } = useDataFetch();
   const { currentPage, pageSize, total, setTotal, handlePageChange } = usePagination(1, 20);
   const [searchKeyword, setSearchKeyword] = useState('');
 
-  // ✅ 安全访问数据
-  const librarySongs = data?.items || [];
+  const [librarySongs, setLibrarySongs] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     fetchLibrarySongs();
   }, [currentPage, pageSize]);
 
   const fetchLibrarySongs = async () => {
-    const result = await fetchData(
-      () =>
-        getAllSongs({
-          pageNum: currentPage,
-          pageSize: pageSize,
-          songName: searchKeyword || '',
-          artistName: '',
-          album: '',
-        }),
-      '获取歌曲列表失败'
-    );
+    const result = await
+      getAllSongs({
+        pageNum: currentPage,
+        pageSize: pageSize,
+        songName: searchKeyword || '',
+        artistName: '',
+        album: '',
+      })
 
     if (result) {
-      setTotal(result.total);
+      setTotal(result.data.total);
+      setLibrarySongs(result.data.records);
+      setLoading(false)
     }
   };
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-4">
+    <div className="p-6" style={{ marginTop: -40 }}>
+      <div className="flex justify-between items-center mb-0">
         <h2 className="text-2xl font-semibold">音乐库</h2>
         <SearchBar
           value={searchKeyword}

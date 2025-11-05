@@ -1,43 +1,42 @@
-﻿import React, { useEffect } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { Button, Input, Spin } from 'antd';
 import { PlayCircleOutlined, SearchOutlined } from '@ant-design/icons';
 import { SongTable } from './components/SongTable';
-import { useDataFetch } from './hooks/useDataFetch';
 import { usePagination } from './hooks/usePagination';
 import { getUserFavoriteSongs } from '@renderer/api/userFavoriteApis';
-
+import defaultMusicCover from '../../assets/music.png';
 interface FavoritePageProps {
   onPlaySong: (song: any) => void;
   onPlayAll: (songs: any[]) => void;
 }
 
 export const FavoritePage: React.FC<FavoritePageProps> = ({ onPlaySong, onPlayAll }) => {
-  const { data, loading, fetchData } = useDataFetch();
   const { currentPage, pageSize, total, setTotal, handlePageChange } = usePagination(1, 10);
   const [searchKeyword, setSearchKeyword] = React.useState('');
 
   // ✅ 安全访问数据
-  const favoriteSongs = data?.items || [];
-  const favoriteTotal = data?.total || 0;
+  const [favoriteSongs, setFavoriteSongs] = useState([]);
+  const [favoriteTotal, setFavoriteTotal] = useState(0);
+  const [loading, setLoading] = useState(false);
+
 
   useEffect(() => {
     fetchFavoriteSongs();
   }, [currentPage, pageSize, searchKeyword]);
 
   const fetchFavoriteSongs = async () => {
-    const result = await fetchData(
-      () => getUserFavoriteSongs({
-        pageNum: currentPage,
-        pageSize: pageSize,
-        songName: searchKeyword,
-        artistName: '',
-        album: '',
-      }),
-      '获取收藏歌曲失败'
-    );
-
+    setLoading(true)
+    const result = await getUserFavoriteSongs({
+      pageNum: currentPage,
+      pageSize: pageSize,
+      songName: searchKeyword,
+      artistName: '',
+      album: '',
+    })
+    setLoading(false)
     if (result) {
-      setTotal(result.total);
+      setFavoriteTotal(Number(result.data.total));
+      setFavoriteSongs(result.data.records);
     }
   };
 
@@ -45,7 +44,7 @@ export const FavoritePage: React.FC<FavoritePageProps> = ({ onPlaySong, onPlayAl
     <div className="p-6">
       <div className="flex gap-6 mb-6">
         <img
-          src={favoriteSongs[0]?.coverUrl || '/default-cover.png'} // ✅ 安全访问
+          src={favoriteSongs[0]?.coverUrl || defaultMusicCover}
           alt="我喜欢的音乐"
           className="w-60 h-60 rounded-lg shadow-lg object-cover"
         />

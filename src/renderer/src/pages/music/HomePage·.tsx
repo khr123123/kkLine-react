@@ -56,80 +56,135 @@ export const HomePage: React.FC<HomePageProps> = ({ onSelectPlaylist, onPlaySong
   };
 
   return (
-    <div className="p-6 w-full">
+    <div className="p-1 ">
       <div className="flex-1">
         {/* 轮播图 */}
+        {/* 轮播图 */}
         {bannerList.length > 0 && (
-          <div className="mb-8">
-            <Carousel autoplay>
+          <div className="mb-4">
+            <Carousel autoplay arrows adaptiveHeight>
               {bannerList.map((item) => (
                 <div key={item.bannerId}>
                   <img
                     src={item.bannerUrl}
-                    alt="banner"
-                    className="w-full h-64 object-cover rounded-lg"
+                    alt=""
+                    style={{
+                      width: '100%',
+                      objectFit: 'cover',
+                      borderRadius: 8,
+                    }}
                   />
                 </div>
               ))}
             </Carousel>
           </div>
         )}
-
         {/* 推荐歌单 */}
-        <div className="mb-8">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold">今日为你推荐</h2>
-            <Button type="link" icon={<MoreOutlined />} onClick={() => {}}>
+        <div className="mb-4">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+            <h2 style={{ fontSize: 18, fontWeight: 600 }}>今日为你推荐</h2>
+            <Button type="link" icon={<MoreOutlined />} onClick={() => { }}>
               更多
             </Button>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
-            {recommendedPlaylist.slice(0, 7).map((item) => (
+          <div style={{ display: 'grid', width: '100%', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+            {recommendedPlaylist.slice(0, 9).map((item) => (
               <Card
                 key={item.playlistId}
                 hoverable
                 cover={
                   <img
                     alt={item.title}
-                    src={addImageParams(item.coverUrl, 'param=350y350')}
-                    className="aspect-square object-cover"
+                    src={addImageParams(item.coverUrl, 'param=200y200')}
+                    style={{ width: '100%', aspectRatio: '1', objectFit: 'cover', borderRadius: 8 }}
                   />
                 }
                 onClick={() => onSelectPlaylist(item.playlistId)}
               >
                 <Card.Meta
-                  title={<div className="line-clamp-2 text-sm">{item.title}</div>}
+                  title={
+                    <div
+                      style={{
+                        fontSize: 12,
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,   // 限制两行
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        wordBreak: 'break-word', // 防止长单词撑开
+                      }}
+                      title={item.title} // 鼠标悬停显示完整标题
+                    >
+                      {item.title}
+                    </div>
+                  }
                 />
               </Card>
             ))}
           </div>
         </div>
-
         {/* 推荐歌曲 */}
-        <div>
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold">相似推荐</h2>
+        <div className="mb-4">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+            <h2 style={{ fontSize: 18, fontWeight: 600 }}>相似推荐</h2>
             <Button type="link" icon={<ReloadOutlined />} onClick={handleRefreshSongs}>
               刷新
             </Button>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
             {recommendedSongList.map((item) => (
               <div
                 key={item.songId}
-                className="flex items-center gap-4 p-2 rounded-lg hover:bg-gray-100 cursor-pointer transition"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 12,
+                  padding: 8,
+                  borderRadius: 8,
+                  cursor: 'pointer',
+                  transition: 'background 0.2s',
+                }}
                 onClick={() => onPlaySong(item, recommendedSongList)}
+                onMouseEnter={(e) => (e.currentTarget.style.background = '#f5f5f5')}
+                onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
               >
                 <img
                   src={addImageParams(item.coverUrl, 'param=90y90')}
                   alt={item.songName}
-                  className="w-16 h-16 rounded-lg object-cover"
+                  style={{ width: 64, height: 64, borderRadius: 8, objectFit: 'cover' }}
                 />
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-medium truncate">{item.songName}</h3>
-                  <p className="text-sm text-gray-500 truncate">{item.artistName}</p>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <h3
+                    style={{
+                      margin: 0,
+                      fontSize: 14,
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                    }}
+                    title={item.songName}
+                  >
+                    {item.songName}
+                  </h3>
+                  <p
+                    style={{
+                      margin: 0,
+                      fontSize: 12,
+                      color: '#888',
+                      display: '-webkit-box',
+                      WebkitLineClamp: 1,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                    }}
+                    title={item.artistName}
+                  >
+                    {item.artistName}
+                  </p>
                 </div>
-                <div className="text-sm text-gray-500">
+                <div style={{ fontSize: 12, color: '#888' }}>
                   {formatTime(parseFloat(item.duration) * 1000)}
                 </div>
               </div>

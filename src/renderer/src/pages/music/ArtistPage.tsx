@@ -18,30 +18,27 @@ interface ArtistPageProps {
 
 const genderCategories = [
   { id: '-1', label: '全部', value: null },
-  { id: '1', label: '男歌手', value: '男' },
-  { id: '2', label: '女歌手', value: '女' },
-  { id: '3', label: '组合', value: '组合' },
+  { id: '1', label: '男歌手', value: '0' },
+  { id: '2', label: '女歌手', value: '1' },
 ];
 
 const areaCategories = [
   { id: '-1', label: '全部', value: null },
-  { id: '1', label: '华语', value: '华语' },
-  { id: '2', label: '欧美', value: '欧美' },
+  { id: '1', label: '美国', value: '美国' },
+  { id: '2', label: '中国', value: '中国' },
   { id: '3', label: '日本', value: '日本' },
   { id: '4', label: '韩国', value: '韩国' },
   { id: '5', label: '其他', value: '其他' },
 ];
 
 export const ArtistPage: React.FC<ArtistPageProps> = ({ onSelectArtist }) => {
-  const { data, loading, fetchData } = useDataFetch();
   const { currentPage, pageSize, total, setTotal, handlePageChange, resetPagination } = usePagination();
 
   const [selectedGender, setSelectedGender] = useState('-1');
   const [selectedArea, setSelectedArea] = useState('-1');
   const [searchKeyword, setSearchKeyword] = useState('');
-
-  // ✅ 安全访问数据
-  const artistList = data?.items || [];
+  const [loading, setLoading] = useState(false);
+  const [artistList, setArtistList] = useState([]);
 
   useEffect(() => {
     fetchArtists();
@@ -51,7 +48,7 @@ export const ArtistPage: React.FC<ArtistPageProps> = ({ onSelectArtist }) => {
     const params = {
       pageNum: currentPage,
       pageSize,
-      name: searchKeyword || null,
+      artistName: searchKeyword || null,
       gender:
         selectedGender === '-1'
           ? null
@@ -61,14 +58,12 @@ export const ArtistPage: React.FC<ArtistPageProps> = ({ onSelectArtist }) => {
           ? null
           : areaCategories.find((c) => c.id === selectedArea)?.value,
     };
-
-    const result = await fetchData(
-      () => getAllArtists(params),
-      '获取歌手列表失败'
-    );
-
-    if (result) {
-      setTotal(result.total);
+    setLoading(true)
+    const result = await getAllArtists(params)
+    if (result.code === 0) {
+      setTotal(result.data.total);
+      setArtistList(result.data.records);
+      setLoading(false)
     }
   };
 
@@ -82,8 +77,8 @@ export const ArtistPage: React.FC<ArtistPageProps> = ({ onSelectArtist }) => {
   return (
     <div className="flex h-full">
       {/* 左侧筛选栏 */}
-      <div className="w-64 bg-gray-50 p-4 border-r">
-        <div className="flex justify-between items-center mb-4">
+      <div className="w-48 bg-gray-50 p-4 border-r">
+        <div className="flex justify-between items-center mb-2" style={{ marginTop: -20 }}>
           <h2 className="text-lg font-semibold">歌手分类</h2>
           <Button type="link" size="small" onClick={handleReset}>
             重置
@@ -98,7 +93,7 @@ export const ArtistPage: React.FC<ArtistPageProps> = ({ onSelectArtist }) => {
         />
 
         {/* 性别筛选 */}
-        <div className="mb-4 mt-4">
+        <div className="mb-2 mt-4">
           <h3 className="font-medium mb-2">性别</h3>
           <div className="space-y-1">
             {genderCategories.map((cat) => (
@@ -118,7 +113,7 @@ export const ArtistPage: React.FC<ArtistPageProps> = ({ onSelectArtist }) => {
         </div>
 
         {/* 地区筛选 */}
-        <div>
+        <div style={{ marginTop: -10 }}>
           <h3 className="font-medium mb-2">地区</h3>
           <div className="space-y-1">
             {areaCategories.map((cat) => (
@@ -139,11 +134,11 @@ export const ArtistPage: React.FC<ArtistPageProps> = ({ onSelectArtist }) => {
       </div>
 
       {/* 右侧歌手列表 */}
-      <div className="flex-1 p-6 overflow-y-auto">
+      <div className="flex-1 p-6">
         <Spin spinning={loading}>
           {artistList.length > 0 ? (
             <>
-              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8">
+              <div className="grid grid-cols-4 md:grid-cols-4 lg:grid-cols-5 gap-8">
                 {artistList.map((artist: Artist) => (
                   <div
                     key={artist.artistId}
@@ -167,14 +162,12 @@ export const ArtistPage: React.FC<ArtistPageProps> = ({ onSelectArtist }) => {
                 ))}
               </div>
 
-              <div className="mt-6 flex justify-center">
+              <div className="mt-2 flex justify-center">
                 <Pagination
                   current={currentPage}
                   pageSize={pageSize}
                   total={total}
-                  showSizeChanger
-                  showQuickJumper
-                  showTotal={(total) => `共 ${total} 位歌手`}
+                  showSizeChanger={false}
                   onChange={handlePageChange}
                 />
               </div>

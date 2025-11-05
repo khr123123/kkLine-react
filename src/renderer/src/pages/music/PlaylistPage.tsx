@@ -2,7 +2,6 @@
 import { Select, Tabs, Spin, Pagination } from 'antd';
 import { SearchBar } from './components/SearchBar';
 import { PlaylistCard } from './components/PlaylistCard';
-import { useDataFetch } from './hooks/useDataFetch';
 import { usePagination } from './hooks/usePagination';
 import { getFavoritePlaylists } from '@renderer/api/userFavoriteApis';
 import { getAllPlaylists } from '@renderer/api/playlistApis';
@@ -21,15 +20,13 @@ interface PlaylistPageProps {
 }
 
 export const PlaylistPage: React.FC<PlaylistPageProps> = ({ onSelectPlaylist }) => {
-  const { data, loading, fetchData } = useDataFetch();
-  const { currentPage, pageSize, total, setTotal, handlePageChange, resetPagination } = usePagination();
 
+  const { currentPage, pageSize, total, setTotal, handlePageChange, resetPagination } = usePagination();
+  const [loading, setLoading] = useState(false);
   const [playlistType, setPlaylistType] = useState<'all' | 'favorite'>('all');
   const [selectedTag, setSelectedTag] = useState('全部');
   const [searchKeyword, setSearchKeyword] = useState('');
-
-  // ✅ 安全访问数据
-  const playlists = data?.items || [];
+  const [playlists, setPlaylists] = useState([]);
 
   useEffect(() => {
     fetchPlaylists();
@@ -42,16 +39,18 @@ export const PlaylistPage: React.FC<PlaylistPageProps> = ({ onSelectPlaylist }) 
       title: searchKeyword || null,
       style: selectedTag === '全部' ? null : selectedTag,
     };
+    setLoading(true);
+    try {
+      const result = playlistType === 'favorite'
+        ? await getFavoritePlaylists(params)
+        : await getAllPlaylists(params);
 
-    const result = await fetchData(
-      () => playlistType === 'favorite'
-        ? getFavoritePlaylists(params)
-        : getAllPlaylists(params),
-      '获取歌单列表失败'
-    );
-
-    if (result) {
-      setTotal(result.total);
+      if (result.code === 0) {
+        setTotal(Number(result.data.total));
+        setPlaylists(result.data.records);
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -61,8 +60,8 @@ export const PlaylistPage: React.FC<PlaylistPageProps> = ({ onSelectPlaylist }) 
   };
 
   return (
-    <div className="p-6">
-      <div className="mb-4 flex gap-4">
+    <div className="p-2">
+      <div className="mb-1 flex gap-4">
         <SearchBar
           value={searchKeyword}
           placeholder="搜索歌单..."
@@ -90,7 +89,7 @@ export const PlaylistPage: React.FC<PlaylistPageProps> = ({ onSelectPlaylist }) 
       </Tabs>
 
       <Spin spinning={loading}>
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-4 md:grid-cols-4 lg:grid-cols-6 gap-2">
           {playlists.map((playlist) => (
             <PlaylistCard
               key={playlist.playlistId}
@@ -101,7 +100,7 @@ export const PlaylistPage: React.FC<PlaylistPageProps> = ({ onSelectPlaylist }) 
         </div>
 
         {playlists.length > 0 && (
-          <div className="mt-6 flex justify-center">
+          <div className="mt-5 flex justify-center" style={{ marginTop: 8 }}>
             <Pagination
               current={currentPage}
               pageSize={pageSize}

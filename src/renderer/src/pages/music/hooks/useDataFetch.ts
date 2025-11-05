@@ -19,6 +19,11 @@ export function useDataFetch<T>() {
     try {
       const result = await fetchFn();
       if (result.code === 0) {
+        // 判断是否是分页数据
+        if ((result.data as any)?.records) {
+          setData((result.data as any).records);
+          return (result.data as any).records;
+        }
         setData(result.data);
         return result.data;
       } else {
@@ -35,3 +40,5 @@ export function useDataFetch<T>() {
 
   return { data, setData, loading, fetchData };
 }
+
+

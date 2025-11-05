@@ -1,5 +1,5 @@
 ﻿import React from 'react';
-import { Card, Avatar } from 'antd';
+import { Card, Avatar, Tooltip } from 'antd';
 import { addImageParams } from '../../../utils/timeUtil';
 
 interface Playlist {
@@ -31,12 +31,29 @@ export const PlaylistCard: React.FC<PlaylistCardProps> = ({ playlist, onClick })
       onClick={() => onClick(playlist.playlistId)}
     >
       <Card.Meta
-        title={<div className="line-clamp-1 text-sm">{playlist.title}</div>}
+        title={
+          <div
+            style={{
+              fontSize: 12,
+              display: '-webkit-box',
+              WebkitLineClamp: 2,   // 限制两行
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              wordBreak: 'break-word', // 防止长单词撑开
+            }}
+            title={playlist.title} // 鼠标悬停显示完整标题
+          >
+            {playlist.title}
+          </div>
+        }
         description={
           playlist.creator && (
             <div className="flex items-center gap-2">
               <Avatar size="small" src={playlist.creator.avatarUrl} />
-              <span className="text-xs truncate">{playlist.creator.nickname}</span>
+              <Tooltip title={playlist.creator.nickname}>
+                <span className="text-xs truncate">{playlist.creator.nickname}</span>
+              </Tooltip>
             </div>
           )
         }
