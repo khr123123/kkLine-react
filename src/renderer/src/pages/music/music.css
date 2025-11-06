@@ -616,4 +616,27 @@
   border-radius: 8px;
   overflow: hidden;
   margin-bottom: 8px;
+  background-color: #1890FF;
+}
+
+/* 普通菜单项 */
+.music-menu .ant-menu-item,
+.music-menu .ant-menu-overflow-item {
+  background-color: #1890FF;
+  font-weight: 600;
+  color: #ffffff !important;
+}
+
+/* 鼠标悬停菜单项 */
+.music-menu .ant-menu-item:hover,
+.music-menu .ant-menu-overflow-item:hover {
+  background-color: #097ad6 !important;
+  color: #ffffff !important;
+}
+
+/* 选中状态菜单项 */
+.music-menu .ant-menu-item-selected,
+.music-menu .ant-menu-overflow-item-selected {
+  background-color: #096dd9 !important;
+  color: #ffffff !important;
 }

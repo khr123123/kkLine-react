@@ -147,7 +147,7 @@ export default function Music() {
                     style={{ borderBottom: 'none' }}
                 />
             </div>
-            <div className="main-content flex-1 overflow-y-auto">
+            <div className="main-content flex-1 overflow-y-auto scrollableDiv">
                 {renderView()}
             </div>
         </div>

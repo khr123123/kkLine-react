@@ -8,7 +8,8 @@ import { addImageParams } from '../../utils/timeUtil';
 import { message } from 'antd';
 import { cancelCollectPlaylist, collectPlaylist } from '@renderer/api/userFavoriteApis';
 import { getPlaylistDetail } from '@renderer/api/playlistApis';
-
+import { addPlaylistComment, deleteComment, likeComment } from '@renderer/api/commentApis';
+import { useUserStore } from '@renderer/store/useUserStore';
 const { TabPane } = Tabs;
 
 interface PlaylistDetailPageProps {
@@ -30,8 +31,10 @@ export const PlaylistDetailPage: React.FC<PlaylistDetailPageProps> = ({
     const playlistDetail = data || null;
     const songs = playlistDetail?.songs || [];
     const comments = playlistDetail?.comments || [];
-
+    const currentUsername = useUserStore((state) => state.user);
     useEffect(() => {
+        console.log(playlistId);
+
         if (playlistId) {
             fetchPlaylistDetail();
         }
@@ -39,10 +42,9 @@ export const PlaylistDetailPage: React.FC<PlaylistDetailPageProps> = ({
 
     const fetchPlaylistDetail = async () => {
         const result = await fetchData(
-            () => getPlaylistDetail(playlistId),
+            () => getPlaylistDetail({ id: playlistId }),
             '获取歌单详情失败'
         );
-
         if (result) {
             // 检查是否已收藏（这里需要根据实际 API 返回数据调整）
             setIsCollected(result.isCollected || false);
@@ -52,10 +54,10 @@ export const PlaylistDetailPage: React.FC<PlaylistDetailPageProps> = ({
     const handleToggleCollect = async () => {
         try {
             if (isCollected) {
-                await cancelCollectPlaylist(playlistId);
+                await cancelCollectPlaylist({ playlistId });
                 message.success('取消收藏成功');
             } else {
-                await collectPlaylist(playlistId);
+                await collectPlaylist({ playlistId });
                 message.success('收藏成功');
             }
             setIsCollected(!isCollected);
@@ -82,7 +84,7 @@ export const PlaylistDetailPage: React.FC<PlaylistDetailPageProps> = ({
 
     const handleLikeComment = async (commentId: number) => {
         try {
-            const result = await likeComment(commentId);
+            const result = await likeComment({ id: commentId });
             if (result.code === 0) {
                 message.success('点赞成功');
                 await fetchPlaylistDetail();
@@ -94,7 +96,7 @@ export const PlaylistDetailPage: React.FC<PlaylistDetailPageProps> = ({
 
     const handleDeleteComment = async (commentId: number) => {
         try {
-            const result = await deleteComment(commentId);
+            const result = await deleteComment({ id: commentId });
             if (result.code === 0) {
                 message.success('删除成功');
                 await fetchPlaylistDetail();
@@ -182,8 +184,8 @@ export const PlaylistDetailPage: React.FC<PlaylistDetailPageProps> = ({
                 <TabPane tab="评论" key="comments">
                     <CommentSection
                         comments={comments}
-                        currentUsername="" // TODO: 从用户状态获取
-                        isLoggedIn={false} // TODO: 从用户状态获取
+                        currentUsername={currentUsername?.userName!}
+                        isLoggedIn={currentUsername != null}
                         onAddComment={handleAddComment}
                         onLikeComment={handleLikeComment}
                         onDeleteComment={handleDeleteComment}
