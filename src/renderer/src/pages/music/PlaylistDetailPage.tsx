@@ -24,31 +24,26 @@ export const PlaylistDetailPage: React.FC<PlaylistDetailPageProps> = ({
     onPlaySong,
     onPlayAll,
 }) => {
-    const { data, loading, fetchData, setData } = useDataFetch();
     const [activeTab, setActiveTab] = useState('songs');
     const [isCollected, setIsCollected] = useState(false);
+    const [songs, setSongs] = useState([])
+    const [comments, setComments] = useState([])
+    const [playlistDetail, setPlaylistDetail] = useState<any>({});
 
-    // ✅ 安全访问数据
-    const playlistDetail = data || null;
-    const songs = playlistDetail?.songs || [];
-    const comments = playlistDetail?.comments || [];
     const currentUsername = useUserStore((state) => state.user);
     useEffect(() => {
-        console.log(playlistId);
-
         if (playlistId) {
             fetchPlaylistDetail();
         }
     }, [playlistId]);
 
     const fetchPlaylistDetail = async () => {
-        const result = await fetchData(
-            () => getPlaylistDetail({ id: playlistId }),
-            '获取歌单详情失败'
-        );
-        if (result) {
-            // 检查是否已收藏（这里需要根据实际 API 返回数据调整）
-            setIsCollected(result.isCollected || false);
+        const result = await getPlaylistDetail({ id: playlistId })
+        if (result.code === 0) {
+            setPlaylistDetail(result.data);
+            setIsCollected(result.data.likeStatus == 1);
+            setSongs(result.data.songs || []);
+            setComments(result.data.comments || []);
         }
     };
 
@@ -107,21 +102,6 @@ export const PlaylistDetailPage: React.FC<PlaylistDetailPageProps> = ({
         }
     };
 
-    if (loading && !playlistDetail) {
-        return (
-            <div className="flex items-center justify-center h-96">
-                <Spin size="large" />
-            </div>
-        );
-    }
-
-    if (!playlistDetail) {
-        return (
-            <div className="flex items-center justify-center h-96 text-gray-400">
-                歌单不存在
-            </div>
-        );
-    }
 
     return (
         <div className="p-6">
@@ -178,7 +158,11 @@ export const PlaylistDetailPage: React.FC<PlaylistDetailPageProps> = ({
                     <SongTable
                         songs={songs}
                         loading={false}
-                        pagination={false}
+                        pagination={{
+                            pageSize: 10,
+                            showSizeChanger: true,
+                            showQuickJumper: true,
+                        }}
                         onPlay={(song) => onPlaySong(song, songs)}
                     />
                 </TabPane>

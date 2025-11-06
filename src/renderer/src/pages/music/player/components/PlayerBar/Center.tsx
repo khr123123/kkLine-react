@@ -27,7 +27,7 @@ const Center: React.FC<CenterProps> = ({
   onToggleLike,
 }) => {
   return (
-    <div className="flex-1 flex items-center px-4">
+    <div className="flex-1 flex items-center justify-center px-4">
       <div className="flex items-center gap-2 mr-4">
         <button
           onClick={onPrev}

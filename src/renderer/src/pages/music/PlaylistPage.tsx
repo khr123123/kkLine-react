@@ -95,7 +95,7 @@ export const PlaylistPage: React.FC<PlaylistPageProps> = ({ onSelectPlaylist }) 
             <PlaylistCard
               key={playlist.playlistId}
               playlist={playlist}
-              onClick={onSelectPlaylist}
+              onClick={() => onSelectPlaylist(playlist.playlistId)}
             />
           ))}
         </div>
