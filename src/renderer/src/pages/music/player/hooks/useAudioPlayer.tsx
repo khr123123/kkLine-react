@@ -1,38 +1,26 @@
-﻿// hooks/useAudioPlayer.ts
-import { useState, useRef, useEffect, useCallback } from 'react';
+﻿import { useEffect, useRef } from 'react';
+import { usePlayerStore } from '../../../../store/usePlayerStore';
 
-export interface Track {
-    id: string;
-    title: string;
-    artist: string;
-    album?: string;
-    cover: string;
-    url: string;
-    duration: number;
-    likeStatus?: number;
-}
-
-type PlayMode = 'order' | 'shuffle' | 'loop' | 'single';
-
-export const useAudioPlayer = (
-    trackList: Track[],
-    currentSongIndex: number,
-    setCurrentSongIndex: (index: number) => void,
-    setIsPlaying: (playing: boolean) => void,
-    isPlaying: boolean
-) => {
+export const useAudioPlayer = () => {
     const audioRef = useRef<HTMLAudioElement | null>(null);
-    const [currentTime, setCurrentTime] = useState(0);
-    const [duration, setDuration] = useState(0);
-    const [volume, setVolume] = useState(50);
-    const [playMode, setPlayMode] = useState<PlayMode>('order');
-    const [playHistory, setPlayHistory] = useState<number[]>([]);
+    
+    const {
+        trackList,
+        currentSongIndex,
+        isPlaying,
+        setCurrentTime,
+        setDuration,
+        setAudioRef,
+        nextTrack,
+        volume,
+    } = usePlayerStore();
 
     // 初始化音频元素
     useEffect(() => {
         if (!audioRef.current) {
             audioRef.current = new Audio();
             audioRef.current.volume = volume / 100;
+            setAudioRef(audioRef.current);
         }
 
         const audio = audioRef.current;
@@ -66,7 +54,7 @@ export const useAudioPlayer = (
             audio.removeEventListener('ended', handleEnded);
             audio.removeEventListener('canplay', handleCanPlay);
         };
-    }, [isPlaying]);
+    }, [isPlaying, nextTrack, setCurrentTime, setDuration, setAudioRef, volume]);
 
     // 加载当前曲目
     useEffect(() => {
@@ -96,86 +84,4 @@ export const useAudioPlayer = (
             audioRef.current.volume = volume / 100;
         }
     }, [volume]);
-
-    const togglePlayPause = useCallback(() => {
-        setIsPlaying(!isPlaying);
-    }, [isPlaying, setIsPlaying]);
-
-    const seek = useCallback((time: number) => {
-        if (audioRef.current) {
-            audioRef.current.currentTime = time;
-            setCurrentTime(time);
-        }
-    }, []);
-
-    const getNextIndex = useCallback(() => {
-        if (trackList.length === 0) return 0;
-
-        switch (playMode) {
-            case 'single':
-                return currentSongIndex;
-            case 'shuffle':
-                return Math.floor(Math.random() * trackList.length);
-            case 'loop':
-            case 'order':
-            default:
-                return (currentSongIndex + 1) % trackList.length;
-        }
-    }, [playMode, currentSongIndex, trackList.length]);
-
-    const getPrevIndex = useCallback(() => {
-        if (trackList.length === 0) return 0;
-
-        switch (playMode) {
-            case 'single':
-                return currentSongIndex;
-            case 'shuffle':
-                return Math.floor(Math.random() * trackList.length);
-            case 'loop':
-            case 'order':
-            default:
-                return (currentSongIndex - 1 + trackList.length) % trackList.length;
-        }
-    }, [playMode, currentSongIndex, trackList.length]);
-
-    const nextTrack = useCallback(() => {
-        const nextIndex = getNextIndex();
-        setCurrentSongIndex(nextIndex);
-        setIsPlaying(true);
-    }, [getNextIndex, setCurrentSongIndex, setIsPlaying]);
-
-    const prevTrack = useCallback(() => {
-        const prevIndex = getPrevIndex();
-        setCurrentSongIndex(prevIndex);
-        setIsPlaying(true);
-    }, [getPrevIndex, setCurrentSongIndex, setIsPlaying]);
-
-    const changeVolume = useCallback((newVolume: number) => {
-        setVolume(newVolume);
-    }, []);
-
-    const currentTrack = trackList[currentSongIndex] || {
-        id: '',
-        title: '暂无播放',
-        artist: '未知艺术家',
-        cover: '',
-        url: '',
-        duration: 0,
-    };
-
-    return {
-        audioRef,
-        currentTrack,
-        currentTime,
-        duration,
-        volume,
-        playMode,
-        isPlaying,
-        togglePlayPause,
-        nextTrack,
-        prevTrack,
-        seek,
-        changeVolume,
-        setPlayMode,
-    };
 };

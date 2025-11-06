@@ -1,7 +1,7 @@
 // App.tsx
 import { ConfigProvider, theme } from 'antd'
 import { useEffect } from 'react'
-import { createBrowserRouter, data, Navigate, RouterProvider } from 'react-router-dom'
+import { createBrowserRouter, data, Navigate, RouterProvider, useLocation } from 'react-router-dom'
 import AdminLayout from './adminPages/AdminLayout'
 import GroupListpage from './adminPages/GroupListpage'
 import UserListPage from './adminPages/UserListPage'
@@ -27,6 +27,7 @@ import AudioCallModal from './pages/session/components/AudioCallPage'
 import VideoCallModal from './pages/session/components/VideoCallPage'
 import VideoCallPageWithComponents from './pages/session/components/VideoCallLiveKitPage'
 import MusicPage from './pages/music'
+import { setupRouteListener } from './store/usePlayerStore'
 // Define routes
 const router = createBrowserRouter([
   {
@@ -218,6 +219,7 @@ export default function App() {
       window.electron.ipcRenderer.removeAllListeners('reviced-video-offer');
     };
   }, []);
+
 
   return (
     <ConfigProvider theme={{ algorithm: getAlgorithm(), hashed: false }}>

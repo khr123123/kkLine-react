@@ -4,9 +4,9 @@ import Left from './Left';
 import Center from './Center';
 import Right from './Right';
 import MusicDrawer from '../MusicDrawer';
-import { Track } from '../../hooks/useAudioPlayer';
 import { message, Slider } from 'antd';
 import { formatTime2Player } from '@renderer/utils/timeUtil';
+import { Track } from '@renderer/store/usePlayerStore';
 
 interface PlayerBarProps {
     trackList: Track[];

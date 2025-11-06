@@ -26,7 +26,7 @@ export const ArtistDetailPage: React.FC<ArtistDetailPageProps> = ({
     }, [artistId]);
 
     const fetchArtistDetail = async () => {
-        await fetchData(() => getArtistDetail({ id: artistId }), '获取歌手详情失败');
+        await fetchData(() => getArtistDetail({ id: artistId }) as any, '获取歌手详情失败');
     };
 
     if (loading && !artistDetail) {
