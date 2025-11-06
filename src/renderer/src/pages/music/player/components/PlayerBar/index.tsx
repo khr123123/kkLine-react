@@ -5,7 +5,8 @@ import Center from './Center';
 import Right from './Right';
 import MusicDrawer from '../MusicDrawer';
 import { Track } from '../../hooks/useAudioPlayer';
-import { message } from 'antd';
+import { message, Slider } from 'antd';
+import { formatTime2Player } from '@renderer/utils/timeUtil';
 
 interface PlayerBarProps {
     trackList: Track[];
@@ -56,32 +57,55 @@ const PlayerBar: React.FC<PlayerBarProps> = ({
 
     return (
         <>
-            <footer className="border-t flex items-center justify-between shadow-lg bg-white h-20 px-4">
-                <Left currentTrack={currentTrack} onShowDrawer={() => setShowDrawer(true)} />
+            <footer className="bg-white shadow-lg border-t px-4 pt-0 pb-2 flex flex-col gap-0">
+                {/* ✅ 顶部的进度条区域（当成 border-top 效果） */}
+                <div className="flex items-center gap-1 w-full mt-0 pt-0">
+                    <span className="text-[11px] text-gray-500 w-12 text-right">
+                        {formatTime2Player(currentTime)}
+                    </span>
 
-                <Center
-                    isPlaying={isPlaying}
-                    currentTime={currentTime}
-                    duration={duration}
-                    currentLikeStatus={currentTrack.likeStatus || 0}
-                    onTogglePlay={onTogglePlay}
-                    onPrev={onPrev}
-                    onNext={onNext}
-                    onSeek={onSeek}
-                    onToggleLike={onToggleLike}
-                />
+                    <Slider
+                        value={currentTime}
+                        max={duration || 100}
+                        step={0.1}
+                        onChange={onSeek}
+                        tooltip={{ formatter: (value) => formatTime2Player(value || 0) }}
+                        className="flex-1"
+                    />
 
-                <Right
-                    volume={volume}
-                    playMode={playMode}
-                    trackList={trackList}
-                    currentSongIndex={currentSongIndex}
-                    onVolumeChange={onVolumeChange}
-                    onPlayModeChange={onPlayModeChange}
-                    onPlayTrack={onPlayTrack}
-                    onRemoveTrack={onRemoveTrack}
-                    onClearAll={onClearAll}
-                />
+                    <span className="text-[11px] text-gray-500 w-12">
+                        {formatTime2Player(duration)}
+                    </span>
+                </div>
+
+                {/* ✅ 主控制区 */}
+                <div className="flex items-center justify-between h-14">
+                    <Left
+                        currentTrack={currentTrack}
+                        onShowDrawer={() => setShowDrawer(true)}
+                    />
+
+                    <Center
+                        isPlaying={isPlaying}
+                        currentLikeStatus={currentTrack.likeStatus || 0}
+                        onTogglePlay={onTogglePlay}
+                        onPrev={onPrev}
+                        onNext={onNext}
+                        onToggleLike={onToggleLike}
+                    />
+
+                    <Right
+                        volume={volume}
+                        playMode={playMode}
+                        trackList={trackList}
+                        currentSongIndex={currentSongIndex}
+                        onVolumeChange={onVolumeChange}
+                        onPlayModeChange={onPlayModeChange}
+                        onPlayTrack={onPlayTrack}
+                        onRemoveTrack={onRemoveTrack}
+                        onClearAll={onClearAll}
+                    />
+                </div>
             </footer>
 
             <MusicDrawer
@@ -94,6 +118,7 @@ const PlayerBar: React.FC<PlayerBarProps> = ({
                 setCurrentSongIndex={setCurrentSongIndex}
                 setIsPlaying={setIsPlaying}
             />
+
         </>
     );
 };

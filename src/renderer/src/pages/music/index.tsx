@@ -11,6 +11,7 @@ import './music.css';
 import { TikTokOutlined } from '@ant-design/icons';
 import { Track, useAudioPlayer } from './player/hooks/useAudioPlayer';
 import PlayerBar from './player/components/PlayerBar';
+import { cancelCollectSong, collectSong } from '@renderer/api/userFavoriteApis';
 
 type ViewType = 'home' | 'playlist' | 'playlistDetail' | 'artist' | 'artistDetail' | 'library' | 'like';
 
@@ -112,22 +113,32 @@ export default function Music() {
         message.success('已清空播放列表');
     }, []);
 
-    const handleToggleLike = useCallback(() => {
+    const handleToggleLike = useCallback(async () => {
         if (!currentTrack.id) return;
-
-        // 这里应该调用你的 API
-        const newStatus = currentTrack.likeStatus === 1 ? 0 : 1;
-
-        // 更新当前歌曲的喜欢状态
-        setTrackList((prev) =>
-            prev.map((track) =>
-                track.id === currentTrack.id
-                    ? { ...track, likeStatus: newStatus }
-                    : track
-            )
-        );
-
-        message.success(newStatus === 1 ? '已添加到我喜欢' : '已取消喜欢');
+        // 当前是否已收藏（1=喜欢, 0=未喜欢）
+        const isLiked = currentTrack.likeStatus === 1;
+        try {
+            if (isLiked) {
+                // 取消收藏
+                await cancelCollectSong({ songId: Number(currentTrack.id) });
+            } else {
+                // 收藏
+                await collectSong({ songId: Number(currentTrack.id) });
+            }
+            // 计算新的状态
+            const newStatus = isLiked ? 0 : 1;
+            // 更新当前歌曲的喜欢状态
+            setTrackList((prev) =>
+                prev.map((track) =>
+                    track.id === currentTrack.id
+                        ? { ...track, likeStatus: newStatus }
+                        : track
+                )
+            );
+            message.success(newStatus === 1 ? '已添加到我喜欢' : '已取消喜欢');
+        } catch (error) {
+            message.error('操作失败，请稍后重试');
+        }
     }, [currentTrack]);
 
     const handlePlayModeChange = useCallback(() => {
@@ -220,7 +231,7 @@ export default function Music() {
                     <div className="logo-icon w-8 h-8 rounded-full bg-blue-300 mr-2 flex items-center justify-center">
                         <TikTokOutlined style={{ fontSize: 24 }} />
                     </div>
-                    <span className="font-bold text-xl text-blue-500">KK MUSIC</span>
+                    <span className="font-bold text-xl text-black-500">KK MUSIC</span>
                 </div>
                 <Menu
                     mode="horizontal"

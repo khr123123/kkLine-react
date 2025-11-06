@@ -6,7 +6,7 @@ import { usePagination } from './hooks/usePagination';
 import { getUserFavoriteSongs } from '@renderer/api/userFavoriteApis';
 import defaultMusicCover from '../../assets/music.png';
 interface FavoritePageProps {
-  onPlaySong: (song: any) => void;
+  onPlaySong: (song: any, allSongs: any[]) => void;
   onPlayAll: (songs: any[]) => void;
 }
 
@@ -79,7 +79,7 @@ export const FavoritePage: React.FC<FavoritePageProps> = ({ onPlaySong, onPlayAl
       <SongTable
         songs={favoriteSongs}
         loading={loading}
-        onPlay={onPlaySong}
+        onPlay={(song) => onPlaySong(song, favoriteSongs)}
         pagination={{
           current: currentPage,
           pageSize: pageSize,
