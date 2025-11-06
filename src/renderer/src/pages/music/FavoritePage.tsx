@@ -91,5 +91,6 @@ export const FavoritePage: React.FC<FavoritePageProps> = ({ onPlaySong, onPlayAl
         }}
       />
     </div>
+
   );
 };

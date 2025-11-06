@@ -5,7 +5,7 @@ import { createRoot } from 'react-dom/client';
 import App from './App';
 import './styles/global.scss';
 import "./styles/bubble.css"
-
+import "./styles/Tailwind.css"
 message.config({
   maxCount: 3,
 });

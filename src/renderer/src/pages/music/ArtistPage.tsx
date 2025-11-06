@@ -20,6 +20,7 @@ const genderCategories = [
   { id: '-1', label: '全部', value: null },
   { id: '1', label: '男歌手', value: '0' },
   { id: '2', label: '女歌手', value: '1' },
+  { id: '3', label: '组合/乐队', value: '2' },
 ];
 
 const areaCategories = [
@@ -49,14 +50,8 @@ export const ArtistPage: React.FC<ArtistPageProps> = ({ onSelectArtist }) => {
       pageNum: currentPage,
       pageSize,
       artistName: searchKeyword || null,
-      gender:
-        selectedGender === '-1'
-          ? null
-          : genderCategories.find((c) => c.id === selectedGender)?.value,
-      area:
-        selectedArea === '-1'
-          ? null
-          : areaCategories.find((c) => c.id === selectedArea)?.value,
+      gender: genderCategories.find((c) => c.id === selectedGender)?.value,
+      area: areaCategories.find((c) => c.id === selectedArea)?.value,
     };
     setLoading(true)
     const result = await getAllArtists(params)
@@ -75,9 +70,14 @@ export const ArtistPage: React.FC<ArtistPageProps> = ({ onSelectArtist }) => {
   };
 
   return (
-    <div className="flex h-full">
+    <div className="flex h-full" style={{ marginTop: -9 }}>
       {/* 左侧筛选栏 */}
-      <div className="w-48 bg-gray-50 p-4 border-r">
+      <div className="
+    w-48 p-4 border-r
+    bg-token-bg-sidebar
+    text-token-text
+    border-token-border
+  ">
         <div className="flex justify-between items-center mb-2" style={{ marginTop: -20 }}>
           <h2 className="text-lg font-semibold">歌手分类</h2>
           <Button type="link" size="small" onClick={handleReset}>

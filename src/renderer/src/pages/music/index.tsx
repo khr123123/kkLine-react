@@ -1,5 +1,5 @@
 ﻿import React, { useState, useCallback } from 'react';
-import { Button, Menu } from 'antd';
+import { Button, Menu, message } from 'antd';
 import { HomePage } from './HomePage·';
 import { PlaylistPage } from './PlaylistPage';
 import { PlaylistDetailPage } from './PlaylistDetailPage';
@@ -9,6 +9,8 @@ import { LibraryPage } from './LibraryPage';
 import { FavoritePage } from './FavoritePage';
 import './music.css';
 import { TikTokOutlined } from '@ant-design/icons';
+import { Track, useAudioPlayer } from './player/hooks/useAudioPlayer';
+import PlayerBar from './player/components/PlayerBar';
 
 type ViewType = 'home' | 'playlist' | 'playlistDetail' | 'artist' | 'artistDetail' | 'library' | 'like';
 
@@ -17,9 +19,31 @@ export default function Music() {
     const [selectedId, setSelectedId] = useState<number | null>(null);
 
     // 音频播放逻辑
-    const [trackList, setTrackList] = useState<any[]>([]);
+    const [trackList, setTrackList] = useState<Track[]>([]);
     const [currentSongIndex, setCurrentSongIndex] = useState(0);
     const [isPlaying, setIsPlaying] = useState(false);
+
+    // 使用音频播放器 Hook
+    const {
+        audioRef,
+        currentTrack,
+        currentTime,
+        duration,
+        volume,
+        playMode,
+        togglePlayPause,
+        nextTrack,
+        prevTrack,
+        seek,
+        changeVolume,
+        setPlayMode,
+    } = useAudioPlayer(
+        trackList,
+        currentSongIndex,
+        setCurrentSongIndex,
+        setIsPlaying,
+        isPlaying
+    );
 
     const handlePlaySong = useCallback((song: any, allSongs: any[]) => {
         const tracks = (allSongs || []).map((s) => ({
@@ -63,6 +87,64 @@ export default function Music() {
         console.log('Playing all songs, count:', songs.length);
     }, []);
 
+    const handlePlayTrack = useCallback((index: number) => {
+        setCurrentSongIndex(index);
+        setIsPlaying(true);
+    }, []);
+
+    const handleRemoveTrack = useCallback((id: string) => {
+        const newTrackList = trackList.filter((track) => track.id !== id);
+        setTrackList(newTrackList);
+
+        if (trackList[currentSongIndex]?.id === id) {
+            if (newTrackList.length > 0) {
+                setCurrentSongIndex(Math.min(currentSongIndex, newTrackList.length - 1));
+            } else {
+                setIsPlaying(false);
+            }
+        }
+    }, [trackList, currentSongIndex]);
+
+    const handleClearAll = useCallback(() => {
+        setTrackList([]);
+        setCurrentSongIndex(0);
+        setIsPlaying(false);
+        message.success('已清空播放列表');
+    }, []);
+
+    const handleToggleLike = useCallback(() => {
+        if (!currentTrack.id) return;
+
+        // 这里应该调用你的 API
+        const newStatus = currentTrack.likeStatus === 1 ? 0 : 1;
+
+        // 更新当前歌曲的喜欢状态
+        setTrackList((prev) =>
+            prev.map((track) =>
+                track.id === currentTrack.id
+                    ? { ...track, likeStatus: newStatus }
+                    : track
+            )
+        );
+
+        message.success(newStatus === 1 ? '已添加到我喜欢' : '已取消喜欢');
+    }, [currentTrack]);
+
+    const handlePlayModeChange = useCallback(() => {
+        const modes: Array<'order' | 'shuffle' | 'loop' | 'single'> = ['order', 'shuffle', 'loop', 'single'];
+        const currentIndex = modes.indexOf(playMode);
+        const nextMode = modes[(currentIndex + 1) % modes.length];
+        setPlayMode(nextMode);
+
+        const modeNames = {
+            order: '顺序播放',
+            shuffle: '随机播放',
+            loop: '列表循环',
+            single: '单曲循环',
+        };
+        message.info(modeNames[nextMode]);
+    }, [playMode, setPlayMode]);
+
     const handleSelectPlaylist = useCallback((id: number) => {
         setSelectedId(id);
         setCurrentView('playlistDetail');
@@ -75,7 +157,6 @@ export default function Music() {
 
     const handleNavigate = useCallback((view: ViewType) => {
         setCurrentView(view);
-        // 重置选中ID（除了详情页）
         if (!view.includes('Detail')) {
             setSelectedId(null);
         }
@@ -122,6 +203,7 @@ export default function Music() {
                 return null;
         }
     };
+
     const items = [
         { key: 'home', label: '首页' },
         { key: 'playlist', label: '歌单' },
@@ -129,12 +211,12 @@ export default function Music() {
         { key: 'library', label: '音乐库' },
         { key: 'like', label: '我喜欢' },
     ];
+
     return (
         <div className="music-container h-screen flex flex-col">
             {/* 导航栏 */}
             <div className="music-menu navigation-bar flex items-center bg-white shadow px-6 h-16">
-                {/* 左侧 Logo */}
-                <div className="logo flex items-center mr-8 cursor-pointer" >
+                <div className="logo flex items-center mr-8 cursor-pointer">
                     <div className="logo-icon w-8 h-8 rounded-full bg-blue-300 mr-2 flex items-center justify-center">
                         <TikTokOutlined style={{ fontSize: 24 }} />
                     </div>
@@ -147,9 +229,35 @@ export default function Music() {
                     style={{ borderBottom: 'none' }}
                 />
             </div>
+
+            {/* 主内容区域 */}
             <div className="main-content flex-1 overflow-y-auto scrollableDiv">
                 {renderView()}
             </div>
+
+            {/* 底部播放条 */}
+            <PlayerBar
+                trackList={trackList}
+                currentSongIndex={currentSongIndex}
+                isPlaying={isPlaying}
+                currentTime={currentTime}
+                duration={duration}
+                volume={volume}
+                playMode={playMode}
+                currentTrack={currentTrack}
+                onTogglePlay={togglePlayPause}
+                onPrev={prevTrack}
+                onNext={nextTrack}
+                onSeek={seek}
+                onVolumeChange={changeVolume}
+                onPlayModeChange={handlePlayModeChange}
+                onPlayTrack={handlePlayTrack}
+                onRemoveTrack={handleRemoveTrack}
+                onClearAll={handleClearAll}
+                onToggleLike={handleToggleLike}
+                setCurrentSongIndex={setCurrentSongIndex}
+                setIsPlaying={setIsPlaying}
+            />
         </div>
     );
 }

@@ -18,14 +18,14 @@ interface Song {
 interface SongTableProps {
   songs: Song[];
   loading?: boolean;
-  pagination?: boolean | object;
+  pagination?: object;
   onPlay: (song: Song) => void;
 }
 
 export const SongTable: React.FC<SongTableProps> = ({
-  songs = [], // ✅ 默认空数组，防止 undefined
+  songs = [],
   loading = false,
-  pagination = false,
+  pagination,
   onPlay,
 }) => {
   const columns: ColumnsType<Song> = [
@@ -89,6 +89,7 @@ export const SongTable: React.FC<SongTableProps> = ({
       dataSource={songs}
       rowKey="songId"
       loading={loading}
+      pagination={pagination}
     />
   );
 };

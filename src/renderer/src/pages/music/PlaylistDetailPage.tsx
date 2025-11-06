@@ -10,6 +10,7 @@ import { cancelCollectPlaylist, collectPlaylist } from '@renderer/api/userFavori
 import { getPlaylistDetail } from '@renderer/api/playlistApis';
 import { addPlaylistComment, deleteComment, likeComment } from '@renderer/api/commentApis';
 import { useUserStore } from '@renderer/store/useUserStore';
+import defaultIcon from "../../assets/music.png"
 const { TabPane } = Tabs;
 
 interface PlaylistDetailPageProps {
@@ -135,11 +136,11 @@ export const PlaylistDetailPage: React.FC<PlaylistDetailPageProps> = ({
                     <div>
                         <h1 className="text-3xl font-bold mb-2">{playlistDetail.title}</h1>
                         <p className="text-gray-600 mb-4 line-clamp-2">
-                            {playlistDetail.description}
+                            {playlistDetail.introduction}
                         </p>
                         <div className="flex items-center gap-2 text-sm text-gray-500 mb-4">
-                            <Avatar size="small" src={playlistDetail.creator?.avatarUrl} />
-                            <span>{playlistDetail.creator?.nickname}</span>
+                            <Avatar shape="square" size="small" src={playlistDetail.creator?.avatarUrl || defaultIcon} />
+                            <span>{playlistDetail.creator?.nickname || "KK MUSIC"}</span>
                             <span>•</span>
                             <span>{songs.length} 首歌曲</span>
                         </div>

@@ -56,7 +56,6 @@ import EmojiPicker from 'emoji-picker-react'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { formatRelativeTime } from '../../utils/timeUtil'
-import { log } from 'node:console'
 
 // 全局上传ID，用于追踪文件上传进度
 let globalUploadId: any

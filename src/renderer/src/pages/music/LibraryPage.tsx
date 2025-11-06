@@ -1,5 +1,4 @@
 ﻿import React, { useEffect, useState } from 'react';
-import { Spin } from 'antd';
 import { SongTable } from './components/SongTable';
 import { SearchBar } from './components/SearchBar';
 import { usePagination } from './hooks/usePagination';
@@ -10,10 +9,11 @@ interface LibraryPageProps {
 }
 
 export const LibraryPage: React.FC<LibraryPageProps> = ({ onPlaySong }) => {
-  const { currentPage, pageSize, total, setTotal, handlePageChange } = usePagination(1, 20);
-  const [searchKeyword, setSearchKeyword] = useState('');
+  const { currentPage, pageSize, total, setTotal, handlePageChange } =
+    usePagination(1, 10);
 
-  const [librarySongs, setLibrarySongs] = useState([]);
+  const [searchKeyword, setSearchKeyword] = useState('');
+  const [librarySongs, setLibrarySongs] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -21,55 +21,74 @@ export const LibraryPage: React.FC<LibraryPageProps> = ({ onPlaySong }) => {
   }, [currentPage, pageSize]);
 
   const fetchLibrarySongs = async () => {
-    const result = await
-      getAllSongs({
-        pageNum: currentPage,
-        pageSize: pageSize,
-        songName: searchKeyword || '',
-        artistName: '',
-        album: '',
-      })
+    setLoading(true);
+
+    const params = {
+      pageNum: currentPage,
+      pageSize,
+      songName: searchKeyword || '',
+      artistName: '',
+      album: '',
+    };
+
+    const result = await getAllSongs(params);
 
     if (result) {
-      setTotal(result.data.total);
-      setLibrarySongs(result.data.records);
-      setLoading(false)
+      const { total, records } = result.data;
+
+      // ✅ 如果有搜索关键字但没结果 → 回到第一页重新查
+      if (searchKeyword && total === 0) {
+        setLibrarySongs([]);
+        setTotal(0);
+
+        if (currentPage !== 1) {
+          handlePageChange(1);
+        }
+
+        setLoading(false);
+        return;
+      }
+
+      // ✅ 正常情况
+      setTotal(total);
+      setLibrarySongs(records);
     }
+
+    setLoading(false);
   };
 
   return (
-    <div className="p-6" style={{ marginTop: -40 }}>
+    <div className="p-6" style={{ marginTop: -42 }}>
       <div className="flex justify-between items-center mb-0">
         <h2 className="text-2xl font-semibold">音乐库</h2>
         <SearchBar
           value={searchKeyword}
           placeholder="搜索歌曲"
           onChange={setSearchKeyword}
-          onSearch={fetchLibrarySongs}
-          style={{ width: 300 }}
+          onSearch={() => {
+            if (currentPage !== 1) {
+              handlePageChange(1);
+            } else {
+              fetchLibrarySongs();
+            }
+          }}
+          style={{ width: 250 }}
         />
       </div>
-
-      <Spin spinning={loading}>
-        <SongTable
-          songs={librarySongs}
-          loading={false}
-          onPlay={(song) => onPlaySong(song, librarySongs)}
-          pagination={{
-            current: currentPage,
-            pageSize: pageSize,
-            total: total,
-            showSizeChanger: true,
-            showQuickJumper: true,
-            showTotal: (total) => `共 ${total} 首歌曲`,
-            onChange: handlePageChange,
-          }}
-        />
-
-        {!loading && librarySongs.length === 0 && (
-          <div className="text-center py-12 text-gray-400">暂无歌曲</div>
-        )}
-      </Spin>
+      <SongTable
+        songs={librarySongs}
+        loading={loading}
+        onPlay={(song) => onPlaySong(song, librarySongs)}
+        pagination={{
+          current: currentPage,
+          pageSize,
+          total,
+          showSizeChanger: true,
+          showQuickJumper: true,
+          showTotal: (total) => `共 ${total} 首歌曲`,
+          onChange: handlePageChange,
+        }}
+      />
     </div>
   );
 };

@@ -56,6 +56,7 @@ export const PlaylistPage: React.FC<PlaylistPageProps> = ({ onSelectPlaylist }) 
 
   const handleTabChange = (key: string) => {
     setPlaylistType(key as 'all' | 'favorite');
+    setPlaylists([]); //强制刷新 UI
     resetPagination();
   };
 
