@@ -1,7 +1,7 @@
 ﻿// components/PlayerBar/Left.tsx
 import React from 'react';
 import { Track } from '../../hooks/useAudioPlayer';
-
+import { TikTokOutlined } from '@ant-design/icons';
 interface LeftProps {
   currentTrack: Track;
   onShowDrawer: () => void;
@@ -19,11 +19,11 @@ const Left: React.FC<LeftProps> = ({ currentTrack, onShowDrawer }) => {
         height: '48px',
         flexShrink: 0,
       }}>
-        <img
-          src={currentTrack.cover || 'https://via.placeholder.com/48'}
+        {currentTrack.cover ? <img
+          src={currentTrack.cover}
           alt={currentTrack.title}
           className="w-full h-full object-cover rounded-lg"
-        />
+        /> : <TikTokOutlined style={{ fontSize: 32 }} className="w-full h-full object-cover rounded-lg" />}
       </div>
       <div className="flex-1 overflow-hidden">
         <div
