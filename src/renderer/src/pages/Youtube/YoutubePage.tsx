@@ -12,7 +12,7 @@ import {
     Typography,
     Menu,
 } from 'antd';
-import logo from '../../../../../resources/yutube.png';
+import logo from '../../assets/yutube.png';
 import "./index.css"
 const { TabPane } = Tabs;
 const { Search } = Input;
