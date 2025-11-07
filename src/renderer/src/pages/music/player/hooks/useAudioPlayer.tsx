@@ -3,7 +3,7 @@ import { usePlayerStore } from '../../../../store/usePlayerStore';
 
 export const useAudioPlayer = () => {
     const audioRef = useRef<HTMLAudioElement | null>(null);
-    
+
     const {
         trackList,
         currentSongIndex,

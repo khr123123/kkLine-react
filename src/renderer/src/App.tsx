@@ -25,9 +25,7 @@ import { useThemeStore } from './store/useThemeStore'
 import AdManagerPage from './adminPages/AdManagerPage'
 import AudioCallModal from './pages/session/components/AudioCallPage'
 import VideoCallModal from './pages/session/components/VideoCallPage'
-import VideoCallPageWithComponents from './pages/session/components/VideoCallLiveKitPage'
 import MusicPage from './pages/music'
-import { setupRouteListener } from './store/usePlayerStore'
 // Define routes
 const router = createBrowserRouter([
   {

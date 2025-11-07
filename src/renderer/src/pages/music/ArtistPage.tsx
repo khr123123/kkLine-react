@@ -70,14 +70,14 @@ export const ArtistPage: React.FC<ArtistPageProps> = ({ onSelectArtist }) => {
   };
 
   return (
-    <div className="flex h-full" style={{ marginTop: -9 }}>
+    <div className="flex h-full">
       {/* 左侧筛选栏 */}
       <div className="
   w-48 p-4 border-r
     text-gray-900
     border-gray-200
   ">
-        <div className="flex justify-between items-center mb-2" style={{ marginTop: -20 }}>
+        <div className="flex justify-between items-center mb-2">
           <h2 className="text-lg font-semibold">歌手分类</h2>
           <Button type="link" size="small" onClick={handleReset}>
             重置

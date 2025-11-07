@@ -42,7 +42,7 @@ export const FavoritePage: React.FC<FavoritePageProps> = ({ onPlaySong, onPlayAl
 
   return (
     <div className="p-6">
-      <div className="flex gap-6 mb-6">
+      <div className="flex gap-6 mb-4" style={{ marginTop: -20 }}>
         <img
           src={favoriteSongs[0]?.coverUrl || defaultMusicCover}
           alt="我喜欢的音乐"

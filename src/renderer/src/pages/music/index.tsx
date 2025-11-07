@@ -1,4 +1,4 @@
-﻿import React, { useState, useCallback, useEffect } from 'react';
+﻿import { useState, useCallback, useEffect } from 'react';
 import { Menu } from 'antd';
 import { HomePage } from './HomePage·';
 import { PlaylistPage } from './PlaylistPage';
@@ -11,7 +11,6 @@ import './music.css';
 import { TikTokOutlined } from '@ant-design/icons';
 import PlayerBar from './player/components/PlayerBar';
 import { useAudioPlayer } from './player/hooks/useAudioPlayer';
-import { useLocation } from 'react-router-dom';
 import { usePlayerStore } from '@renderer/store/usePlayerStore';
 type ViewType = 'home' | 'playlist' | 'playlistDetail' | 'artist' | 'artistDetail' | 'library' | 'like';
 
@@ -60,7 +59,6 @@ export default function Music() {
         setCurrentView('artistDetail');
     }, []);
 
-    const location = useLocation();
 
     const renderView = () => {
         switch (currentView) {
@@ -96,8 +94,7 @@ export default function Music() {
                 return (
                     <FavoritePage
                         onPlaySong={handlePlaySong}
-                        onPlayAll={handlePlayAll}
-                    />
+                        onPlayAll={handlePlayAll} />
                 );
             default:
                 return null;

@@ -1,8 +1,8 @@
 ﻿// components/MusicDrawer/index.tsx
 import React, { useState } from 'react';
 import { Drawer, Tabs, Input, Button, List, Avatar, Empty } from 'antd';
-import { Track } from '../../hooks/useAudioPlayer';
 import './index.css';
+import { Track } from '@renderer/store/usePlayerStore';
 
 const { TextArea } = Input;
 const { TabPane } = Tabs;
@@ -56,7 +56,7 @@ const MusicDrawer: React.FC<MusicDrawerProps> = ({
 
   const handleAddComment = () => {
     if (!newComment.trim()) return;
-    
+
     const comment: Comment = {
       id: Date.now().toString(),
       user: '当前用户',
@@ -64,7 +64,7 @@ const MusicDrawer: React.FC<MusicDrawerProps> = ({
       content: newComment,
       time: '刚刚',
     };
-    
+
     setComments([comment, ...comments]);
     setNewComment('');
   };
@@ -82,7 +82,6 @@ const MusicDrawer: React.FC<MusicDrawerProps> = ({
       open={visible}
       height="80vh"
       closable={false}
-      bodyStyle={{ padding: 0 }}
       className="music-drawer"
     >
       <div className="flex h-full">
@@ -99,7 +98,7 @@ const MusicDrawer: React.FC<MusicDrawerProps> = ({
               </div>
               <div className="album-center"></div>
             </div>
-            
+
             <div className="mt-8">
               <h2 className="text-2xl font-bold text-gray-800 mb-2">
                 {currentTrack.title}
@@ -117,7 +116,7 @@ const MusicDrawer: React.FC<MusicDrawerProps> = ({
         </div>
 
         {/* 右侧：详情和评论区域 */}
-        <div className="w-96 bg-white border-l">
+        <div className="w-96 bg-white border-l border-gray-200 p-4 rounded-tl-2xl overflow-hidden">
           <Tabs defaultActiveKey="1" className="h-full">
             <TabPane tab="歌曲详情" key="1">
               <div className="p-4">
@@ -147,9 +146,8 @@ const MusicDrawer: React.FC<MusicDrawerProps> = ({
                     dataSource={trackList}
                     renderItem={(item, index) => (
                       <List.Item
-                        className={`cursor-pointer hover:bg-gray-50 ${
-                          index === currentSongIndex ? 'bg-blue-50' : ''
-                        }`}
+                        className={`cursor-pointer hover:bg-gray-50 ${index === currentSongIndex ? 'bg-blue-50' : ''
+                          }`}
                         onClick={() => handlePlayTrack(index)}
                       >
                         <List.Item.Meta

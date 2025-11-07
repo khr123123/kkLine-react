@@ -58,8 +58,8 @@ export const LibraryPage: React.FC<LibraryPageProps> = ({ onPlaySong }) => {
   };
 
   return (
-    <div className="p-6" style={{ marginTop: -42 }}>
-      <div className="flex justify-between items-center mb-0">
+    <div className="p-6" style={{ marginTop: -20 }}>
+      <div className="flex justify-between items-center mb-2">
         <h2 className="text-2xl font-semibold">音乐库</h2>
         <SearchBar
           value={searchKeyword}
