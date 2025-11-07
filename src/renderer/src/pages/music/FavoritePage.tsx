@@ -5,6 +5,7 @@ import { SongTable } from './components/SongTable';
 import { usePagination } from './hooks/usePagination';
 import { getUserFavoriteSongs } from '@renderer/api/userFavoriteApis';
 import defaultMusicCover from '../../assets/music.png';
+import { usePlayerStore } from '@renderer/store/usePlayerStore';
 interface FavoritePageProps {
   onPlaySong: (song: any, allSongs: any[]) => void;
   onPlayAll: (songs: any[]) => void;

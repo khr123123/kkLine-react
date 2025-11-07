@@ -19,6 +19,7 @@ import { Outlet, useLocation, useMatches, useNavigate } from 'react-router-dom'
 import { useIsAdmin } from '../auth/RouteGuard'
 import GlobalToolBar from './GlobalToolBar'
 import UserIconCard from './UserIconCard'
+import { usePlayerStore } from '@renderer/store/usePlayerStore'
 const { Sider, Content } = Layout
 
 interface HandleWithRightArea {
@@ -31,16 +32,21 @@ const BaseLayout: React.FC = () => {
   const isAdmin = useIsAdmin()
   const location = useLocation()
   const user = useUserStore((state) => state.user)
-
   const handleMenuClick = (key: string) => {
     if (key === 'myGithub') {
       window.open('https://github.com/khr123123');
       return;
     }
-    setSelectedMenuKey(key);
-    if (!location.pathname.startsWith(`/${key}`)) {
-      navigate(`/${key}`);
+    // 离开 music 页面时暂停
+    if (location.pathname.startsWith('/music') && key !== 'music') {
+      const { isPlaying, togglePlayPause } = usePlayerStore.getState();
+      if (isPlaying) {
+        console.log('⏸️ 离开音乐页，暂停');
+        togglePlayPause();
+      }
     }
+    setSelectedMenuKey(key);
+    navigate(`/${key}`);
   };
 
   const IconFont = createFromIconfontCN({

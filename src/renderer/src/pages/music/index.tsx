@@ -12,12 +12,13 @@ import { TikTokOutlined } from '@ant-design/icons';
 import PlayerBar from './player/components/PlayerBar';
 import { useAudioPlayer } from './player/hooks/useAudioPlayer';
 import { usePlayerStore } from '@renderer/store/usePlayerStore';
+import { useLocation } from 'react-router-dom';
 type ViewType = 'home' | 'playlist' | 'playlistDetail' | 'artist' | 'artistDetail' | 'library' | 'like';
 
 export default function Music() {
     const [currentView, setCurrentView] = useState<ViewType>('home');
     const [selectedId, setSelectedId] = useState<number | null>(null);
-
+    const location = useLocation();
     // 初始化音频播放器
     useAudioPlayer();
 
@@ -58,7 +59,6 @@ export default function Music() {
         setSelectedId(id);
         setCurrentView('artistDetail');
     }, []);
-
 
     const renderView = () => {
         switch (currentView) {
@@ -125,11 +125,9 @@ export default function Music() {
                     style={{ borderBottom: 'none' }}
                 />
             </div>
-
             <div className="main-content flex-1 overflow-y-auto scrollableDiv">
                 {renderView()}
             </div>
-
             <PlayerBar
                 trackList={trackList}
                 currentSongIndex={currentSongIndex}

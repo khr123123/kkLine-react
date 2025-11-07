@@ -54,7 +54,6 @@ export const HomePage: React.FC<HomePageProps> = ({ onSelectPlaylist, onPlaySong
   const handleRefreshSongs = async () => {
     await fetchSongs(() => getRecommendedSongs() as any, '刷新歌曲失败');
   };
-
   return (
     <div className="p-1 ">
       <div className="flex-1">
