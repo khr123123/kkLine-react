@@ -1,0 +1,14 @@
+﻿.video-menu {
+    width: calc(100% - 260px);
+    margin-top: -26px;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 8px;
+    height: 70px;
+}
+
+/* 普通菜单项 */
+.video-menu .ant-menu-item,
+.video-menu .ant-menu-overflow-item {
+    font-weight: 600;
+}
