@@ -79,14 +79,14 @@ export const HomePage: React.FC<HomePageProps> = ({ onSelectPlaylist, onPlaySong
         </>}
         {/* 推荐歌单 */}
         <div className="mb-4">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+          <div className="mb-2" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <h2 style={{ fontSize: 18, fontWeight: 600 }}>今日为你推荐</h2>
             <Button type="link" icon={<MoreOutlined />} onClick={() => { }}>
               更多
             </Button>
           </div>
           {playlistLoading ? <Skeleton active /> :
-            <div style={{ display: 'grid', width: '100%', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+            <div className='mb-4' style={{ display: 'grid', width: '100%', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
               {recommendedPlaylist.slice(0, 9).map((item) => (
                 <Card
                   key={item.playlistId}
