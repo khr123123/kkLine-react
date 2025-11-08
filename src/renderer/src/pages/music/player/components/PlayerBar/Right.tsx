@@ -11,8 +11,8 @@ import {
     DeleteOutlined,
     PlayCircleOutlined,
 } from '@ant-design/icons';
-import { Track } from '../../hooks/useAudioPlayer';
 import { formatMillisecondsToTime2Player } from '../../../../../utils/timeUtil';
+import { Track } from '@renderer/store/usePlayerStore';
 
 interface RightProps {
     volume: number;
@@ -90,7 +90,7 @@ const Right: React.FC<RightProps> = ({
                         renderItem={(item, index) => (
                             <List.Item
                                 key={item.id}
-                                className={`cursor-pointer px-2 hover:bg-gray-50 ${index === currentSongIndex ? 'bg-blue-50' : ''
+                                className={`cursor-pointer track-item px-2 ${index === currentSongIndex ? 'track-item-active' : ''
                                     }`}
                                 onMouseEnter={() => setHoveredIndex(index)}
                                 onMouseLeave={() => setHoveredIndex(-1)}
@@ -104,12 +104,11 @@ const Right: React.FC<RightProps> = ({
                                             className="w-full h-full object-cover rounded"
                                         />
                                         {hoveredIndex === index && (
-                                            <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded">
+                                            <div className="absolute inset-0 flex items-center justify-center bg-[rgba(0,0,0,0.3)] rounded">
                                                 <PlayCircleOutlined style={{ color: 'white', fontSize: 20 }} />
                                             </div>
                                         )}
                                     </div>
-
                                     <div className="flex-1 overflow-hidden">
                                         <div className="text-sm truncate">{item.title}</div>
                                         <div className="text-xs text-gray-400 truncate">{item.artist}</div>
@@ -144,7 +143,7 @@ const Right: React.FC<RightProps> = ({
             <Tooltip title={playModeConfig[playMode].label}>
                 <button
                     onClick={onPlayModeChange}
-                    className="p-2 rounded-full hover:bg-gray-100 transition"
+                    className="p-2 rounded-full play-bar transition"
                 >
                     {playModeConfig[playMode].icon}
                 </button>
@@ -152,7 +151,7 @@ const Right: React.FC<RightProps> = ({
 
             <button
                 onClick={toggleMute}
-                className="p-2 rounded-full hover:bg-gray-100 transition"
+                className="p-2 rounded-full play-bar transition"
             >
                 {isMuted ? <SoundOutlined /> : <SoundFilled />}
             </button>
@@ -169,7 +168,7 @@ const Right: React.FC<RightProps> = ({
                 trigger="click"
                 placement="topRight"
             >
-                <button className="p-2 rounded-full hover:bg-gray-100 transition">
+                <button className="p-2 rounded-full play-bar transition">
                     <OrderedListOutlined style={{ fontSize: 20 }} />
                 </button>
             </Popover>

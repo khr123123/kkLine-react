@@ -5,10 +5,12 @@
     overflow: hidden;
     margin-bottom: 8px;
     height: 70px;
+    background-color: var(--my-hover-color) !important;
 }
 
 /* 普通菜单项 */
 .video-menu .ant-menu-item,
 .video-menu .ant-menu-overflow-item {
     font-weight: 600;
+    background-color: var(--my-hover-color) !important;
 }

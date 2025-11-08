@@ -194,12 +194,14 @@ export default function App() {
       case 'dark':
         root.style.setProperty('--my-hover-color', '#1F1F1F')
         root.style.setProperty('--my-active-color', '#15417E')
+        root.style.setProperty('--my-text-color', '#E7E7E7')
         break
       case 'compact':
       case 'light':
       default:
         root.style.setProperty('--my-hover-color', '#E7E7E7')
         root.style.setProperty('--my-active-color', '#bae7ff')
+        root.style.setProperty('--my-text-color', '#030a0dff')
         break
     }
   }, [themeMode])

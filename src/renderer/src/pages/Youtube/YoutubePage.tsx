@@ -75,7 +75,7 @@ const VideoListTabs = () => {
             }}
         >
             {/* 导航栏 */}
-            <div className="video-menu navigation-bar flex items-center bg-white shadow-sm px-6 h-16 border-b border-red-100">
+            <div className="video-menu navigation-bar flex items-center shadow-sm px-6 h-16 border-b border-red-100">
                 {/* Logo 区域 —— 去掉圆形背景 */}
                 <div className="logo flex items-center mr-8 cursor-pointer">
                     {/* 直接显示 YouTube 图标，无圆形包裹 */}
@@ -89,20 +89,17 @@ const VideoListTabs = () => {
                     <span className="font-bold text-xl text-red-600 ml-2">KK VIDEO</span>
                 </div>
                 {/* 分类菜单 */}
-                <Menu
-                    mode="horizontal"
-                    selectedKeys={[activeTab]}
-                    onClick={(v) => setActiveTab(v.key)}
-                    style={{
-                        borderBottom: 'none',
-                        flex: 1,
-                        fontWeight: 500
-                    }}
+                <Tabs
+                    defaultActiveKey="movie"
+                    onChange={(v) => setActiveTab(v)}
                     items={[
                         { key: 'movie', label: '🎬 电影' },
                         { key: 'tv', label: '📺 电视剧' },
                         { key: 'anime', label: '🎨 动漫' },
                     ]}
+                    style={{
+                        marginTop: 16
+                    }}
                 />
                 <Search
                     placeholder="搜索视频..."

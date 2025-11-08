@@ -31,14 +31,14 @@ const Center: React.FC<CenterProps> = ({
       <div className="flex items-center gap-2 mr-4">
         <button
           onClick={onPrev}
-          className="p-2 rounded-full hover:bg-gray-100 transition"
+          className="p-2 rounded-full play-bar transition"
         >
           <StepBackwardOutlined style={{ fontSize: 18 }} />
         </button>
 
         <button
           onClick={onTogglePlay}
-          className="p-1 rounded-full hover:bg-gray-100 transition"
+          className="p-1 rounded-full play-bar transition"
         >
           {isPlaying ? (
             <PauseCircleFilled style={{ fontSize: 48, color: '#1890ff' }} />
@@ -49,14 +49,14 @@ const Center: React.FC<CenterProps> = ({
 
         <button
           onClick={onNext}
-          className="p-2 rounded-full hover:bg-gray-100 transition"
+          className="p-2 rounded-full play-bar transition"
         >
           <StepForwardOutlined style={{ fontSize: 18 }} />
         </button>
 
         <button
           onClick={onToggleLike}
-          className="p-2 rounded-full hover:bg-gray-100 transition"
+          className="p-2 rounded-full play-bar transition"
         >
           {currentLikeStatus === 1 ? (
             <HeartFilled style={{ fontSize: 18, color: '#ff4d4f' }} />

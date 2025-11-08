@@ -146,7 +146,7 @@ const MusicDrawer: React.FC<MusicDrawerProps> = ({
                     dataSource={trackList}
                     renderItem={(item, index) => (
                       <List.Item
-                        className={`cursor-pointer hover:bg-gray-50 ${index === currentSongIndex ? 'bg-blue-50' : ''
+                        className={`cursor-pointer ${index === currentSongIndex ? 'bg-blue-50' : ''
                           }`}
                         onClick={() => handlePlayTrack(index)}
                       >
@@ -154,6 +154,7 @@ const MusicDrawer: React.FC<MusicDrawerProps> = ({
                           avatar={<Avatar src={item.cover} shape="square" />}
                           title={item.title}
                           description={item.artist}
+                          className='play-bar-tex play-bar'
                         />
                       </List.Item>
                     )}

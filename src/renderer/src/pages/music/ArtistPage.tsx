@@ -78,7 +78,7 @@ export const ArtistPage: React.FC<ArtistPageProps> = ({ onSelectArtist }) => {
     border-gray-200
   ">
         <div className="flex justify-between items-center mb-2">
-          <h2 className="text-lg font-semibold">歌手分类</h2>
+          <h2 className="text-lg font-semibold play-bar-text">歌手分类</h2>
           <Button type="link" size="small" onClick={handleReset}>
             重置
           </Button>
@@ -93,7 +93,7 @@ export const ArtistPage: React.FC<ArtistPageProps> = ({ onSelectArtist }) => {
 
         {/* 性别筛选 */}
         <div className="mb-2 mt-4">
-          <h3 className="font-medium mb-2">性别</h3>
+          <h3 className="font-medium mb-2 play-bar-text">性别</h3>
           <div className="space-y-1">
             {genderCategories.map((cat) => (
               <Button
@@ -113,7 +113,7 @@ export const ArtistPage: React.FC<ArtistPageProps> = ({ onSelectArtist }) => {
 
         {/* 地区筛选 */}
         <div style={{ marginTop: -10 }}>
-          <h3 className="font-medium mb-2">地区</h3>
+          <h3 className="font-medium mb-2 play-bar-text">地区</h3>
           <div className="space-y-1">
             {areaCategories.map((cat) => (
               <Button

@@ -1,7 +1,7 @@
 ﻿// components/PlayerBar/Left.tsx
 import React from 'react';
-import { Track } from '../../hooks/useAudioPlayer';
 import { TikTokOutlined } from '@ant-design/icons';
+import { Track } from '@renderer/store/usePlayerStore';
 interface LeftProps {
   currentTrack: Track;
   onShowDrawer: () => void;
@@ -10,7 +10,7 @@ interface LeftProps {
 const Left: React.FC<LeftProps> = ({ currentTrack, onShowDrawer }) => {
   return (
     <div
-      className="flex items-center gap-2 w-64 cursor-pointer select-none hover:bg-gray-100 transition-colors rounded-lg p-2"
+      className="play-bar flex items-center gap-2 w-64 cursor-pointer select-none transition-colors rounded-lg p-2"
       onClick={onShowDrawer}
     >
       <div style={{
@@ -27,7 +27,7 @@ const Left: React.FC<LeftProps> = ({ currentTrack, onShowDrawer }) => {
       </div>
       <div className="flex-1 overflow-hidden">
         <div
-          className="text-sm font-medium text-gray-900 truncate"
+          className="text-sm font-medium truncate play-bar-text"
           title={currentTrack.title}
         >
           {currentTrack.title}

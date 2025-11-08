@@ -57,7 +57,7 @@ const PlayerBar: React.FC<PlayerBarProps> = ({
 
     return (
         <>
-            <footer className="bg-white shadow-lg border-t border-gray-400 px-4 pt-0 pb-2 flex flex-col gap-0 rounded-lg">
+            <footer className="shadow-lg border-t border-gray-400 px-4 pt-0 pb-2 flex flex-col gap-0 rounded-lg">
                 <div className="flex items-center gap-1 w-full mt-0 pt-0">
                     <span className="text-[11px] text-gray-500 w-12 text-right">
                         {formatTime2Player(currentTime)}
