@@ -63,7 +63,6 @@
     "@livekit/components-styles": "^1.1.6",
     "antd": "^5.26.3",
     "antd-style": "^3.7.1",
-    "artplayer": "^5.3.0",
     "axios": "^1.10.0",
     "better-sqlite3": "^12.2.0",
     "electron-updater": "^6.3.9",
