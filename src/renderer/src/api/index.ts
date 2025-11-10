@@ -15,9 +15,10 @@ import * as commentApis from './commentApis'
 import * as chatVideoAudioApis from './chatVideoAudioApis'
 import * as chatApis from './chatApis'
 import * as ossCallbackApis from './ossCallbackApis'
-import * as artistApis from './artistApis'
 import * as bannerApis from './bannerApis'
+import * as artistApis from './artistApis'
 import * as adApis from './adApis'
+import * as videoProxyApis from './videoProxyApis'
 import * as aiApis from './aiApis'
 export default {
   userApis,
@@ -33,8 +34,9 @@ export default {
   chatVideoAudioApis,
   chatApis,
   ossCallbackApis,
-  artistApis,
   bannerApis,
+  artistApis,
   adApis,
+  videoProxyApis,
   aiApis
 }

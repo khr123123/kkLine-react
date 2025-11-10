@@ -8,6 +8,11 @@ declare namespace API {
     isDeleted?: number
   }
 
+  type addBannerParams = {
+    /** 轮播图文件 */
+    banner: any
+  }
+
   type ApplyDealWithRequest = {
     /** 申请ID，必填 */
     applyId: number
@@ -29,17 +34,6 @@ declare namespace API {
     applyMessage?: string
   }
 
-  type ArtistDetailVO = {
-    artistId?: number
-    artistName?: string
-    gender?: number
-    avatar?: string
-    birth?: string
-    area?: string
-    introduction?: string
-    songs?: SongVO[]
-  }
-
   type ArtistDTO = {
     pageNum: number
     pageSize: number
@@ -48,32 +42,15 @@ declare namespace API {
     area?: string
   }
 
-  type ArtistVO = {
-    artistId?: number
-    artistName?: string
-    avatar?: string
-  }
-
   type BannerDTO = {
     pageNum: number
     pageSize: number
     bannerStatus?: 'ENABLE' | 'DISABLE'
   }
 
-  type BannerVO = {
-    bannerId?: number
-    bannerUrl?: string
-  }
-
   type BaseResponse = {
     code?: number
     data?: Record<string, any>
-    message?: string
-  }
-
-  type BaseResponseArtistDetailVO = {
-    code?: number
-    data?: ArtistDetailVO
     message?: string
   }
 
@@ -107,18 +84,6 @@ declare namespace API {
     message?: string
   }
 
-  type BaseResponseListArtistVO = {
-    code?: number
-    data?: ArtistVO[]
-    message?: string
-  }
-
-  type BaseResponseListBannerVO = {
-    code?: number
-    data?: BannerVO[]
-    message?: string
-  }
-
   type BaseResponseListContactVO = {
     code?: number
     data?: ContactVO[]
@@ -134,18 +99,6 @@ declare namespace API {
   type BaseResponseListGroup = {
     code?: number
     data?: Group[]
-    message?: string
-  }
-
-  type BaseResponseListPlaylistVO = {
-    code?: number
-    data?: PlaylistVO[]
-    message?: string
-  }
-
-  type BaseResponseListSongVO = {
-    code?: number
-    data?: SongVO[]
     message?: string
   }
 
@@ -179,12 +132,6 @@ declare namespace API {
     message?: string
   }
 
-  type BaseResponsePageArtistVO = {
-    code?: number
-    data?: PageArtistVO
-    message?: string
-  }
-
   type BaseResponsePageContactApplyVO = {
     code?: number
     data?: PageContactApplyVO
@@ -197,24 +144,6 @@ declare namespace API {
     message?: string
   }
 
-  type BaseResponsePageMusicBanner = {
-    code?: number
-    data?: PageMusicBanner
-    message?: string
-  }
-
-  type BaseResponsePagePlaylistVO = {
-    code?: number
-    data?: PagePlaylistVO
-    message?: string
-  }
-
-  type BaseResponsePageSongVO = {
-    code?: number
-    data?: PageSongVO
-    message?: string
-  }
-
   type BaseResponsePageUser = {
     code?: number
     data?: PageUser
@@ -224,18 +153,6 @@ declare namespace API {
   type BaseResponsePageUserVO = {
     code?: number
     data?: PageUserVO
-    message?: string
-  }
-
-  type BaseResponsePlaylistDetailVO = {
-    code?: number
-    data?: PlaylistDetailVO
-    message?: string
-  }
-
-  type BaseResponseSongDetailVO = {
-    code?: number
-    data?: SongDetailVO
     message?: string
   }
 
@@ -258,14 +175,17 @@ declare namespace API {
   }
 
   type cancelCollectPlaylistParams = {
+    /** 歌单ID */
     playlistId: number
   }
 
   type cancelCollectSongParams = {
+    /** 歌曲ID */
     songId: number
   }
 
   type cancelLikeCommentParams = {
+    /** 评论ID */
     id: number
   }
 
@@ -316,10 +236,12 @@ declare namespace API {
   }
 
   type collectPlaylistParams = {
+    /** 歌单ID */
     playlistId: number
   }
 
   type collectSongParams = {
+    /** 歌曲ID */
     songId: number
   }
 
@@ -331,15 +253,6 @@ declare namespace API {
   type CommentSongDTO = {
     songId?: number
     content?: string
-  }
-
-  type CommentVO = {
-    commentId?: number
-    username?: string
-    userAvatar?: string
-    content?: string
-    createTime?: string
-    likeCount?: number
   }
 
   type ContactApplyVO = {
@@ -399,10 +312,12 @@ declare namespace API {
   }
 
   type deleteBannerParams = {
+    /** 轮播图ID */
     id: number
   }
 
   type deleteCommentParams = {
+    /** 评论ID */
     id: number
   }
 
@@ -431,10 +346,12 @@ declare namespace API {
   }
 
   type getArtistDetailParams = {
+    /** 歌手ID */
     id: number
   }
 
   type getPlaylistDetailParams = {
+    /** 歌单ID */
     id: number
   }
 
@@ -444,6 +361,7 @@ declare namespace API {
   }
 
   type getSongDetailParams = {
+    /** 歌曲ID */
     id: number
   }
 
@@ -542,6 +460,7 @@ declare namespace API {
   }
 
   type likeCommentParams = {
+    /** 评论ID */
     id: number
   }
 
@@ -578,31 +497,9 @@ declare namespace API {
     file?: FileInfoDTO
   }
 
-  type MusicBanner = {
-    id?: number
-    bannerUrl?: string
-    status?: number
-    createTime?: string
-    updateTime?: string
-  }
-
   type OrderItem = {
     column?: string
     asc?: boolean
-  }
-
-  type PageArtistVO = {
-    records?: ArtistVO[]
-    total?: number
-    size?: number
-    current?: number
-    orders?: OrderItem[]
-    optimizeCountSql?: PageArtistVO
-    searchCount?: PageArtistVO
-    optimizeJoinOfCountSql?: boolean
-    maxLimit?: number
-    countId?: string
-    pages?: number
   }
 
   type PageContactApplyVO = {
@@ -627,48 +524,6 @@ declare namespace API {
     orders?: OrderItem[]
     optimizeCountSql?: PageGroupVO
     searchCount?: PageGroupVO
-    optimizeJoinOfCountSql?: boolean
-    maxLimit?: number
-    countId?: string
-    pages?: number
-  }
-
-  type PageMusicBanner = {
-    records?: MusicBanner[]
-    total?: number
-    size?: number
-    current?: number
-    orders?: OrderItem[]
-    optimizeCountSql?: PageMusicBanner
-    searchCount?: PageMusicBanner
-    optimizeJoinOfCountSql?: boolean
-    maxLimit?: number
-    countId?: string
-    pages?: number
-  }
-
-  type PagePlaylistVO = {
-    records?: PlaylistVO[]
-    total?: number
-    size?: number
-    current?: number
-    orders?: OrderItem[]
-    optimizeCountSql?: PagePlaylistVO
-    searchCount?: PagePlaylistVO
-    optimizeJoinOfCountSql?: boolean
-    maxLimit?: number
-    countId?: string
-    pages?: number
-  }
-
-  type PageSongVO = {
-    records?: SongVO[]
-    total?: number
-    size?: number
-    current?: number
-    orders?: OrderItem[]
-    optimizeCountSql?: PageSongVO
-    searchCount?: PageSongVO
     optimizeJoinOfCountSql?: boolean
     maxLimit?: number
     countId?: string
@@ -703,27 +558,11 @@ declare namespace API {
     pages?: number
   }
 
-  type PlaylistDetailVO = {
-    playlistId?: number
-    title?: string
-    coverUrl?: string
-    introduction?: string
-    songs?: SongVO[]
-    likeStatus?: number
-    comments?: CommentVO[]
-  }
-
   type PlaylistDTO = {
     pageNum: number
     pageSize: number
     title?: string
     style?: string
-  }
-
-  type PlaylistVO = {
-    playlistId?: number
-    title?: string
-    coverUrl?: string
   }
 
   type PushAdRequest = {
@@ -756,20 +595,6 @@ declare namespace API {
     query?: string
   }
 
-  type SongDetailVO = {
-    songId?: number
-    songName?: string
-    artistName?: string
-    album?: string
-    lyric?: string
-    duration?: string
-    coverUrl?: string
-    audioUrl?: string
-    releaseTime?: string
-    likeStatus?: number
-    comments?: CommentVO[]
-  }
-
   type SongDTO = {
     pageNum: number
     pageSize: number
@@ -778,24 +603,22 @@ declare namespace API {
     album?: string
   }
 
-  type SongVO = {
-    songId?: number
-    songName?: string
-    artistName?: string
-    album?: string
-    duration?: string
-    coverUrl?: string
-    audioUrl?: string
-    likeStatus?: number
-    releaseTime?: string
+  type streamProxyParams = {
+    /** 视频URL */
+    url: string
   }
 
   type updateBannerParams = {
+    /** 轮播图ID */
     id: number
+    /** 新的轮播图文件 */
+    banner: any
   }
 
   type updateBannerStatusParams = {
+    /** 轮播图ID */
     id: number
+    /** 轮播图状态 (0:禁用, 1:启用) */
     status: number
   }
 

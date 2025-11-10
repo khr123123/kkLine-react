@@ -4,7 +4,7 @@ import { MoreOutlined, ReloadOutlined } from '@ant-design/icons';
 import { useDataFetch } from './hooks/useDataFetch';
 import { addImageParams, formatTime } from '../../utils/timeUtil';
 import { getBannerList } from '@renderer/api/bannerApis';
-import { getRandomPlaylists } from '@renderer/api/playlistApis';
+import { getRecommendedPlaylists } from '@renderer/api/playlistApis';
 import { getRecommendedSongs } from '@renderer/api/songApis';
 
 interface Banner {
@@ -47,7 +47,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onSelectPlaylist, onPlaySong
 
   const initData = async () => {
     await fetchBanners(() => getBannerList() as any, '获取轮播图失败');
-    await fetchPlaylists(() => getRandomPlaylists() as any, '获取推荐歌单失败');
+    await fetchPlaylists(() => getRecommendedPlaylists() as any, '获取推荐歌单失败');
     await fetchSongs(() => getRecommendedSongs() as any, '获取推荐歌曲失败');
   };
 

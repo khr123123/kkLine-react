@@ -2,7 +2,7 @@
 /* eslint-disable */
 import request from '../http/request'
 
-/** 此处后端没有提供注释 DELETE /favorite/cancelCollectPlaylist */
+/** 取消收藏歌单 从用户收藏列表中移除指定歌单 DELETE /favorite/cancelCollectPlaylist */
 export async function cancelCollectPlaylist(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.cancelCollectPlaylistParams,
@@ -17,7 +17,7 @@ export async function cancelCollectPlaylist(
   })
 }
 
-/** 此处后端没有提供注释 DELETE /favorite/cancelCollectSong */
+/** 取消收藏歌曲 从用户收藏列表中移除指定歌曲 DELETE /favorite/cancelCollectSong */
 export async function cancelCollectSong(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.cancelCollectSongParams,
@@ -32,7 +32,7 @@ export async function cancelCollectSong(
   })
 }
 
-/** 此处后端没有提供注释 POST /favorite/collectPlaylist */
+/** 收藏歌单 将指定歌单添加到用户收藏列表 POST /favorite/collectPlaylist */
 export async function collectPlaylist(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.collectPlaylistParams,
@@ -47,7 +47,7 @@ export async function collectPlaylist(
   })
 }
 
-/** 此处后端没有提供注释 POST /favorite/collectSong */
+/** 收藏歌曲 将指定歌曲添加到用户收藏列表 POST /favorite/collectSong */
 export async function collectSong(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.collectSongParams,
@@ -62,12 +62,12 @@ export async function collectSong(
   })
 }
 
-/** 此处后端没有提供注释 POST /favorite/getFavoritePlaylists */
+/** 获取用户收藏的歌单列表 分页获取当前用户收藏的歌单列表 POST /favorite/getFavoritePlaylists */
 export async function getFavoritePlaylists(
   body: API.PlaylistDTO,
   options?: { [key: string]: any }
 ) {
-  return request<API.BaseResponsePagePlaylistVO>('/favorite/getFavoritePlaylists', {
+  return request<API.BaseResponse>('/favorite/getFavoritePlaylists', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -77,9 +77,9 @@ export async function getFavoritePlaylists(
   })
 }
 
-/** 此处后端没有提供注释 POST /favorite/getFavoriteSongs */
+/** 获取用户收藏的歌曲列表 分页获取当前用户收藏的歌曲列表 POST /favorite/getFavoriteSongs */
 export async function getUserFavoriteSongs(body: API.SongDTO, options?: { [key: string]: any }) {
-  return request<API.BaseResponsePageSongVO>('/favorite/getFavoriteSongs', {
+  return request<API.BaseResponse>('/favorite/getFavoriteSongs', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
