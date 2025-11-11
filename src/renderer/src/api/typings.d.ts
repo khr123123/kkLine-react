@@ -13,6 +13,19 @@ declare namespace API {
     banner: any
   }
 
+  type aiChatParams = {
+    prompt: string
+    sessionId: number
+  }
+
+  type AiSession = {
+    id?: number
+    userId?: number
+    title?: string
+    type?: string
+    createdTime?: string
+  }
+
   type ApplyDealWithRequest = {
     /** 申请ID，必填 */
     applyId: number
@@ -350,6 +363,15 @@ declare namespace API {
     id: number
   }
 
+  type getHistoryChatDetailParams = {
+    type: string
+    sessionId: number
+  }
+
+  type getHistoryChatListParams = {
+    type: string
+  }
+
   type getPlaylistDetailParams = {
     /** 歌单ID */
     id: number
@@ -481,6 +503,12 @@ declare namespace API {
     token?: string
   }
 
+  type Message = {
+    messageType?: 'USER' | 'ASSISTANT' | 'SYSTEM' | 'TOOL'
+    metadata?: Record<string, any>
+    text?: string
+  }
+
   type MessageContent = {
     text?: string
     summary?: string
@@ -589,10 +617,6 @@ declare namespace API {
     contactId: string
     /** 被分享的好友ID或群ID列表 */
     shareIds: string[]
-  }
-
-  type simpleChatParams = {
-    query?: string
   }
 
   type SongDTO = {

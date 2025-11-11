@@ -14,8 +14,6 @@ import GroupInfo from './pages/group/GroupInfo'
 import GroupsPage from './pages/group/GroupsPage'
 import LoginPage from './pages/LoginPage'
 import NotifiPage from './pages/NotifiPage'
-import OpenAiChatPage from './pages/openAi/OpenAiChatPage'
-import OpenAiSessionPage from './pages/openAi/OpenAiSessionPage'
 import SearchPage from './pages/SearchPage'
 import ChatPage from './pages/session/ChatPage'
 import SessionsPage from './pages/session/SessionsPage'
@@ -26,6 +24,7 @@ import AdManagerPage from './adminPages/AdManagerPage'
 import AudioCallModal from './pages/session/components/AudioCallPage'
 import VideoCallModal from './pages/session/components/VideoCallPage'
 import MusicPage from './pages/music'
+import AIPage from './pages/openAi/AIPage'
 // Define routes
 const router = createBrowserRouter([
   {
@@ -116,10 +115,7 @@ const router = createBrowserRouter([
       },
       {
         path: 'openai',
-        element: <OpenAiSessionPage />,
-        handle: {
-          RightArea: () => <OpenAiChatPage />
-        }
+        element: <AIPage />,
       },
       {
         path: 'youtube',
