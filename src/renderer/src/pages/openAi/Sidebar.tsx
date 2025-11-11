@@ -91,7 +91,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onConversationChange, currentSessionI
         <div
             style={{
                 background: 'linear-gradient(180deg, #fafafa 0%, #f0f2f5 100%)',
-                width: 240,
+                width: 220,
                 height: '100vh',
                 display: 'flex',
                 flexDirection: 'column',
