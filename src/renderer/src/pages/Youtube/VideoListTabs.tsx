@@ -324,9 +324,7 @@ const VideoPlayerModal: React.FC = () => {
     useEffect(() => {
         if (!modalVisible || !currentEpisode || !containerRef.current) return;
 
-        const proxyUrl = `${BASE_URL}/video/stream?url=${encodeURIComponent(
-            currentEpisode.url
-        )}`;
+        const videoUrl = currentEpisode.url; // 直接用原始视频 URL
 
         // 销毁旧播放器
         if (playerRef.current) {
@@ -341,7 +339,7 @@ const VideoPlayerModal: React.FC = () => {
                     container: containerRef.current!,
                     autoplay: true,
                     video: {
-                        url: proxyUrl,
+                        url: videoUrl,
                         type: 'customHls',
                         customType: {
                             customHls: (video: HTMLVideoElement) => {
@@ -349,14 +347,11 @@ const VideoPlayerModal: React.FC = () => {
                                     const hls = new Hls({
                                         enableWorker: true,
                                         lowLatencyMode: true,
-                                        xhrSetup: xhr => {
-                                            xhr.setRequestHeader('Authorization', `Bearer ${AUTH_TOKEN}`);
-                                        },
                                     });
-                                    hls.loadSource(proxyUrl); // 注意这里传的是原始 URL
+                                    hls.loadSource(videoUrl);
                                     hls.attachMedia(video);
                                 } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                                    video.src = proxyUrl;
+                                    video.src = videoUrl;
                                 }
                             },
                         },
@@ -375,7 +370,8 @@ const VideoPlayerModal: React.FC = () => {
                 playerRef.current = null;
             }
         };
-    }, [modalVisible, currentEpisode, AUTH_TOKEN, BASE_URL]);
+    }, [modalVisible, currentEpisode]);
+
 
     // ========== 关闭模态框 ==========
     const handleCloseModal = useCallback(() => {
@@ -622,31 +618,31 @@ const VideoPlayerModal: React.FC = () => {
 
             {/* 全局样式 */}
             <style>{`
-        .play-overlay {
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background: rgba(0, 0, 0, 0.3);
-          opacity: 0;
-          transition: opacity 0.3s ease;
-        }
-        .ant-card-hoverable:hover .play-overlay {
-          opacity: 1;
-        }
-        .ant-card-hoverable:hover {
-          transform: translateY(-4px);
-          box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
-        }
-        .ant-tabs-tab {
-          font-size: 16px;
-          padding: 12px 20px;
-        }
-      `}</style>
+            .play-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.3);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            }
+            .ant-card-hoverable:hover .play-overlay {
+            opacity: 1;
+            }
+            .ant-card-hoverable:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+            }
+            .ant-tabs-tab {
+            font-size: 16px;
+            padding: 12px 20px;
+            }
+        `}</style>
         </div>
     );
 };
